@@ -1,0 +1,4 @@
+# separa el repo en aplicaciones
+packages:
+  - "apps/*"
+  - "packages/*"
