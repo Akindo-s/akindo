@@ -115,7 +115,7 @@ async def subir_imagen_perfil(
     file_data = await file.read()
     service = ClienteService(db, storage)
     return await service.subir_imagen_perfil(
-        cliente_id=cliente.id,
+        usuario_id=cliente.id,
         file_data=file_data,
         content_type=file.content_type or "image/jpeg",
         filename=file.filename or "avatar",
