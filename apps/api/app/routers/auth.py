@@ -1,45 +1,33 @@
 """
 Auth router — /auth/*
-Endpoints de autenticación: registro, login, refresh.
+Endpoint de autenticación: login (generación de token JWT).
 """
 
 from fastapi import APIRouter, Depends, status
 
 from app.infrastructure.database import DatabaseSession, get_db
-from app.schemas.auth import RegistroClienteRequest, RegistroClienteResponse
+from app.schemas.auth import LoginRequest, TokenResponse
 from app.services.auth import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post(
-    "/registro/cliente",
-    response_model=RegistroClienteResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Registrar un nuevo cliente",
+    "/token",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Iniciar sesión",
 )
-async def registrar_cliente(
-    data: RegistroClienteRequest,
+async def login(
+    data: LoginRequest,
     db: DatabaseSession = Depends(get_db),
 ):
     """
-    Registra un nuevo usuario de tipo cliente.
+    Autentica al usuario con email y contraseña.
 
-    - Valida que el email no esté en uso.
-    - Crea registros en `usuario` y `cliente`.
-    - Emite evento `ClienteRegistrado`.
+    - Verifica credenciales contra la base de datos.
+    - Genera un JWT con el tipo de usuario y expiración.
+    - Retorna el token de acceso.
     """
     service = AuthService(db)
-    return await service.registrar_cliente(data)
-
-
-@router.post("/login")
-async def login():
-    """Inicia sesión con email y contraseña."""
-    pass
-
-
-@router.post("/refresh")
-async def refresh_token():
-    """Refresca el token de acceso."""
-    pass
+    return await service.login(data)

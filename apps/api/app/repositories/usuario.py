@@ -28,3 +28,19 @@ class UsuarioRepo(BaseRepository[Usuario]):
         """Obtiene un usuario por su ID."""
         results = await self.db.select(self.table, "*", {"id": str(id)})
         return results[0] if results else None
+
+    async def update_partial(self, id: UUID, data: dict) -> dict | None:
+        """
+        Actualiza campos específicos de un usuario.
+
+        Args:
+            id: UUID del usuario.
+            data: diccionario con los campos a actualizar.
+
+        Returns:
+            El registro actualizado o None si no se encontró.
+        """
+        if not data:
+            return await self.get_by_id(id)
+        result = await self.db.update(self.table, data, {"id": str(id)})
+        return result if result else None

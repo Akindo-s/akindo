@@ -189,7 +189,7 @@ usuario = await self.usuario_repo.save(usuario)
 async def save(self, entity):
     self.db.add(entity)       # ← lo marca para insertar
     await self.db.flush()     # ← ejecuta el INSERT ahora (pero NO commit)
-    await self.db.refresh(entity)  # ← recarga los campos generados por la DB (id, created_at)
+    await self.db.refresh(entity)  # ← recarga los campos generados por la DB (id, fecha_creacion)
     return entity
 ```
 
@@ -197,7 +197,7 @@ SQL que se ejecuta:
 ```sql
 INSERT INTO usuario (nombre, email, password_hash, telefono, tipo)
 VALUES ('Carlos López', 'carlos@mail.com', '$2b$12$xKz...', '8112345678', 'cliente')
-RETURNING id, es_verificado, created_at;
+RETURNING id, es_verificado, fecha_creacion;
 ```
 
 > [!NOTE]
@@ -241,7 +241,7 @@ return RegistroClienteResponse(
     email="carlos@mail.com",
     telefono="8112345678",
     es_verificado=False,
-    created_at=datetime(2026, 4, 30, ...),
+    fecha_creacion=datetime(2026, 4, 30, ...),
 )
 ```
 
@@ -271,7 +271,7 @@ HTTP 201 Created
   "email": "carlos@mail.com",
   "telefono": "8112345678",
   "es_verificado": false,
-  "created_at": "2026-04-30T18:40:00Z"
+  "fecha_creacion": "2026-04-30T18:40:00Z"
 }
 ```
 

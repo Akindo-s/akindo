@@ -2,6 +2,7 @@
 ClienteRepo — acceso a datos para el aggregate Cliente.
 Maneja la persistencia en ambas tablas (usuario + cliente)
 siguiendo el patrón class table inheritance.
+Incluye queries para sub-recursos: direcciones, pedidos, carrito.
 """
 
 import uuid
@@ -67,5 +68,42 @@ class ClienteRepo(BaseRepository[Cliente]):
             imagen_perfil=usuario_data.get("imagen_perfil"),
             es_verificado=usuario_data.get("es_verificado", False),
             tipo=TipoUsuario(usuario_data.get("tipo", "cliente")),
-            fecha_creacion=usuario_data.get("created_at"),
+            fecha_creacion=usuario_data.get("fecha_creacion"),
+        )
+
+    # ── Sub-recursos ───────────────────────────────────────────────
+
+    async def get_direcciones(self, cliente_id: uuid.UUID) -> list[dict]:
+        """Obtiene todas las direcciones del cliente."""
+        return await self.db.select(
+            "direccion_cliente",
+            "*",
+            {"cliente_id": str(cliente_id)},
+        )
+
+    async def crear_direccion(self,cliente_id:uuid.UUID,direccion:dict)->dict:
+        """Registra una nueva direccion para el cliente"""
+        direccion['cliente_id'] = cliente_id
+        return await self.db.insert(
+            "direccion_cliente",
+            direccion
+        )
+
+    async def get_pedidos(self, cliente_id: uuid.UUID) -> list[dict]:
+        """Obtiene todas las órdenes de pedido del cliente."""
+        return await self.db.select(
+            "orden_pedido",
+            "*",
+            {"cliente_id": str(cliente_id)},
+        )
+
+    async def get_carritos(self, cliente_id: uuid.UUID) -> list[dict]:
+        """
+        Obtiene todos los carritos del cliente con sus items.
+        Usa join implícito vía PostgREST para traer carrito_item.
+        """
+        return await self.db.select(
+            "carrito",
+            "*, carrito_item(*)",
+            {"cliente_id": str(cliente_id)},
         )

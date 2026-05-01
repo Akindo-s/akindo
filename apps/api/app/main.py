@@ -3,7 +3,6 @@
 Registra routers, middleware y exception handlers.
 """
 
-from app.schemas.auth import RegistroClienteRequest
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,6 +12,12 @@ from app.core.middleware.auth import AuthMiddleware
 from app.core.middleware.logging import RequestLogger
 from app.events.bus import event_bus
 from app.events.cliente_registrado import EventoEnviarMensajeBienvenidaCliente
+from app.events.cliente_sesion import RegistrarUltimoAccesoCliente
+from app.events.cliente_perfil import (
+    RegistrarConsultaPerfil,
+    NotificarCambioPerfilCliente,
+    RegistrarCambioImagenPerfil,
+)
 from app.infrastructure.database import DatabaseSession, get_db
 from app.routers import auth, clientes, distribuidores, pedidos, productos
 import logging
@@ -52,6 +57,10 @@ app.include_router(pedidos.router)
 
 # ── Suscriptores de eventos ────────────────────────────────────────
 event_bus.subscribe("cliente.registrado", EventoEnviarMensajeBienvenidaCliente())
+event_bus.subscribe("cliente.inicio_sesion", RegistrarUltimoAccesoCliente())
+event_bus.subscribe("cliente.perfil_consultado", RegistrarConsultaPerfil())
+event_bus.subscribe("cliente.perfil_actualizado", NotificarCambioPerfilCliente())
+event_bus.subscribe("cliente.imagen_perfil_subida", RegistrarCambioImagenPerfil())
 
 
 # ── Health check ───────────────────────────────────────────────────

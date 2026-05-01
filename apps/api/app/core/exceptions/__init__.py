@@ -3,6 +3,12 @@ from .base import (
     NotFoundException,
     UnauthorizedException,
     ConflictException,
+    ValidationException,
+    ForbiddenException,
+    TokenExpiredException,
+    InvalidTokenException,
+    StorageException,
+    DatabaseException,
 )
 
 __all__ = [
@@ -10,4 +16,10 @@ __all__ = [
     "NotFoundException",
     "UnauthorizedException",
     "ConflictException",
+    "ValidationException",
+    "ForbiddenException",
+    "TokenExpiredException",
+    "InvalidTokenException",
+    "StorageException",
+    "DatabaseException",
 ]

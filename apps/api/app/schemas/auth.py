@@ -23,22 +23,18 @@ class RegistroClienteResponse(BaseModel):
     email: str
     telefono: str | None
     es_verificado: bool
-    created_at: datetime | None
-
+    fecha_creacion: datetime | None
 
     model_config = {"from_attributes": True}
 
 
 class LoginRequest(BaseModel):
     """Datos para iniciar sesión."""
-    pass
+    email: str
+    password: str
 
 
-class LoginResponse(BaseModel):
-    """Respuesta tras login exitoso."""
-    pass
-
-
-class TokenRefreshRequest(BaseModel):
-    """Datos para refrescar un token."""
-    pass
+class TokenResponse(BaseModel):
+    """Respuesta tras login exitoso — contiene el JWT."""
+    access_token: str
+    token_type: str = "bearer"
