@@ -76,3 +76,11 @@ class DatabaseException(AkindoBaseException):
 
     def __init__(self, detail: str = "Error en el servicio de base de datos"):
         super().__init__(detail=detail, status_code=503)
+
+
+class AggregateNoValido(AkindoBaseException):
+    """El Aggregate no cumple con las reglas de negocio (invariantes) — HTTP 422."""
+
+    def __init__(self, detail: str = "Aggregate inválido"):
+        super().__init__(detail=detail, status_code=422)
+

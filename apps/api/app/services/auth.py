@@ -97,22 +97,22 @@ class AuthService:
             raise UnauthorizedException("Credenciales inválidas")
 
         # 2 — Verificar contraseña
-        if not Hasher.verificar(data.password, usuario["password_hash"]):
+        if not Hasher.verificar(data.password, usuario.password_hash):
             raise UnauthorizedException("Credenciales inválidas")
 
         # 3 — Generar token
         token = self._jwt.create_access_token(
             data={
-                "sub": str(usuario["id"]),
-                "tipo": usuario["tipo"],
+                "sub": str(usuario.id),
+                "tipo": usuario.tipo.value,
             }
         )
 
         # 4 — Publicar evento
         await event_bus.publish(
             ClienteInicioSesion(
-                usuario_id=usuario["id"],
-                email=usuario["email"],
+                usuario_id=usuario.id,
+                email=usuario.email,
             )
         )
 

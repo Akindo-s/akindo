@@ -10,8 +10,9 @@ from typing import Generic, TypeVar
 from uuid import UUID
 
 from app.infrastructure.database import DatabaseSession
+from app.models.base import Aggregate
 
-T = TypeVar("T")
+T = TypeVar("T", bound=Aggregate)
 
 
 class BaseRepository(ABC, Generic[T]):
@@ -22,14 +23,20 @@ class BaseRepository(ABC, Generic[T]):
     def __init__(self, db: DatabaseSession):
         self.db = db
 
-    async def get(self, id: UUID) -> dict | None:
-        """Obtiene un registro por su ID primario."""
+    async def get(self, id: UUID) -> T | None:
+        """Obtiene un registro por su ID primario e hidrata el Aggregate."""
         results = await self.db.select(self.table, "*", {"id": str(id)})
-        return results[0] if results else None
+        return self._to_aggregate(results[0]) if results else None
 
-    async def get_all(self) -> list[dict]:
-        """Retorna todos los registros de esta tabla."""
-        return await self.db.select(self.table)
+    async def get_all(self) -> list[T]:
+        """Retorna todos los registros hidratados como Aggregates."""
+        results = await self.db.select(self.table)
+        return [self._to_aggregate(row) for row in results]
+
+    @abstractmethod
+    def _to_aggregate(self, row: dict) -> T:
+        """Convierte una fila de la base de datos a una instancia de Aggregate."""
+        ...
 
     async def upsert(self, data: dict) -> Coroutine:
         """Guarda o actualiza el registro en la tabla"""

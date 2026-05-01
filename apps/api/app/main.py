@@ -8,6 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.exceptions.base import AkindoBaseException
 from app.core.exceptions.handlers import global_exception_handler
+import traceback
+from fastapi.responses import JSONResponse
+from fastapi import Request
 from app.core.middleware.auth import AuthMiddleware
 from app.core.middleware.logging import RequestLogger
 from app.events.bus import event_bus
@@ -28,6 +31,12 @@ logging.basicConfig(
 )
 # ── App ────────────────────────────────────────────────────────────
 app = FastAPI(title="Akindo API")
+
+@app.exception_handler(Exception)
+async def catch_all(request: Request, exc: Exception):
+    print("UNHANDLED EXCEPTION:")
+    traceback.print_exc()
+    return JSONResponse(status_code=500, content={"detail": 'error del sistema, intente de nuevo'}) 
 
 # ── CORS ───────────────────────────────────────────────────────────
 app.add_middleware(

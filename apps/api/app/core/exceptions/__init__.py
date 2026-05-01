@@ -9,6 +9,7 @@ from .base import (
     InvalidTokenException,
     StorageException,
     DatabaseException,
+    AggregateNoValido,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "InvalidTokenException",
     "StorageException",
     "DatabaseException",
+    "AggregateNoValido",
 ]

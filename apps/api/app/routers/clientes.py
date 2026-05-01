@@ -13,6 +13,7 @@ Endpoints:
 
 from app.schemas.cliente import DireccionClienteRequest
 from uuid import UUID
+from app.models.cliente import Cliente
 
 from fastapi import APIRouter, Depends, UploadFile, File, status
 
@@ -68,12 +69,12 @@ async def registrar_cliente(
     summary="Obtener mi perfil",
 )
 async def get_mi_perfil(
-    cliente: dict = Depends(get_current_cliente),
+    cliente: Cliente = Depends(get_current_cliente),
     db: DatabaseSession = Depends(get_db),
 ):
     """Retorna la información del perfil del cliente autenticado."""
     service = ClienteService(db)
-    return await service.get_perfil(cliente["id"])
+    return await service.get_perfil(cliente.id)
 
 
 @router.patch(
@@ -83,7 +84,7 @@ async def get_mi_perfil(
 )
 async def actualizar_mi_perfil(
     data: ClientePerfilUpdateRequest,
-    cliente: dict = Depends(get_current_cliente),
+    cliente: Cliente = Depends(get_current_cliente),
     db: DatabaseSession = Depends(get_db),
 ):
     """
@@ -91,7 +92,7 @@ async def actualizar_mi_perfil(
     Solo se actualizan los campos enviados en el body.
     """
     service = ClienteService(db)
-    return await service.actualizar_perfil(cliente["id"], data)
+    return await service.actualizar_perfil(cliente.id, data)
 
 
 @router.put(
@@ -101,7 +102,7 @@ async def actualizar_mi_perfil(
 )
 async def subir_imagen_perfil(
     file: UploadFile = File(...),
-    cliente: dict = Depends(get_current_cliente),
+    cliente: Cliente = Depends(get_current_cliente),
     db: DatabaseSession = Depends(get_db),
     storage: StorageAdapter = Depends(get_storage),
 ):
@@ -114,7 +115,7 @@ async def subir_imagen_perfil(
     file_data = await file.read()
     service = ClienteService(db, storage)
     return await service.subir_imagen_perfil(
-        usuario_id=cliente["id"],
+        cliente_id=cliente.id,
         file_data=file_data,
         content_type=file.content_type or "image/jpeg",
         filename=file.filename or "avatar",
@@ -123,19 +124,18 @@ async def subir_imagen_perfil(
 
 # ── Sub-recursos del cliente autenticado ───────────────────────────
 
-
 @router.get(
     "/me/direcciones",
     response_model=list[DireccionResponse],
     summary="Obtener mis direcciones",
 )
 async def get_mis_direcciones(
-    cliente: dict = Depends(get_current_cliente),
+    cliente: Cliente = Depends(get_current_cliente),
     db: DatabaseSession = Depends(get_db),
 ):
     """Retorna todas las direcciones del cliente autenticado."""
     service = ClienteService(db)
-    return await service.get_direcciones(cliente["id"])
+    return await service.get_direcciones(cliente.id)
 
 @router.post(
     '/me/direcciones',
@@ -146,12 +146,12 @@ async def get_mis_direcciones(
 
 async def subir_direccion(
     direccion : DireccionClienteRequest,
-    cliente:dict = Depends(get_current_cliente),
+    cliente: Cliente = Depends(get_current_cliente),
     db: DatabaseSession = Depends(get_db)
 ):
 
     service = ClienteService(db)
-    return await service.crear_direccion(cliente['id'],direccion)
+    return await service.crear_direccion(cliente.id,direccion)
 
 
 
@@ -161,12 +161,12 @@ async def subir_direccion(
     summary="Obtener mis pedidos",
 )
 async def get_mis_pedidos(
-    cliente: dict = Depends(get_current_cliente),
+    cliente: Cliente = Depends(get_current_cliente),
     db: DatabaseSession = Depends(get_db),
 ):
     """Retorna todas las órdenes de pedido del cliente autenticado."""
     service = ClienteService(db)
-    return await service.get_pedidos(cliente["id"])
+    return await service.get_pedidos(cliente.id)
 
 
 @router.get(
@@ -175,9 +175,9 @@ async def get_mis_pedidos(
     summary="Obtener mi carrito",
 )
 async def get_mi_carrito(
-    cliente: dict = Depends(get_current_cliente),
+    cliente: Cliente = Depends(get_current_cliente),
     db: DatabaseSession = Depends(get_db),
 ):
     """Retorna todos los carritos del cliente autenticado con sus items."""
     service = ClienteService(db)
-    return await service.get_carritos(cliente["id"])
+    return await service.get_carritos(cliente.id)

@@ -20,6 +20,13 @@ class Cliente(Usuario):
     toda la lógica de creación y serialización del dominio.
     """
 
+    def check(self) -> None:
+        """Verifica los invariantes específicos de Cliente, y los de Usuario."""
+        super().check()
+        from app.core.exceptions.base import AggregateNoValido
+        if self.tipo != TipoUsuario.CLIENTE:
+            raise AggregateNoValido("El tipo de usuario debe ser cliente")
+
     @classmethod
     def crear(
         cls,
@@ -53,5 +60,5 @@ class Cliente(Usuario):
             "imagen_perfil": self.imagen_perfil,
             "es_verificado": self.es_verificado,
             "tipo": self.tipo.value,
-            'fecha_creacion':str(self.fehca_creacion)
+            'fecha_creacion':str(self.fecha_creacion)
         }

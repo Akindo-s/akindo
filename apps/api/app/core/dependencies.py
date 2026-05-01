@@ -19,16 +19,20 @@ from app.infrastructure.database import DatabaseSession, get_db
 from app.infrastructure.jwt import JWTProvider
 from app.models.base import TipoUsuario
 from app.repositories.usuario import UsuarioRepo
+from app.repositories.cliente import ClienteRepo
+from app.models.cliente import Cliente
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 _jwt = JWTProvider()
 
 
+from app.models.usuario import Usuario
+
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: DatabaseSession = Depends(get_db),
-) -> dict:
+) -> Usuario:
     """
     Decodifica el JWT del header Authorization y retorna los datos
     del usuario desde la base de datos.
@@ -51,15 +55,24 @@ async def get_current_user(
     return usuario
 
 
+
 async def get_current_cliente(
-    user: dict = Depends(get_current_user),
-) -> dict:
+    user: Usuario = Depends(get_current_user),
+    db: DatabaseSession = Depends(get_db)
+) -> Cliente:
     """
-    Pre-filtra: solo permite acceso a usuarios de tipo 'cliente'.
+    Pre-filtra: solo permite acceso a usuarios de tipo 'cliente' y retorna el Aggregate Cliente.
 
     Raises:
         ForbiddenException: si el usuario no es de tipo cliente.
+        NotFoundException: si no se encuentra la entidad Cliente.
     """
-    if user.get("tipo") != TipoUsuario.CLIENTE.value:
+    if user.tipo != TipoUsuario.CLIENTE:
         raise ForbiddenException("Solo los clientes autenticados pueden acceder a este recurso")
-    return user
+    
+    repo = ClienteRepo(db)
+    cliente = await repo.get_by_id(user.id)
+    if not cliente:
+        raise NotFoundException("Entidad Cliente no encontrada para este usuario")
+        
+    return cliente

@@ -19,6 +19,15 @@ class Aggregate(ABC):
     id: uuid.UUID = field(default_factory=uuid.uuid4) # TODO : esto puede darme problemas si genera el id desde aqui.
     fecha_creacion: datetime | None = None
 
+    def __post_init__(self):
+        """Validación automática después de la inicialización de la dataclass."""
+        self.check()
+
+    @abstractmethod
+    def check(self) -> None:
+        """Verifica los invariantes del aggregate. Lanza AggregateNoValido si falla."""
+        ...
+
     @classmethod
     @abstractmethod
     def crear(cls, **kwargs) -> "Aggregate":

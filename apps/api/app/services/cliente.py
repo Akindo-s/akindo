@@ -52,13 +52,13 @@ class ClienteService:
         )
 
         return ClientePerfilResponse(
-            id=usuario["id"],
-            nombre=usuario["nombre"],
-            email=usuario["email"],
-            telefono=usuario.get("telefono"),
-            imagen_perfil=usuario.get("imagen_perfil"),
-            es_verificado=usuario.get("es_verificado", False),
-            fecha_creacion=usuario.get("fecha_creacion"),
+            id=usuario.id,
+            nombre=usuario.nombre,
+            email=usuario.email,
+            telefono=usuario.telefono,
+            imagen_perfil=usuario.imagen_perfil,
+            es_verificado=usuario.es_verificado,
+            fecha_creacion=usuario.fecha_creacion,
         )
 
     async def actualizar_perfil(
@@ -74,8 +74,16 @@ class ClienteService:
         if not campos:
             raise ValidationException("No se enviaron campos para actualizar")
 
-        # Actualizar en DB
-        await self.usuario_repo.update_partial(usuario_id, campos)
+        # Obtener aggregate
+        usuario = await self.usuario_repo.get_by_id(usuario_id)
+        if not usuario:
+            raise NotFoundException("Cliente no encontrado")
+
+        # Actualizar usando la lógica de dominio
+        usuario.actualizar_datos(**campos)
+
+        # Guardar cambios
+        await self.usuario_repo.save(usuario)
 
         # Publicar evento
         await event_bus.publish(
@@ -118,8 +126,13 @@ class ClienteService:
         # Subir a Supabase Storage
         url = await self.storage.upload("avatars", path, file_data, content_type)
 
-        # Actualizar URL en la DB
-        await self.usuario_repo.update_partial(usuario_id, {"imagen_perfil": url})
+        # Actualizar URL en el Aggregate
+        usuario = await self.usuario_repo.get_by_id(usuario_id)
+        if not usuario:
+            raise NotFoundException("Cliente no encontrado")
+        
+        usuario.imagen_perfil = url
+        await self.usuario_repo.save(usuario)
 
         # Publicar evento
         await event_bus.publish(
@@ -134,24 +147,40 @@ class ClienteService:
     # ── Direcciones ────────────────────────────────────────────────
 
     async def get_direcciones(self, cliente_id: UUID) -> list[DireccionResponse]:
-        """Obtiene todas las direcciones del cliente."""
-        rows = await self.cliente_repo.get_direcciones(cliente_id)
-        return [DireccionResponse(**row) for row in rows]
+        """Obtiene todas las direcciones del cliente usando Aggregates."""
+        direcciones_agg = await self.cliente_repo.get_direcciones(cliente_id)
+        return [DireccionResponse(
+            id=d.id,
+            calle=d.calle,
+            ciudad=d.ciudad,
+            estado=d.estado,
+            codigo_postal=d.codigo_postal,
+            es_predeterminada=d.es_predeterminada
+        ) for d in direcciones_agg]
 
-    async def crear_direccion(self,cliente_id: UUID,direccion)->DireccionResponse:
-        # TODO : aqui deberia de ir un algoritmo de verificacion de direccion, queremos saber que es real.
-        response = await self.cliente_repo.crear_direccion(cliente_id,direccion.model_dump())
-        if response.get("id") == None:
-            raise Exception(f"No se creo correctamente la direccion para el cliente {cliente_id}")
-        return DireccionResponse(
-            id=response.get('id'),
-            calle=response.get("calle"),
-            ciudad=response.get('ciudad'),
-            estado=response.get('estado'),
-            codigo_postal=response.get('codigo_postal'),
-            es_predeterminada=response.get('es_predeterminada')
+    async def crear_direccion(self, cliente_id: UUID, direccion) -> DireccionResponse:
+        from app.models.direccion import DireccionCliente
+        
+        # 1. Crear el Aggregate (se ejecuta check() en el constructor)
+        nueva_direccion = DireccionCliente.crear(
+            calle=direccion.calle,
+            estado=direccion.estado,
+            ciudad=direccion.ciudad,
+            codigo_postal=direccion.codigo_postal,
+            es_predeterminada=direccion.es_predeterminada
         )
         
+        # 2. Persistir
+        guardada = await self.cliente_repo.crear_direccion(cliente_id, nueva_direccion)
+        
+        return DireccionResponse(
+            id=guardada.id,
+            calle=guardada.calle,
+            ciudad=guardada.ciudad,
+            estado=guardada.estado,
+            codigo_postal=guardada.codigo_postal,
+            es_predeterminada=guardada.es_predeterminada
+        )
 
     # ── Pedidos ────────────────────────────────────────────────────
 
