@@ -73,6 +73,8 @@ class CatalogoPaginatedResponse(BaseModel):
     pagina_actual: int
     tiene_siguiente: bool
     tiene_anterior: bool
+    siguiente_url: str | None = None
+    anterior_url: str | None = None
     productos: list[ProductoCatalogoResponse]
 
 
@@ -108,5 +110,7 @@ class DistribuidoresPaginatedResponse(BaseModel):
     pagina_actual: int
     tiene_siguiente: bool
     tiene_anterior: bool
+    siguiente_url: str | None = None
+    anterior_url: str | None = None
     distribuidores: list[MiniDistribuidorResponse]
 

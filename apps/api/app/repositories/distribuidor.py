@@ -89,13 +89,26 @@ class DistribuidorRepo(BaseRepository[Distribuidor]):
         
         await self.db.upsert("distribuidor", distribuidor_dict)
 
+        # 3. UPSERT direcciones
+        for direccion in aggregate.direcciones:
+            dir_dict = {
+                "id": str(direccion.id),
+                "distribuidor_id": str(aggregate.id),
+                "calle": direccion.calle,
+                "ciudad": direccion.ciudad,
+                "estado": direccion.estado,
+                "codigo_postal": direccion.codigo_postal,
+                "es_predeterminada": direccion.es_predeterminada
+            }
+            await self.db.upsert("direccion_distribuidor", dir_dict)
+
         return aggregate
 
     async def get_by_id(self, id: uuid.UUID) -> Distribuidor | None:
         """Obtiene un Distribuidor reconstruyendo el aggregate desde ambas tablas."""
         results = await self.db.select(
             "distribuidor",
-            "*, usuario(*)",
+            "*, usuario(*), direccion_distribuidor(*)",
             {"usuario_id": str(id)},
         )
         if not results:

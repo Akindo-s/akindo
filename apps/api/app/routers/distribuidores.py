@@ -3,7 +3,7 @@ Distribuidores router — /distribuidores/*
 """
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, UploadFile, status, HTTPException, Query
+from fastapi import APIRouter, Depends, File, UploadFile, status, HTTPException, Query, Request
 
 from app.core.dependencies import get_current_user, get_current_distribuidor, get_db
 from app.infrastructure.database import DatabaseSession
@@ -41,6 +41,7 @@ async def registrar_distribuidor(
 
 @router.get("/", response_model=DistribuidoresPaginatedResponse)
 async def listar_distribuidores(
+    request: Request,
     numero_pagina: int = Query(1, ge=1, description="Número de página"),
     cantidad_pagina: int = Query(5, ge=1, le=100, description="Cantidad de resultados por página"),
     categorias: list[UUID] | None = Query(None, description="Lista de UUIDs de categorías para filtrar"),
@@ -54,13 +55,20 @@ async def listar_distribuidores(
     Requiere autenticación (cliente o distribuidor).
     """
     service = DistribuidorService(db)
-    return await service.listar_distribuidores(
+    response = await service.listar_distribuidores(
         numero_pagina=numero_pagina,
         cantidad_pagina=cantidad_pagina,
         categorias=categorias,
         valoracion_min=valoracion_min,
         valoracion_max=valoracion_max
     )
+    
+    if response.tiene_siguiente and request is not None:
+        response.siguiente_url = str(request.url.include_query_params(numero_pagina=numero_pagina + 1))
+    if response.tiene_anterior and request is not None:
+        response.anterior_url = str(request.url.include_query_params(numero_pagina=numero_pagina - 1))
+        
+    return response
 
 
 @router.get("/{distribuidor_id}", response_model=DistribuidorResponse)
@@ -76,6 +84,7 @@ async def obtener_distribuidor(
 
 @router.get("/{distribuidor_id}/catalogo", response_model=CatalogoPaginatedResponse)
 async def get_catalogo(
+    request: Request,
     distribuidor_id: UUID,
     numero_pagina: int = 1,
     cantidad_pagina: int = 20,
@@ -84,7 +93,14 @@ async def get_catalogo(
 ):
     """ Obtiene una mini versión paginada de todos los productos de un distribuidor"""
     service = DistribuidorService(db)
-    return await service.get_catalogo(distribuidor_id, numero_pagina, cantidad_pagina)
+    response = await service.get_catalogo(distribuidor_id, numero_pagina, cantidad_pagina)
+    
+    if response.tiene_siguiente and request is not None:
+        response.siguiente_url = str(request.url.include_query_params(numero_pagina=numero_pagina + 1))
+    if response.tiene_anterior and request is not None:
+        response.anterior_url = str(request.url.include_query_params(numero_pagina=numero_pagina - 1))
+        
+    return response
 
 
 @router.get("/{distribuidor_id}/valoraciones", response_model=list[ValoracionResponse])
