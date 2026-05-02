@@ -9,6 +9,14 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 
+@dataclass(frozen=True)
+class ValueObject(ABC):
+    """
+    Clase base para todos los Value Objects.
+    Son inmutables y su identidad se basa en sus atributos.
+    """
+    pass
+
 @dataclass(kw_only=True)
 class Aggregate(ABC):
     """

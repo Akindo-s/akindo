@@ -22,6 +22,8 @@ from app.schemas.distribuidor import (
 )
 from app.services.auth import AuthService
 from app.services.distribuidor import DistribuidorService
+from app.services.estadisticas import EstadisticasService
+from app.schemas.estadisticas import TipoEstadistica, EstadisticasDistribuidorResponse
 
 router = APIRouter(prefix="/distribuidores", tags=["Distribuidores"])
 
@@ -115,6 +117,17 @@ async def get_valoraciones(
 
 
 # ── Solo para el propio distribuidor ───────────────────────────────
+
+@router.get('/me/estadisticas', response_model=EstadisticasDistribuidorResponse)
+async def obtener_estadisticas_distribuidor(
+    tipo: TipoEstadistica = Query(..., description="Tipo de estadística a consultar"),
+    distribuidor_auth: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db)
+):
+    """Obtiene estadísticas del negocio del distribuidor."""
+    service = EstadisticasService(db)
+    return await service.obtener_estadistica(distribuidor_auth.id, tipo)
+
 
 @router.patch('/{distribuidor_id}', response_model=DistribuidorResponse)
 async def actualizar_informacion_distribuidor(

@@ -31,6 +31,8 @@ from app.schemas.cliente import (
 )
 from app.services.auth import AuthService
 from app.services.cliente import ClienteService
+from app.services.carrito import CarritoService
+from app.schemas.carrito import CarritoItemRequest, CarritoResponse as CarritoResponseNew
 
 router = APIRouter(prefix="/clientes", tags=["Clientes"])
 
@@ -172,7 +174,7 @@ async def get_mis_pedidos(
 @router.get(
     "/me/carrito",
     response_model=list[CarritoResponse],
-    summary="Obtener mi carrito",
+    summary="Obtener mis carritos (Todos)",
 )
 async def get_mi_carrito(
     cliente: Cliente = Depends(get_current_cliente),
@@ -181,3 +183,55 @@ async def get_mi_carrito(
     """Retorna todos los carritos del cliente autenticado con sus items."""
     service = ClienteService(db)
     return await service.get_carritos(cliente.id)
+
+@router.get(
+    "/me/carritos/{distribuidor_id}",
+    response_model=CarritoResponseNew,
+    summary="Obtener carrito por distribuidor"
+)
+async def get_carrito_distribuidor(
+    distribuidor_id: UUID,
+    cliente: Cliente = Depends(get_current_cliente),
+    db: DatabaseSession = Depends(get_db)
+):
+    """Obtiene el carrito con un distribuidor específico."""
+    service = CarritoService(db)
+    return await service.get_carrito(cliente.id, distribuidor_id)
+
+@router.put(
+    "/me/carritos/{distribuidor_id}/items/{producto_id}",
+    summary="Agregar o modificar item en carrito"
+)
+async def upsert_carrito_item(
+    distribuidor_id: UUID,
+    producto_id: UUID,
+    data: CarritoItemRequest,
+    cliente: Cliente = Depends(get_current_cliente),
+    db: DatabaseSession = Depends(get_db)
+):
+    """Agrega o modifica la cantidad de un producto. Si la cantidad es 0, lo elimina."""
+    service = CarritoService(db)
+    return await service.agregar_o_modificar_producto(
+        cliente_id=cliente.id,
+        distribuidor_id=distribuidor_id,
+        producto_id=producto_id,
+        cantidad=data.cantidad
+    )
+
+@router.delete(
+    "/me/carritos/{distribuidor_id}/items/{producto_id}",
+    summary="Eliminar item del carrito"
+)
+async def eliminar_carrito_item(
+    distribuidor_id: UUID,
+    producto_id: UUID,
+    cliente: Cliente = Depends(get_current_cliente),
+    db: DatabaseSession = Depends(get_db)
+):
+    """Remueve explícitamente un producto del carrito."""
+    service = CarritoService(db)
+    return await service.remover_producto(
+        cliente_id=cliente.id,
+        distribuidor_id=distribuidor_id,
+        producto_id=producto_id
+    )
