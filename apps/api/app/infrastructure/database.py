@@ -33,6 +33,8 @@ class DatabaseSession(ABC):
         table: str,
         columns: str = "*",
         filters: dict | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
     ) -> list[dict]:
         """Selecciona registros de la tabla indicada."""
         ...
@@ -54,7 +56,7 @@ class DatabaseSession(ABC):
 
 
     @abstractmethod
-    async def upsert(self,table:str,data:dict) -> Coroutine:
+    async def upsert(self, table: str, data: dict) -> dict:
         """Inserta o actualiza el registro en la tabla"""
         ...
 
@@ -88,11 +90,17 @@ class SupabaseDb(DatabaseSession):
         table: str,
         columns: str = "*",
         filters: dict | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
     ) -> list[dict]:
         query = self._client.table(table).select(columns)
         if filters:
             for key, value in filters.items():
                 query = query.eq(key, value)
+        if limit is not None:
+            query = query.limit(limit)
+        if offset is not None:
+            query = query.offset(offset)
         response = await query.execute()
         return response.data
 
@@ -113,10 +121,10 @@ class SupabaseDb(DatabaseSession):
         response = await self._client.rpc(function_name, params or {}).execute()
         return response.data
     
-    async def upsert(self,table:str,data:dict)->Coroutine:
+    async def upsert(self,table:str,data:dict) -> dict:
         query = self._client.table(table).upsert(data)
-        response = query.execute()
-        return response
+        response = await query.execute()
+        return response.data[0] if response.data else {}
 
         
 

@@ -21,6 +21,8 @@ from app.models.base import TipoUsuario
 from app.repositories.usuario import UsuarioRepo
 from app.repositories.cliente import ClienteRepo
 from app.models.cliente import Cliente
+from app.repositories.distribuidor import DistribuidorRepo
+from app.models.distribuidor import Distribuidor
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
@@ -76,3 +78,20 @@ async def get_current_cliente(
         raise NotFoundException("Entidad Cliente no encontrada para este usuario")
         
     return cliente
+
+async def get_current_distribuidor(
+    user: Usuario = Depends(get_current_user),
+    db: DatabaseSession = Depends(get_db)
+) -> Distribuidor:
+    """
+    Pre-filtra: solo permite acceso a usuarios de tipo 'distribuidor' y retorna el Aggregate Distribuidor.
+    """
+    if user.tipo != TipoUsuario.DISTRIBUIDOR:
+        raise ForbiddenException("Solo los distribuidores autenticados pueden acceder a este recurso")
+    
+    repo = DistribuidorRepo(db)
+    distribuidor = await repo.get_by_id(user.id)
+    if not distribuidor:
+        raise NotFoundException("Entidad Distribuidor no encontrada para este usuario")
+        
+    return distribuidor

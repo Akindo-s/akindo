@@ -17,7 +17,7 @@ class UsuarioRepo(BaseRepository[Usuario]):
         """Hidrata un Aggregate Usuario desde un diccionario de base de datos."""
         # Convertimos strings a tipos nativos
         id_obj = UUID(row["id"]) if isinstance(row["id"], str) else row["id"]
-        fecha_obj = datetime.fromisoformat(row["fecha_creacion"]) if "fecha_creacion" in row and row["fecha_creacion"] else None
+        fecha_obj = datetime.fromisoformat(row["created_at"]) if "created_at" in row and row["created_at"] else None
         
         return Usuario(
             id=id_obj,

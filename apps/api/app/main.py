@@ -21,6 +21,7 @@ from app.events.cliente_perfil import (
     NotificarCambioPerfilCliente,
     RegistrarCambioImagenPerfil,
 )
+from app.events.distribuidor_registrado import EventoEnviarMensajeBienvenidaDistribuidor
 from app.infrastructure.database import DatabaseSession, get_db
 from app.routers import auth, clientes, distribuidores, pedidos, productos
 import logging
@@ -70,7 +71,7 @@ event_bus.subscribe("cliente.inicio_sesion", RegistrarUltimoAccesoCliente())
 event_bus.subscribe("cliente.perfil_consultado", RegistrarConsultaPerfil())
 event_bus.subscribe("cliente.perfil_actualizado", NotificarCambioPerfilCliente())
 event_bus.subscribe("cliente.imagen_perfil_subida", RegistrarCambioImagenPerfil())
-
+event_bus.subscribe("distribuidor.registrado", EventoEnviarMensajeBienvenidaDistribuidor())
 
 # ── Health check ───────────────────────────────────────────────────
 @app.get("/health")

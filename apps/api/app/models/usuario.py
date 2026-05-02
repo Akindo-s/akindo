@@ -53,7 +53,7 @@ class Usuario(Aggregate):
 
     def to_dict(self) -> dict:
         """Serializa los datos base del usuario."""
-        return {
+        data = {
             "id": str(self.id),
             "nombre": self.nombre,
             "email": self.email,
@@ -62,5 +62,7 @@ class Usuario(Aggregate):
             "imagen_perfil": self.imagen_perfil,
             "es_verificado": self.es_verificado,
             "tipo": self.tipo.value,
-            "fecha_creacion": str(self.fecha_creacion) if self.fecha_creacion else None
         }
+        if self.fecha_creacion:
+            data["created_at"] = str(self.fecha_creacion)
+        return data

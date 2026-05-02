@@ -51,7 +51,7 @@ class ClienteRepo(BaseRepository[Cliente]):
         usuario_data = row.get("usuario", row) # si ya viene joined
         
         id_obj = uuid.UUID(usuario_data["id"]) if isinstance(usuario_data["id"], str) else usuario_data["id"]
-        fecha_obj = datetime.fromisoformat(usuario_data["fecha_creacion"]) if "fecha_creacion" in usuario_data and usuario_data["fecha_creacion"] else None
+        fecha_obj = datetime.fromisoformat(usuario_data["created_at"]) if "created_at" in usuario_data and usuario_data["created_at"] else None
         
         return Cliente(
             id=id_obj,

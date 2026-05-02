@@ -4,6 +4,7 @@ AuthService — Login · registro.
 Implementación de los use cases: RegistroCliente, LoginCliente.
 """
 
+from app.models import TipoUsuario
 import logging
 from app.core.exceptions import ConflictException, NotFoundException, UnauthorizedException
 from app.core.hashing import Hasher
@@ -15,11 +16,14 @@ from app.infrastructure.jwt import JWTProvider
 from app.models.cliente import Cliente
 from app.repositories.cliente import ClienteRepo
 from app.repositories.usuario import UsuarioRepo
+from app.repositories.distribuidor import DistribuidorRepo
 from app.schemas.auth import (
     LoginRequest,
     RegistroClienteRequest,
     RegistroClienteResponse,
     TokenResponse,
+    RegistroDistribuidorRequest,
+    RegistroDistribuidorResponse,
 )
 logger = logging.getLogger("akindo.clientes")
 
@@ -30,6 +34,7 @@ class AuthService:
         self.db = db
         self.usuario_repo = UsuarioRepo(db)
         self.cliente_repo = ClienteRepo(db)
+        self.distribuidor_repo = DistribuidorRepo(db)
         self._jwt = JWTProvider()
 
     # ── Registro de cliente ────────────────────────────────────────
@@ -80,6 +85,68 @@ class AuthService:
             fecha_creacion=cliente.fecha_creacion,
         )
 
+    # ── Registro de distribuidor ────────────────────────────────────────
+
+    async def registrar_distribuidor(
+        self, data: RegistroDistribuidorRequest
+    ) -> RegistroDistribuidorResponse:
+        """
+        Registra un nuevo distribuidor:
+        1. Verifica que el email no exista.
+        2. Crea el aggregate Distribuidor vía factory method.
+        3. Persiste en ambas tablas (usuario + distribuidor) vía el repo.
+        4. Publica el evento DistribuidorRegistrado.
+        """
+
+        # 1 — Verificar email duplicado
+        existente = await self.usuario_repo.get_by_email(data.email)
+        if existente:
+            raise ConflictException("El email ya está registrado")
+
+        from app.models.distribuidor import Distribuidor, DireccionDistribuidor
+        from app.events.distribuidor_registrado import DistribuidorRegistrado
+
+        # 2 — Crear aggregate vía factory method
+        direccion = DireccionDistribuidor(
+            calle=data.direccion.calle,
+            ciudad=data.direccion.ciudad,
+            estado=data.direccion.estado,
+            codigo_postal=data.direccion.codigo_postal,
+            es_predeterminada=True
+        )
+
+        distribuidor = Distribuidor.crear(
+            nombre=data.nombre,
+            email=data.email,
+            password=data.password,
+            telefono=data.telefono,
+            rfc=data.rfc,
+            nombre_negocio=data.nombre_negocio,
+            direccion=direccion,
+        )
+        logger.info(f"\n-- Distribuidor registrado con ID {distribuidor.id}\n")
+        
+        # 3 — Persistir (class table: usuario + distribuidor)
+        await self.distribuidor_repo.save(distribuidor)
+
+        # 4 — Publicar evento
+        await event_bus.publish(
+            DistribuidorRegistrado(
+                usuario_id=distribuidor.id,
+                email=distribuidor.email,
+                nombre_negocio=distribuidor.nombre_negocio,
+            )
+        )
+
+        return RegistroDistribuidorResponse(
+            id=distribuidor.id,
+            nombre=distribuidor.nombre,
+            email=distribuidor.email,
+            rfc=distribuidor.rfc,
+            nombre_negocio=distribuidor.nombre_negocio,
+            fecha_creacion=distribuidor.fecha_creacion,
+        )
+
     # ── Login ──────────────────────────────────────────────────────
 
     async def login(self, data: LoginRequest) -> TokenResponse:
@@ -91,16 +158,14 @@ class AuthService:
         4. Publica evento ClienteInicioSesion.
         """
 
-        # 1 — Buscar usuario
         usuario = await self.usuario_repo.get_by_email(data.email)
         if not usuario:
             raise UnauthorizedException("Credenciales inválidas")
 
-        # 2 — Verificar contraseña
         if not Hasher.verificar(data.password, usuario.password_hash):
             raise UnauthorizedException("Credenciales inválidas")
 
-        # 3 — Generar token
+        
         token = self._jwt.create_access_token(
             data={
                 "sub": str(usuario.id),
@@ -108,7 +173,7 @@ class AuthService:
             }
         )
 
-        # 4 — Publicar evento
+        
         await event_bus.publish(
             ClienteInicioSesion(
                 usuario_id=usuario.id,
