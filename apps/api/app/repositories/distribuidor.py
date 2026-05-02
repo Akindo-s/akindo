@@ -183,7 +183,7 @@ class DistribuidorRepo(BaseRepository[Distribuidor]):
         El RPC de supabase devuelve {total_productos, total_paginas, pagina_actual, tiene_siguiente, tiene_anterior, producto_id, nombre, costo, disponible, unidad}
         """
         # Calcular página
-        # El RPC pide la página, no el offset. (pagina empieza en 1)
+        # El RPC pide la página, no el offset. (pagina empieza en 1) Osea estamos bien birotes pues, cortamos un arbol para quemarlo y despues plantar otro arbol donde mismo...
         pagina = (offset // limit) + 1 if limit > 0 else 1
         
         params = {

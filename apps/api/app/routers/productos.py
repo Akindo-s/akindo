@@ -2,6 +2,9 @@
 Productos router — /productos/*
 """
 
+from app.core.dependencies import get_current_user
+from fastapi import Request
+from app.schemas.distribuidor import CatalogoPaginatedResponse
 from fastapi import APIRouter, Depends, status, HTTPException
 from uuid import UUID
 from typing import Any
@@ -23,12 +26,26 @@ async def listar_unidades_medida(
     service = ProductoService(db)
     return await service.get_unidades_medida()
 
-# solo para usuarios autenticados
-
-"""
-    - los endpoints para visualizar los productos y los productos de un distribuidor en especifico
-        NO EXISTE, lo vamos a poner AQUI!
-"""
+@router.get('/catalogo',response_model=CatalogoPaginatedResponse)
+async def get_catalogo(
+    request: Request,
+    distribuidor_id: UUID|None = None,
+    numero_pagina: int = 1,
+    cantidad_pagina: int = 20,
+    nombre: str = "",
+    categorias: list[UUID]|None = None,
+    db: DatabaseSession = Depends(get_db)
+):
+    """ Obtiene una mini versión paginada de todos los productos de un distribuidor"""
+    service = ProductoService(db)
+    response = await service.get_catalogo(numero_pagina,cantidad_pagina,categorias,distribuidor_id,nombre)
+    
+    if response.tiene_siguiente and request is not None:
+        response.siguiente_url = str(request.url.include_query_params(numero_pagina=numero_pagina + 1))
+    if response.tiene_anterior and request is not None:
+        response.anterior_url = str(request.url.include_query_params(numero_pagina=numero_pagina - 1))
+        
+    return response
 
 # solo para distribuidores autenticados
 

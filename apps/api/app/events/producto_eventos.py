@@ -8,7 +8,7 @@ from app.events.base import Evento
 class ProductoCreado(Evento):
     producto_id: UUID
     distribuidor_id: UUID
-    nombre: str
+    nombre_producto: str
     
     @property
     def nombre(self) -> str:

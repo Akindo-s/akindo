@@ -1,3 +1,6 @@
+from app.schemas.distribuidor import CatalogoPaginatedResponse
+from app.repositories.distribuidor import DistribuidorRepo
+from uuid import UUID
 import uuid
 from typing import Any
 
@@ -12,6 +15,7 @@ class ProductoService:
     def __init__(self, db: DatabaseSession):
         self.db = db
         self.repo = ProductoRepo(db)
+        self.__distribuidor_repo = DistribuidorRepo(db)
 
     async def get_unidades_medida(self) -> list[dict[str, Any]]:
         return await self.repo.get_unidades_medida()
@@ -41,7 +45,7 @@ class ProductoService:
         await event_bus.publish(ProductoCreado(
             producto_id=producto.id,
             distribuidor_id=producto.distribuidor_id,
-            nombre=producto.nombre
+            nombre_producto=producto.nombre
         ))
         
         return producto
@@ -92,3 +96,14 @@ class ProductoService:
             producto_id=producto.id,
             distribuidor_id=producto.distribuidor_id
         ))
+
+    async def get_catalogo(self,numero_pagina:int,cantidad_pagina:int,categorias:list[UUID]|None=None,id_distribuidor:UUID|None = None,nombre:str|None=None)->CatalogoPaginatedResponse:
+        if id_distribuidor != None:
+            distribuidor = await self.__distribuidor_repo.get_by_id(id_distribuidor)
+            if not distribuidor : raise NotFoundException("Distribuidor no encontrado")
+
+        limit = max(1, cantidad_pagina)
+        offset = max(0, (numero_pagina - 1) * limit)
+        
+        catalogo_dict = await self.repo.get_catalogo(limit, offset,categorias,nombre,id_distribuidor)
+        return CatalogoPaginatedResponse(**catalogo_dict)

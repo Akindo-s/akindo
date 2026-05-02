@@ -65,7 +65,7 @@ class AuthService:
         logger.info(f"\n-- Cliente registrado con ID {cliente.id}\n")
         
         # 3 — Persistir (class table: usuario + cliente)
-        await self.cliente_repo.save(cliente)
+        cliente = await self.cliente_repo.save(cliente)
 
         # 4 — Publicar evento
         await event_bus.publish(
