@@ -1,0 +1,11 @@
+.registro-contenedor{
+    background-color: var(--color-secondary-50);
+}
+
+.registro-fondo{
+    background-image: url("/fondo-registro.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+}

@@ -2,8 +2,8 @@
 export default function Home() {
   return (
     
-    <h1>
-      hello world
-    </h1>
+    <div className="bg-blue-500 w-full flex flex-col">
+      <h1>hola mundo</h1>
+    </div>
   );
 }
