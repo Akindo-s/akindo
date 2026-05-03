@@ -118,6 +118,27 @@ async def get_valoraciones(
 
 # ── Solo para el propio distribuidor ───────────────────────────────
 
+@router.get('/me', response_model=DistribuidorResponse, summary="Obtener mi perfil")
+async def get_mi_perfil_distribuidor(
+    distribuidor_auth: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Obtiene el perfil del distribuidor autenticado."""
+    service = DistribuidorService(db)
+    return await service.obtener_distribuidor(distribuidor_auth.id)
+
+
+@router.patch('/me', response_model=DistribuidorResponse, summary="Actualizar mi perfil")
+async def actualizar_mi_perfil_distribuidor(
+    data: DistribuidorUpdateInfo,
+    distribuidor_auth: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Actualiza la información del distribuidor autenticado."""
+    service = DistribuidorService(db)
+    return await service.actualizar_informacion_distribuidor(distribuidor_auth.id, data)
+
+
 @router.get('/me/estadisticas', response_model=EstadisticasDistribuidorResponse)
 async def obtener_estadisticas_distribuidor(
     tipo: TipoEstadistica = Query(..., description="Tipo de estadística a consultar"),

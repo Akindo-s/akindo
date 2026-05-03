@@ -50,7 +50,8 @@ class StorageAdapter:
                 data,
                 file_options={"content-type": content_type, "upsert": "true"},
             )
-            return self.get_public_url(bucket, path)
+            return await self.get_public_url(bucket, path)
+            
         except Exception as e:
             logger.error("Error subiendo archivo a %s/%s: %s", bucket, path, e)
             raise StorageException(f"Error al subir archivo: {str(e)}")
@@ -74,6 +75,7 @@ class StorageAdapter:
     def get_public_url(self, bucket: str, path: str) -> str:
         """Genera la URL pública de un archivo."""
         return self._client.storage.from_(bucket).get_public_url(path)
+        
 
 
 # ── Dependency de FastAPI ──────────────────────────────────────────

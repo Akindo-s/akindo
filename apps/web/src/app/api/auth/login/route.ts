@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     try {
       err = await res.json();
     } catch (_) {
-      // no JSON body
+      // no JSON body... que otra vez, no deberia pero por si acaso  hay que poner algo
     }
     return NextResponse.json(
       { error: err.detail ?? "Credenciales inválidas" },
@@ -24,16 +24,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { access_token } = (await res.json()) as { access_token: string };
+  const { access_token, tipo_usuario } = (await res.json()) as { access_token: string, tipo_usuario: string };
 
-  const response = NextResponse.json({ ok: true });
-  response.cookies.set("token", access_token, {
+  const response = NextResponse.json({ ok: true, tipo_usuario });
+  
+  const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
     maxAge: 60 * 60 * 24, // 24 h
-  });
+  };
+  
+  response.cookies.set("token", access_token, cookieOptions);
+  response.cookies.set("tipo_usuario", tipo_usuario, cookieOptions);
 
   return response;
 }

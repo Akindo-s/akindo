@@ -17,6 +17,7 @@ from app.schemas.distribuidor import (
     UpsertDireccionDistribuidorRequest,
     DireccionDistribuidorResponse
 )
+from app.services.usuario import UsuarioService
 
 
 class DistribuidorService:
@@ -29,6 +30,7 @@ class DistribuidorService:
         self.db = db
         self.repo = DistribuidorRepo(db)
         self.storage = storage
+        self.usuario_service = UsuarioService(db, storage) if storage else None
 
     async def listar_distribuidores(
         self,
@@ -111,34 +113,20 @@ class DistribuidorService:
         return DistribuidorResponse.model_validate(distribuidor)
 
     async def subir_imagen_negocio(self, distribuidor_id: UUID, file_data: bytes, content_type: str, filename: str) -> DistribuidorResponse:
-        """Sube la imagen de fondo/negocio a Supabase Storage y actualiza el aggregate."""
-        if not self.storage:
+        """Sube la imagen de negocio del distribuidor delegando a UsuarioService."""
+        if not self.usuario_service:
             raise Exception("Storage provider not configured")
-
-        if content_type not in self.ALLOWED_IMAGE_TYPES:
-            raise ValidationException(
-                f"Tipo de archivo no permitido: {content_type}. Permitidos: {', '.join(self.ALLOWED_IMAGE_TYPES)}"
-            )
-
-        if len(file_data) > self.MAX_IMAGE_SIZE:
-            raise ValidationException(f"La imagen excede el tamaño máximo permitido.")
-
+        # Delegar la subida a UsuarioService
+        await self.usuario_service.subir_imagen_perfil(
+            usuario_id=distribuidor_id,
+            file_data=file_data,
+            content_type=content_type,
+            filename=filename,
+        )
+        # Retornar el distribuidor actualizado
         distribuidor = await self.repo.get_by_id(distribuidor_id)
         if not distribuidor:
             raise NotFoundException("Distribuidor no encontrado")
-
-        ext = content_type.split("/")[-1]
-        if ext == "jpeg":
-            ext = "jpg"
-        path = f"negocios/{distribuidor_id}.{ext}"
-
-        # Subir a Supabase
-        url = await self.storage.upload("negocios", path, file_data, content_type)
-
-        # Actualizar en el aggregate y guardar
-        distribuidor.imagen_fondo = url
-        await self.repo.save(distribuidor)
-
         return DistribuidorResponse.model_validate(distribuidor)
 
     async def upsert_direccion(self, distribuidor_id: UUID, data: UpsertDireccionDistribuidorRequest) -> list[DireccionDistribuidorResponse]:
