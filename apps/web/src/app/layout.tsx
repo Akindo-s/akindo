@@ -18,7 +18,7 @@ export default function RootLayout({
       lang="en"
       className={`${plus_jakarta_sans.className}`}
     >
-      <body className="min-h-screen w-screen flex flex-col gap-4 overflow-x-hidden overflow-y-auto">
+      <body suppressHydrationWarning className="min-h-screen w-screen flex flex-col gap-4 overflow-x-hidden overflow-y-auto">
       {children}
     </body>
     </html>
