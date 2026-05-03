@@ -45,3 +45,26 @@ export async function registrarDistribuidor(datos) {
 
   return response.json();
 }
+
+export async function login(datos) {
+  const response = await fetch(`${API_URL}/auth/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(datos),
+  });
+
+  if (!response.ok) {
+    let errorData = {};
+    try {
+      errorData = await response.json();
+    } catch (e) {
+      // Ignorar si no es JSON
+    }
+    const message = errorData.error || 'Credenciales inválidas';
+    throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
+  }
+
+  return response.json();
+}

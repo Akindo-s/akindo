@@ -97,7 +97,7 @@ export default function RegistroClienteForm() {
       <form
         onSubmit={handleSubmit}
         noValidate
-        className="flex flex-col items-center bg-white rounded-3xl p-6 lg:p-4 xl:p-6 w-full max-w-md mx-auto shadow-sm select-none"
+        className="pb-18 flex flex-col items-center bg-white rounded-3xl p-6  w-full max-w-md mx-auto shadow-sm select-none"
       >
         <header className="w-full flex justify-center relative items-center p-2 lg:p-1 xl:p-2 mb-2 lg:mb-1 xl:mb-2">
           <Boton
