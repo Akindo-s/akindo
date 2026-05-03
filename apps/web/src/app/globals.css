@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+
+:root {
+  /* Primary */
+  --color-primary-50:  #FFFBF0;
+  --color-primary-100: #FDF3D7;
+  --color-primary-200: #F7E3A6;
+  --color-primary-300: #F0D275;
+  --color-primary-400: #E6BF45;
+  --color-primary-500: #DAA520;
+  --color-primary-600: #C1901D;
+  --color-primary-700: #9E7517;
+  --color-primary-800: #7B5A12;
+  --color-primary-900: #5C430D;
+
+  /* Secondary */
+  --color-secondary-50:  #FFFFFF;
+  --color-secondary-100: #FDFBF7;
+  --color-secondary-200: #FBF7EF;
+  --color-secondary-300: #F8F0E4;
+  --color-secondary-400: #E8DEC8;
+  --color-secondary-500: #D6C9AA;
+  --color-secondary-600: #B8AA89;
+  --color-secondary-700: #95876B;
+  --color-secondary-800: #726650;
+  --color-secondary-900: #4F4636;
+
+  /* Tertiary */
+  --color-tertiary-50:  #FDECEC;
+  --color-tertiary-100: #F9D3D4;
+  --color-tertiary-200: #F1A8AA;
+  --color-tertiary-300: #E77B7E;
+  --color-tertiary-400: #DA5557;
+  --color-tertiary-500: #C63A3C;
+  --color-tertiary-600: #AF3234;
+  --color-tertiary-700: #90292A;
+  --color-tertiary-800: #6F1F20;
+  --color-tertiary-900: #4F1617;
+
+  /* Neutral */
+  --color-neutral-50:  #F5F4F2;
+  --color-neutral-100: #E6E4E0;
+  --color-neutral-200: #D1CEC8;
+  --color-neutral-300: #B8B4AC;
+  --color-neutral-400: #9C968B;
+  --color-neutral-500: #7E766A;
+  --color-neutral-600: #6B6459;
+  --color-neutral-700: #565045;
+  --color-neutral-800: #403B34;
+  --color-neutral-900: #2B2722;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
