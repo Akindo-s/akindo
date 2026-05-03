@@ -47,7 +47,7 @@ export async function registrarDistribuidor(datos) {
 }
 
 export async function login(datos) {
-  const response = await fetch(`${API_URL}/auth/token`, {
+  const response = await fetch(`/api/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
