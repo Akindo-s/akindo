@@ -42,7 +42,7 @@ export async function obtenerInformacionPerfil(): Promise<any> {
     return null;
 }
 
-export async function actualizarPerfilCliente(datos: { nombre?: string; telefono?: string }): Promise<boolean> {
+export async function actualizarPerfilCliente(datos: { nombre?: string; telefono?: string; email?: string }): Promise<boolean> {
     const token = await getToken();
     const respuesta = await fetchWithAuth('/clientes/me', {
         method: "PATCH",

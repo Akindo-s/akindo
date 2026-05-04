@@ -21,7 +21,8 @@ class ProductoRepo(BaseRepository[Producto]):
             medida=medida_obj,
             existencias=row["existencias"],
             disponible=row["disponible"],
-            atributos_extra=row.get("atributos_extra")
+            atributos_extra=row.get("atributos_extra"),
+            imagen=row.get("imagen"),
         )
 
     async def save(self, aggregate: Producto) -> Producto:

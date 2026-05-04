@@ -17,6 +17,7 @@ class Producto(Aggregate):
     existencias: int = 0
     disponible: bool = True
     atributos_extra: dict[str, Any] | None = None
+    imagen: str | None = None
 
     def __check_nombre(self)->None:
         if not self.nombre or not self.nombre.strip():
@@ -52,7 +53,8 @@ class Producto(Aggregate):
             medida=medida,
             existencias=existencias,
             disponible=True,
-            atributos_extra=atributos_extra
+            atributos_extra=atributos_extra,
+            imagen=None,
         )
         producto.check()
         return producto
@@ -118,5 +120,6 @@ class Producto(Aggregate):
             "medida": str(self.medida),
             "existencias": self.existencias,
             "disponible": self.disponible,
-            "atributos_extra": self.atributos_extra
+            "atributos_extra": self.atributos_extra,
+            "imagen": self.imagen,
         }

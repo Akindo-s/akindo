@@ -4,17 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registrarDistribuidor } from "@/lib/api/auth";
-import { Titulo } from "../titles";
-import { Boton } from "../buttons";
-import { ArrowBackIcon } from "../icons/NavigationIcons";
-import { EmailIcon, PasswordIcon, AddAPhotoIcon } from "../icons/AuthIcons";
-import { Input } from "../inputs";
-import { VentanaEmergente } from "../VentanaEmergente";
-import { ProgressBar } from "../ui/ProgressBar";
+import { Titulo } from "@/components/titles";
+import { Boton } from "@/components/ui/Boton";
+import { ArrowBackIcon } from "@/components/icons/NavigationIcons";
+import { EmailIcon, PasswordIcon, AddAPhotoIcon } from "@/components/icons/AuthIcons";
+import { Input } from "@/components/inputs";
+import { VentanaEmergente } from "@/components/VentanaEmergente";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 
 const TOTAL_STEPS = 2;
 const STEP_LABELS = ["Cuenta", "Negocio"];
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegistroDistribuidorForm() {
@@ -24,14 +23,12 @@ export default function RegistroDistribuidorForm() {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
-  // Paso 1 — Cuenta
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Paso 2 — Negocio
   const [nombreNegocio, setNombreNegocio] = useState("");
   const [rfc, setRfc] = useState("");
   const [calle, setCalle] = useState("");
@@ -87,11 +84,7 @@ export default function RegistroDistribuidorForm() {
 
     try {
       await registrarDistribuidor({
-        nombre,
-        email,
-        password,
-        telefono: telefono || null,
-        rfc,
+        nombre, email, password, telefono: telefono || null, rfc,
         nombre_negocio: nombreNegocio,
         direccion: { calle, ciudad, estado, codigo_postal: codigoPostal },
       });
@@ -112,19 +105,17 @@ export default function RegistroDistribuidorForm() {
         noValidate
         className="flex flex-col bg-white rounded-3xl w-full max-w-md mx-auto shadow-sm select-none max-h-[90vh] overflow-y-auto"
       >
-        {/* Header — sticky dentro de la card */}
         <header className="sticky top-0 z-10 bg-white w-full flex flex-col items-center px-6 pt-6 pb-3 rounded-t-3xl">
           <div className="relative w-full flex justify-center items-center mb-3">
             <Boton
+              variante="secundario"
               Icono={ArrowBackIcon}
-              secundario
               onClick={handleBack}
-              className="absolute left-0 rounded-full w-10 h-10 p-0 items-center justify-center bg-[#FDF2E3] hover:bg-[#FCEAD2] transition border-none flex shadow-none cursor-pointer"
+              type="button"
+              className="absolute left-0 rounded-full w-10 h-10 p-0 items-center justify-center"
             />
             <Titulo>Akindo</Titulo>
           </div>
-
-          {/* Progress bar */}
           <ProgressBar currentStep={step} totalSteps={TOTAL_STEPS} labels={STEP_LABELS} />
         </header>
 
@@ -134,16 +125,12 @@ export default function RegistroDistribuidorForm() {
               {step === 0 ? "Crea tu cuenta" : "Datos de tu negocio"}
             </h2>
             <p className="text-xs text-stone-400 mt-0.5">
-              {step === 0
-                ? "Únete como distribuidor en Akindo."
-                : "Necesitamos información de tu empresa."}
+              {step === 0 ? "Únete como distribuidor en Akindo." : "Necesitamos información de tu empresa."}
             </p>
           </div>
 
-          {/* ── Paso 1 ── */}
           {step === 0 && (
             <>
-              {/* Avatar */}
               <label className="relative flex flex-col items-center justify-center w-24 h-24 border border-dashed border-stone-300 rounded-full cursor-pointer hover:bg-stone-50 transition bg-stone-50/50">
                 <input type="file" name="foto" accept="image/*" onChange={handleFileChange} className="hidden" />
                 {preview ? (
@@ -154,9 +141,7 @@ export default function RegistroDistribuidorForm() {
                     <span className="text-[10px] text-stone-500 font-medium">Subir Foto</span>
                   </>
                 )}
-                <div className="absolute bottom-1 right-1 w-5 h-5 bg-[#DAA520] rounded-full flex items-center justify-center border border-white text-white font-bold text-xs leading-none">
-                  +
-                </div>
+                <div className="absolute bottom-1 right-1 w-5 h-5 bg-[#DAA520] rounded-full flex items-center justify-center border border-white text-white font-bold text-xs leading-none">+</div>
               </label>
 
               <div className="flex flex-col gap-3.5 w-full">
@@ -167,17 +152,12 @@ export default function RegistroDistribuidorForm() {
                 <Input label="Confirmar Contraseña" name="confirmPassword" type="password" placeholder="***" Icono={PasswordIcon} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
               </div>
 
-              <button
-                type="button"
-                onClick={handleNext}
-                className="bg-[#DAA520] hover:bg-[#C2931D] text-white w-full py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition mt-2 cursor-pointer uppercase text-sm tracking-wide"
-              >
+              <Boton variante="primario" type="button" onClick={handleNext} className="w-full justify-center mt-2">
                 Continuar →
-              </button>
+              </Boton>
             </>
           )}
 
-          {/* ── Paso 2 ── */}
           {step === 1 && (
             <>
               <div className="flex flex-col gap-3.5 w-full">
@@ -191,15 +171,8 @@ export default function RegistroDistribuidorForm() {
                 <Input label="Código Postal" name="codigoPostal" type="text" placeholder="06600" value={codigoPostal} onChange={(e) => setCodigoPostal(e.target.value)} required />
               </div>
 
-              {/* Checkbox términos */}
               <div className="flex flex-row items-start gap-2 w-full text-left">
-                <input
-                  type="checkbox"
-                  id="terminos"
-                  checked={terminos}
-                  onChange={(e) => setTerminos(e.target.checked)}
-                  className="mt-1 accent-[#DAA520] cursor-pointer"
-                />
+                <input type="checkbox" id="terminos" checked={terminos} onChange={(e) => setTerminos(e.target.checked)} className="mt-1 accent-[#DAA520] cursor-pointer" />
                 <label htmlFor="terminos" className="text-xs text-stone-600 leading-tight select-none cursor-pointer">
                   Acepto los{" "}
                   <span className="text-[#DAA520] font-medium">Términos de Servicio</span> y la{" "}
@@ -207,22 +180,20 @@ export default function RegistroDistribuidorForm() {
                 </label>
               </div>
 
-              <button
+              <Boton
                 type="submit"
-                disabled={loading}
-                className="bg-[#DAA520] hover:bg-[#C2931D] text-white w-full py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition mt-2 cursor-pointer uppercase text-sm tracking-wide disabled:opacity-75"
+                loading={loading}
+                loadingText="Registrando..."
+                className="w-full justify-center mt-2"
               >
-                {loading ? "Registrando..." : "Registrarse"}
-              </button>
+                Registrarse
+              </Boton>
             </>
           )}
 
-          {/* Footer */}
           <div className="text-xs text-stone-500 select-none">
             ¿Ya tienes una cuenta?{" "}
-            <Link href="/login" className="text-[#DAA520] font-medium hover:underline transition">
-              Inicia Sesión
-            </Link>
+            <Link href="/login" className="text-[#DAA520] font-medium hover:underline transition">Inicia Sesión</Link>
           </div>
         </section>
       </form>

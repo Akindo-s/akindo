@@ -73,7 +73,7 @@ async def listar_distribuidores(
     return response
 
 
-@router.get("/{distribuidor_id}", response_model=DistribuidorResponse)
+@router.get("/other/{distribuidor_id}", response_model=DistribuidorResponse) # TODO : este endpoint esta MUY mal, pero tenemos que arreglarlo despues
 async def obtener_distribuidor(
     distribuidor_id: UUID,
     user: Usuario = Depends(get_current_user),
