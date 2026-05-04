@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { Archive, Edit3, Package } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Boton } from "@/components/ui/Boton";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ModalConfirmacion } from "@/components/ui/ModalConfirmacion";
 
 export interface ProductoInventario {
     producto_id: string;
@@ -47,17 +48,17 @@ export function TarjetaProducto({
     className = "",
 }: TarjetaProductoProps) {
     const router = useRouter();
+    const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
 
-    // Determinar estado de stock
     const existencias = producto.existencias ?? 0;
-    const stockBajo = existencias > 0 && existencias <= 15;
+    const stockBajo = existencias > 0 && existencias <= 67;
     const sinStock = existencias === 0;
 
     const badgeVariante = sinStock ? "error" : stockBajo ? "advertencia" : "exito";
     const badgeTexto = sinStock ? "Sin Stock" : stockBajo ? "Bajo Stock" : "En Stock";
-    useEffect(()=>{
+    useEffect(() => {
         console.log(producto)
-    },[])
+    }, [])
     return (
         <div className={`bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden ${className}`}>
             {/* Imagen */}
@@ -74,11 +75,18 @@ export function TarjetaProducto({
                     </div>
                 )}
                 {/* Badge de stock */}
-                <div className="absolute top-2.5 right-2.5">
+                <div className="absolute top-2.5 right-2.5 gap-2.5">
                     <Badge variante={badgeVariante}>
                         <span className="inline-block w-1.5 h-1.5 rounded-full bg-current mr-1" />
                         {badgeTexto}
                     </Badge>
+                    {!producto.disponible && (
+
+                        <Badge variante='neutro'>
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-current mr-1" />
+                            archivado
+                        </Badge>
+                    )}
                 </div>
             </div>
 
@@ -114,13 +122,31 @@ export function TarjetaProducto({
                                 variante="chip"
                                 Icono={Archive}
                                 iconoSize={14}
-                                onClick={() => onArchivar(producto.producto_id)}
+
+                                onClick={() => setIsArchiveModalOpen(true)}
                                 className="p-1.5 border-transparent text-stone-400 hover:text-red-400 hover:bg-red-50"
-                            />
+                            >
+                                {!producto.disponible ? "DesArchivar" : ""}
+                            </Boton>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* Modal de confirmación para archivar */}
+            {onArchivar && (
+                <ModalConfirmacion
+                    isOpen={isArchiveModalOpen}
+                    onClose={() => setIsArchiveModalOpen(false)}
+                    onConfirm={() => {
+                        setIsArchiveModalOpen(false);
+                        onArchivar(producto.producto_id);
+                    }}
+                    titulo="¿Archivar producto?"
+                    mensaje="El producto se marcará como archivado y ya no aparecerá activo en el catálogo público."
+                    textoConfirmar="Sí, archivar"
+                />
+            )}
         </div>
     );
 }

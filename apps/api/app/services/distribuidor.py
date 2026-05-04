@@ -15,7 +15,10 @@ from app.schemas.distribuidor import (
     DistribuidoresPaginatedResponse,
     ValoracionResponse,
     UpsertDireccionDistribuidorRequest,
-    DireccionDistribuidorResponse
+    DireccionDistribuidorResponse,
+    ResumenDashboardResponse,
+    AlertaExistenciaResponse,
+    PedidoActivoDistribuidorResponse
 )
 from app.services.usuario import UsuarioService
 
@@ -157,3 +160,45 @@ class DistribuidorService:
         
         # Refrescar y validar
         return [DireccionDistribuidorResponse.model_validate(d) for d in distribuidor.direcciones]
+
+    async def get_resumen_dashboard(self, distribuidor_id: UUID, umbral_stock: int = 67) -> ResumenDashboardResponse:
+        """Obtiene el resumen del dashboard llamando al RPC."""
+        distribuidor = await self.repo.get_by_id(distribuidor_id)
+        if not distribuidor:
+            raise NotFoundException("Distribuidor no encontrado")
+            
+        data = await self.db.rpc("get_resumen_distribuidor", {
+            "p_distribuidor_id": str(distribuidor_id),
+            "p_umbral_stock": umbral_stock
+        })
+        
+        if not data:
+            return ResumenDashboardResponse(volumen_bruto_mes=0.0, pedidos_activos=0, productos_poco_stock=0)
+            
+        return ResumenDashboardResponse(**data[0])
+
+    async def get_alertas_existencias(self, distribuidor_id: UUID, umbral_stock: int = 67) -> list[AlertaExistenciaResponse]:
+        """Obtiene las alertas de existencias llamando al RPC."""
+        distribuidor = await self.repo.get_by_id(distribuidor_id)
+        if not distribuidor:
+            raise NotFoundException("Distribuidor no encontrado")
+            
+        data = await self.db.rpc("get_alertas_existencias", {
+            "p_distribuidor_id": str(distribuidor_id),
+            "p_umbral_stock": umbral_stock
+        })
+        
+        return [AlertaExistenciaResponse(**row) for row in data]
+
+    async def get_pedidos_activos(self, distribuidor_id: UUID) -> list[PedidoActivoDistribuidorResponse]:
+        """Obtiene los pedidos activos llamando al RPC."""
+        distribuidor = await self.repo.get_by_id(distribuidor_id)
+        if not distribuidor:
+            raise NotFoundException("Distribuidor no encontrado")
+            
+        data = await self.db.rpc("get_pedidos_activos_distribuidor", {
+            "p_distribuidor_id": str(distribuidor_id)
+        })
+        
+        return [PedidoActivoDistribuidorResponse(**row) for row in data]
+
