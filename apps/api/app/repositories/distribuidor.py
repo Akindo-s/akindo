@@ -35,6 +35,15 @@ class DistribuidorRepo(BaseRepository[Distribuidor]):
                     es_predeterminada=dir_row.get("es_predeterminada", False)
                 )
             )
+        from app.models.categoria import CategoriaDistribuidor
+        categorias_data = row.get("categoria_distribuidor", [])
+        categorias = [
+            CategoriaDistribuidor(
+                id=uuid.UUID(c["id"]) if isinstance(c["id"], str) else c["id"],
+                nombre=c["nombre"],
+                imagen=c.get("imagen")
+            ) for c in categorias_data
+        ]
 
         return Distribuidor(
             id=id_obj,
@@ -51,7 +60,8 @@ class DistribuidorRepo(BaseRepository[Distribuidor]):
             direcciones=direcciones,
             imagen_fondo=row.get("imagen_fondo"),
             valoracion_promedio=row.get("valoracion_promedio", 0.0),
-            total_valoraciones=row.get("total_valoraciones", 0)
+            total_valoraciones=row.get("total_valoraciones", 0),
+            categorias=categorias,
         )
 
     async def save(self, aggregate: Distribuidor) -> Distribuidor:
@@ -108,13 +118,21 @@ class DistribuidorRepo(BaseRepository[Distribuidor]):
         """Obtiene un Distribuidor reconstruyendo el aggregate desde ambas tablas."""
         results = await self.db.select(
             "distribuidor",
-            "*, usuario(*), direccion_distribuidor(*)",
+            "*, usuario(*), direccion_distribuidor(*), categoria_distribuidor(*)",
             {"usuario_id": str(id)},
         )
         if not results:
             return None
 
         return self._to_aggregate(results[0])
+
+    async def set_categorias(self, distribuidor_id: uuid.UUID, categorias: list[uuid.UUID]) -> None:
+        await self.db.delete("distribuidor_con_categoria", {"distribuidor_id": str(distribuidor_id)})
+        for cat_id in categorias:
+            await self.db.insert("distribuidor_con_categoria", {
+                "distribuidor_id": str(distribuidor_id),
+                "categoria_id": str(cat_id)
+            })
 
     async def obtener_todos_paginados(
         self,

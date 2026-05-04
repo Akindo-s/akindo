@@ -7,6 +7,7 @@ from typing import Any
 
 from app.models.base import Aggregate
 from app.core.exceptions import AggregateNoValido
+from app.models.categoria import CategoriaProducto
 
 @dataclass
 class Producto(Aggregate):
@@ -18,6 +19,7 @@ class Producto(Aggregate):
     disponible: bool = True
     atributos_extra: dict[str, Any] | None = None
     imagen: str | None = None
+    categorias: list[CategoriaProducto] = field(default_factory=list)
 
     def __check_nombre(self)->None:
         if not self.nombre or not self.nombre.strip():
@@ -55,6 +57,7 @@ class Producto(Aggregate):
             disponible=True,
             atributos_extra=atributos_extra,
             imagen=None,
+            categorias=[],
         )
         producto.check()
         return producto
@@ -122,4 +125,5 @@ class Producto(Aggregate):
             "disponible": self.disponible,
             "atributos_extra": self.atributos_extra,
             "imagen": self.imagen,
+            "categorias": [c.to_dict() for c in self.categorias] if self.categorias else [],
         }

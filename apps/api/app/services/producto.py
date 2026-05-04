@@ -52,6 +52,11 @@ class ProductoService:
 
 
         await self.repo.save(producto)
+
+        if categorias:
+            await self.repo.set_categorias(producto.id, categorias)
+
+        
         
         await event_bus.publish(ProductoCreado(
             producto_id=producto.id,
@@ -69,7 +74,8 @@ class ProductoService:
         costo: float,
         medida: uuid.UUID,
         existencias: int,
-        atributos_extra: dict[str, Any] | None
+        atributos_extra: dict[str, Any] | None,
+        categorias: list[uuid.UUID] | None = None
     ) -> Producto:
         producto = await self.repo.get(producto_id)
         if not producto or producto.distribuidor_id != distribuidor_id:
@@ -87,6 +93,12 @@ class ProductoService:
             producto.ajustar_existencias(existencias)
 
         await self.repo.save(producto)
+        
+        import logging
+        lo = logging.getLogger("akindo.producto")
+        lo.info(f"{categorias=}")
+        if categorias is not None:
+            await self.repo.set_categorias(producto.id, categorias)
         
         await event_bus.publish(ProductoActualizado(
             producto_id=producto.id,

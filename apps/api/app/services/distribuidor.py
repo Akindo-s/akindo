@@ -113,6 +113,9 @@ class DistribuidorService:
         # Guardar en base de datos
         await self.repo.save(distribuidor)
         
+        if "categorias" in campos and campos["categorias"] is not None:
+            await self.repo.set_categorias(distribuidor.id, campos["categorias"])
+        
         return DistribuidorResponse.model_validate(distribuidor)
 
     async def subir_imagen_negocio(self, distribuidor_id: UUID, file_data: bytes, content_type: str, filename: str) -> DistribuidorResponse:

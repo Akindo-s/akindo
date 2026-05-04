@@ -58,6 +58,7 @@ class RegistroDistribuidorRequest(BaseModel):
     rfc: str
     nombre_negocio: str
     direccion: RegistroDireccionDistribuidorRequest
+    categorias: list[UUID] | None = None
 
 
 class RegistroDistribuidorResponse(BaseModel):

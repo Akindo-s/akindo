@@ -154,6 +154,9 @@ class AuthService:
         
         # 3 — Persistir (class table: usuario + distribuidor)
         await self.distribuidor_repo.save(distribuidor)
+        
+        if data.categorias:
+            await self.distribuidor_repo.set_categorias(distribuidor.id, data.categorias)
 
         # 4 — Publicar evento
         await event_bus.publish(

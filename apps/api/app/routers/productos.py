@@ -73,6 +73,8 @@ async def crear_producto(
         es_borrador=data.es_borrador
     )
 
+import logging
+log = logging.getLogger("akindo.productos")
 
 @router.put("/{producto_id}", response_model=ProductoResponse)
 async def actualizar_producto(
@@ -83,6 +85,7 @@ async def actualizar_producto(
     storage: StorageAdapter = Depends(get_storage)
 ):
     """Actualiza toda la información de un producto."""
+    
     service = ProductoService(db,storage)
     return await service.actualizar_producto(
         producto_id=producto_id,
@@ -91,7 +94,8 @@ async def actualizar_producto(
         costo=data.costo,
         medida=data.medida,
         existencias=data.existencias,
-        atributos_extra=data.atributos_extra
+        atributos_extra=data.atributos_extra,
+        categorias=data.categorias
     )
 
 @router.get("/{producto_id}", response_model=ProductoResponse)

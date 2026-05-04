@@ -5,6 +5,7 @@ Schemas de distribuidor.
 from pydantic import BaseModel, Field
 from uuid import UUID
 from datetime import datetime
+from app.schemas.categoria import CategoriaResponse
 
 # ── Perfil y Configuración ────────────────────────────────────────
 
@@ -20,6 +21,7 @@ class DistribuidorResponse(BaseModel):
     valoracion_promedio: float
     total_valoraciones: int
     fecha_creacion: datetime | None
+    categorias: list[CategoriaResponse] | None = None
 
     model_config = {"from_attributes": True}
 
@@ -28,6 +30,7 @@ class DistribuidorUpdateInfo(BaseModel):
     """Campos permitidos para actualización por el distribuidor."""
     nombre_negocio: str | None = None
     telefono: str | None = None
+    categorias: list[UUID] | None = None
 
 # ── Direcciones ───────────────────────────────────────────────────
 

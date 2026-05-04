@@ -5,6 +5,7 @@ Schemas de producto.
 from pydantic import BaseModel, Field
 from uuid import UUID
 from typing import Any
+from app.schemas.categoria import CategoriaResponse
 
 class UnidadMedidaResponse(BaseModel):
     """Información de una unidad de medida."""
@@ -46,6 +47,7 @@ class ProductoResponse(BaseModel):
     disponible: bool
     atributos_extra: dict[str, Any] | None
     imagen: str | None = None
+    categorias: list[CategoriaResponse] | None = None
     model_config = {"from_attributes": True}
 
 

@@ -12,6 +12,7 @@ from app.core.hashing import Hasher
 
 from .base import TipoUsuario
 from .usuario import Usuario
+from app.models.categoria import CategoriaDistribuidor
 
 
 @dataclass(kw_only=True)
@@ -47,6 +48,7 @@ class Distribuidor(Usuario):
     imagen_fondo: str | None = None
     valoracion_promedio: float = 0.0
     total_valoraciones: int = 0
+    categorias: list[CategoriaDistribuidor] = field(default_factory=list)
 
     def check(self) -> None:
         """Verifica los invariantes específicos de Distribuidor, y los de Usuario."""
@@ -92,6 +94,7 @@ class Distribuidor(Usuario):
             rfc=rfc,
             nombre_negocio=nombre_negocio,
             direcciones=[direccion],
+            categorias=[],
         )
 
     def to_dict(self) -> dict:
@@ -113,6 +116,7 @@ class Distribuidor(Usuario):
             "imagen_fondo": self.imagen_fondo,
             "valoracion_promedio": self.valoracion_promedio,
             "total_valoraciones": self.total_valoraciones,
+            "categorias": [c.to_dict() for c in self.categorias] if self.categorias else [],
         })
         return base_dict
 

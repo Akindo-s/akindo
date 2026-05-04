@@ -29,12 +29,12 @@ class CategoriaProductoService:
 
     async def create(self, nombre: str, file_data: bytes | None = None, content_type: str | None = None) -> CategoriaProducto:
         categoria = CategoriaProducto.crear(nombre=nombre)
-        # Guardar primero para asegurar que no falla por duplicado antes de subir
+        
         guardada = await self.repo.save(categoria)
         
         if file_data and content_type:
             guardada = await self._subir_imagen(guardada, file_data, content_type)
-            
+        
         return guardada
 
     async def create_batch(self, data: CategoriaBatchCreate) -> CategoriaBatchResponse:
@@ -62,7 +62,7 @@ class CategoriaProductoService:
             categoria = await self._subir_imagen(categoria, file_data, content_type)
             
         categoria.check()
-        return await self.repo.update(categoria)
+        return await self.repo.save(categoria)
 
     async def delete(self, id: uuid.UUID) -> None:
         categoria = await self.get_by_id(id)
@@ -82,7 +82,7 @@ class CategoriaProductoService:
         path = f"productos/{categoria.id}/principal.{ext}"
         url = await self.storage.upload("categorias", path, file_data, content_type)
         categoria.imagen = url
-        return await self.repo.update(categoria)
+        return await self.repo.save(categoria)
 
 
 class CategoriaDistribuidorService:
@@ -136,7 +136,7 @@ class CategoriaDistribuidorService:
             categoria = await self._subir_imagen(categoria, file_data, content_type)
             
         categoria.check()
-        return await self.repo.update(categoria)
+        return await self.repo.save(categoria)
 
     async def delete(self, id: uuid.UUID) -> None:
         categoria = await self.get_by_id(id)
@@ -154,5 +154,6 @@ class CategoriaDistribuidorService:
         
         path = f"distribuidores/{categoria.id}/principal.{ext}"
         url = await self.storage.upload("categorias", path, file_data, content_type)
+        
         categoria.imagen = url
         return await self.repo.update(categoria)

@@ -23,16 +23,16 @@ class CategoriaProductoRepo:
 
     async def save(self, aggregate: CategoriaProducto) -> CategoriaProducto:
         data = aggregate.to_dict()
-        await self.db.insert(self.table, data)
+        await self.db.upsert(self.table, data)
         return aggregate
 
     async def update(self, aggregate: CategoriaProducto) -> CategoriaProducto:
         data = aggregate.to_dict()
-        await self.db.update(self.table, str(aggregate.id), data)
+        await self.db.update(self.table, data, {"id": str(aggregate.id)})
         return aggregate
 
     async def delete(self, id: uuid.UUID) -> None:
-        await self.db.delete(self.table, str(id))
+        await self.db.delete(self.table, {"id": str(id)})
 
     def _to_aggregate(self, row: dict) -> CategoriaProducto:
         id_obj = uuid.UUID(row["id"]) if isinstance(row["id"], str) else row["id"]
@@ -59,16 +59,16 @@ class CategoriaDistribuidorRepo:
 
     async def save(self, aggregate: CategoriaDistribuidor) -> CategoriaDistribuidor:
         data = aggregate.to_dict()
-        await self.db.insert(self.table, data)
+        await self.db.upsert(self.table, data)
         return aggregate
 
     async def update(self, aggregate: CategoriaDistribuidor) -> CategoriaDistribuidor:
         data = aggregate.to_dict()
-        await self.db.update(self.table, str(aggregate.id), data)
+        await self.db.update(self.table, data, {"id": str(aggregate.id)})
         return aggregate
 
     async def delete(self, id: uuid.UUID) -> None:
-        await self.db.delete(self.table, str(id))
+        await self.db.delete(self.table, {"id": str(id)})
 
     def _to_aggregate(self, row: dict) -> CategoriaDistribuidor:
         id_obj = uuid.UUID(row["id"]) if isinstance(row["id"], str) else row["id"]

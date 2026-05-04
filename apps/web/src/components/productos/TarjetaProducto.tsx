@@ -42,6 +42,7 @@ interface TarjetaProductoProps {
  * />
  */
 export function TarjetaProducto({
+    children,
     producto,
     onArchivar,
     onToggleDisponible,
@@ -56,9 +57,7 @@ export function TarjetaProducto({
 
     const badgeVariante = sinStock ? "error" : stockBajo ? "advertencia" : "exito";
     const badgeTexto = sinStock ? "Sin Stock" : stockBajo ? "Bajo Stock" : "En Stock";
-    useEffect(() => {
-        console.log(producto)
-    }, [])
+
     return (
         <div className={`bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden ${className}`}>
             {/* Imagen */}
@@ -106,47 +105,11 @@ export function TarjetaProducto({
                         <span className="text-xs font-normal text-stone-400 ml-0.5">/{producto.unidad}</span>
                     </p>
 
-                    <div className="flex items-center gap-1.5">
-                        {/* Editar */}
-                        <Boton
-                            variante="chip"
-                            Icono={Edit3}
-                            iconoSize={14}
-                            onClick={() => router.push(`/distribuidor/productos/${producto.producto_id}/editar`)}
-                            className="p-1.5 border-transparent text-stone-500 hover:text-[#DAA520] hover:bg-[#FDF2E3]"
-                        />
-
-                        {/* Archivar */}
-                        {onArchivar && (
-                            <Boton
-                                variante="chip"
-                                Icono={Archive}
-                                iconoSize={14}
-
-                                onClick={() => setIsArchiveModalOpen(true)}
-                                className="p-1.5 border-transparent text-stone-400 hover:text-red-400 hover:bg-red-50"
-                            >
-                                {!producto.disponible ? "DesArchivar" : ""}
-                            </Boton>
-                        )}
-                    </div>
+                    {children}
                 </div>
             </div>
 
-            {/* Modal de confirmación para archivar */}
-            {onArchivar && (
-                <ModalConfirmacion
-                    isOpen={isArchiveModalOpen}
-                    onClose={() => setIsArchiveModalOpen(false)}
-                    onConfirm={() => {
-                        setIsArchiveModalOpen(false);
-                        onArchivar(producto.producto_id);
-                    }}
-                    titulo="¿Archivar producto?"
-                    mensaje="El producto se marcará como archivado y ya no aparecerá activo en el catálogo público."
-                    textoConfirmar="Sí, archivar"
-                />
-            )}
+           
         </div>
     );
 }

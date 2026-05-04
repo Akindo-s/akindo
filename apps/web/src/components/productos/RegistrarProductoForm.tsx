@@ -41,15 +41,15 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
     const [opcionesCategorias, setOpcionesCategorias] = useState([])
 
     useEffect(() => {
-        (function () {
+        
             if (data == undefined) return;
-            data.map((cat) => (
+            setOpcionesCategorias(data.map((cat) => (
                 {
                     valor: cat.id,
                     etiqueta: cat.nombre
                 }
-            ))
-        })()
+            )))
+        
     }, [data])
 
     // ── Estado del formulario ─────────────────────────────────────────────────
@@ -97,11 +97,13 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
             setNombre(productoInicial.nombre);
             setMedidaId(productoInicial.medida);
             setExistencias(productoInicial.existencias);
-
+            if (productoInicial.categorias){
+                setCategorias(productoInicial.categorias.map(cat=>cat.id))
+            }
+            
             const attrs = productoInicial.atributos_extra;
             if (attrs) {
                 if (attrs.descripcion) setDescripcion(String(attrs.descripcion));
-                if (attrs.categoria) setCategorias(String(attrs.categoria).split(","));
                 if (Array.isArray(attrs.niveles_precio)) {
                     setNiveles(attrs.niveles_precio as NivelPrecio[]);
                 }
@@ -246,9 +248,9 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
                 existencias,
                 atributos_extra: {
                     ...(descripcion.trim() ? { descripcion: descripcion.trim() } : {}),
-                    ...(categorias.length > 0 ? { categoria: categorias.join(",") } : {}),
                     ...(niveles.length > 0 ? { niveles_precio: niveles } : {}),
                 },
+                categorias:categorias
             };
             const producto = await actualizarProducto(productoInicial.id, datosUpdate);
             if (!producto) throw new Error("Error al actualizar el producto");

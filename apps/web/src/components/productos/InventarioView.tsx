@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Plus } from "lucide-react";
+import { Archive, Edit3, Plus } from "lucide-react";
 import { EncabezadoPagina } from "@/components/ui/EncabezadoPagina";
 import { Buscador } from "@/components/ui/Buscador";
 import { Boton } from "@/components/ui/Boton";
@@ -13,10 +13,59 @@ import {
     archivarProducto,
     type CatalogoPaginatedResponse,
 } from "@/lib/api/productos";
+import { useRouter } from "next/navigation";
+import { ModalConfirmacion } from "../ui/ModalConfirmacion";
+import { convertSegmentPathToStaticExportFilename } from "next/dist/shared/lib/segment-cache/segment-value-encoding";
 
 interface InventarioViewProps {
     /** UUID del distribuidor autenticado. */
     distribuidorId: string;
+}
+
+
+function ProductoInventario({ producto, onArchivar }) {
+    const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+    const router = useRouter();
+    return (
+        <TarjetaProducto
+            key={producto.producto_id}
+            producto={producto}
+            onArchivar={onArchivar}
+        >
+            <div className="flex items-center gap-1.5">
+                {/* Editar */}
+                <Boton
+                    variante="chip"
+                    Icono={Edit3}
+                    iconoSize={14}
+                    onClick={() => router.push(`/distribuidor/productos/${producto.producto_id}/editar`)}
+                    className="p-1.5 border-transparent text-stone-500 hover:text-[#DAA520] hover:bg-[#FDF2E3]"
+                />
+                {/* Archivar */}
+                <Boton
+                    variante="chip"
+                    Icono={Archive}
+                    iconoSize={14}
+                    onClick={() => setIsArchiveModalOpen(true)}
+                    className="p-1.5 border-transparent text-stone-400 hover:text-red-400 hover:bg-red-50"
+                >
+                    {!producto.disponible ? "DesArchivar" : ""}
+                </Boton>
+
+                <ModalConfirmacion
+                    isOpen={isArchiveModalOpen}
+                    onClose={() => setIsArchiveModalOpen(false)}
+                    onConfirm={() => {
+                        setIsArchiveModalOpen(false);
+                        onArchivar(producto.producto_id);
+                    }}
+                    titulo="¿Archivar producto?"
+                    mensaje="El producto se marcará como archivado y ya no aparecerá activo en el catálogo público."
+                    textoConfirmar="Sí, archivar"
+                />
+            </div>
+        </TarjetaProducto>
+    );
 }
 
 /**
@@ -24,6 +73,7 @@ interface InventarioViewProps {
  * Se renderiza como Client Component ya que necesita estado interactivo y porque se me antojo como ves tienes bronca o que?!!.
  */
 export default function InventarioView({ distribuidorId }: InventarioViewProps) {
+    
     const [productos, setProductos] = useState<ProductoInventario[]>([]);
     const [pagina, setPagina] = useState(1);
     const [tieneSiguiente, setTieneSiguiente] = useState(false);
@@ -62,8 +112,8 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
                     costo: p.costo,
                     disponible: p.disponible,
                     unidad: p.unidad,
-                    existencias:p.existencias,
-                    imagen:p.imagen
+                    existencias: p.existencias,
+                    imagen: p.imagen
                 }));
 
                 setProductos((prev) => (resetear ? nuevosProductos : [...prev, ...nuevosProductos]));
@@ -116,13 +166,20 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
     const handleArchivar = useCallback(
         async (productoId: string) => {
             const ok = await archivarProducto(productoId);
-            if (ok) {
-                setProductos((prev) => prev.filter((p) => p.producto_id !== productoId));
+            if (ok) {          
+                const newProductos = productos.map((p) =>
+                    p.producto_id === productoId
+                        ? { ...p, disponible: !p.disponible }
+                        : p
+                );
+                setProductos(newProductos);
+
+
             } else {
                 setError("No se pudo archivar el producto");
             }
         },
-        []
+        [productos]
     );
 
     // ── Render ─────────────────────────────────────────────────────────────
@@ -174,12 +231,13 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
                     </div>
                 ) : (
                     productos.map((producto) => (
-                        <TarjetaProducto
+                        <ProductoInventario
                             key={producto.producto_id}
                             producto={producto}
                             onArchivar={handleArchivar}
                         />
-                    ))
+                    )
+                    )
                 )}
 
                 {/* Centinela de scroll infinito */}

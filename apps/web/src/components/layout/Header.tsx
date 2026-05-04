@@ -16,10 +16,10 @@ interface HeaderProps {
 export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const isAdminOrDistributor = tipoUsuario === "distribuidor" || tipoUsuario === "administrador";
+  const isAdminOrDistributor = tipoUsuario === "distribuidor" || tipoUsuario === "admin";
 
   const isActive = (href: string) => pathname.startsWith(href);
-
+  console.log(tipoUsuario)
   return (
     <header className="sticky top-0 z-30 bg-white w-full flex items-center justify-between px-4 md:px-8 lg:px-16 py-3 border-b border-stone-100">
       <div className="flex items-center gap-8">
@@ -33,30 +33,37 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
       <nav className="flex items-center gap-3">
         {isLoggedIn ? (
           <>
-            {isAdminOrDistributor && (
-              <Boton 
+            {tipoUsuario === "admin" && (
+              <Boton
                 className="text-xs"
-
+                onClick={() => router.push('/admin/categorias')}
+              >
+                Administración
+              </Boton>
+            )}
+            {tipoUsuario === "distribuidor" && (
+              <Boton
+                className="text-xs"
                 onClick={() => router.push('/distribuidor')}
               >
                 Administrar negocio
               </Boton>
             )}
             {
-              !isAdminOrDistributor&&(<>
+              !isAdminOrDistributor && (<>
 
                 <Link href="/carrito" className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
-              <ShoppingCartIcon size={22} />
-            </Link>
-            <Link href="/perfil" className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
-              <AccountCircleIcon size={22} />
-            </Link>
+                  <ShoppingCartIcon size={22} />
+                </Link>
+                <Link href="/perfil" className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
+                  <AccountCircleIcon size={22} />
+                </Link>
               </>)
             }
             <button className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition cursor-pointer">
               <NotificationsIcon size={22} />
             </button>
-            
+
           </>
         ) : (
           <>

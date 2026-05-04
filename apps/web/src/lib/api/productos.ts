@@ -48,6 +48,7 @@ export interface ProductoResponse {
     disponible: boolean;
     atributos_extra: Record<string, unknown> | null;
     imagen?: string | null;
+    categorias?:Record<string,string>[]
 }
 
 export interface ProductoCatalogoResponse {
@@ -135,20 +136,19 @@ export async function obtenerUnidadesMedida(): Promise<UnidadMedida[]> {
  */
 export async function crearProducto(datos: DatosCrearProducto,es_borrador:boolean=false): Promise<ProductoResponse | null> {
     const token = await getToken();
-
+    console.log(datos.categoria)
     const body = {
         nombre: datos.nombre,
         costo: datos.costo,
         medida: datos.medida,
         existencias: datos.existencias,
         atributos_extra: {
-            // TODO: Reemplazar por campo real cuando el backend implemente categorías
-            ...(datos.categoria ? { categoria: datos.categoria } : {}),
             // Niveles de precio por volumen — almacenados hasta que el backend los procese
             ...(datos.niveles_precio?.length ? { niveles_precio: datos.niveles_precio } : {}),
             ...(datos.descripcion ? { descripcion: datos.descripcion } : {}),
         },
-        es_borrador:es_borrador
+        es_borrador:es_borrador,
+        categorias:datos.categoria
     };
 
     const respuesta = await fetchWithAuth("/productos/", {
@@ -277,7 +277,7 @@ export async function actualizarProducto(
     datos: DatosActualizarProducto,
 ): Promise<ProductoResponse | null> {
     const token = await getToken();
-
+    console.log(datos)
     const respuesta = await fetchWithAuth(`/productos/${productoId}`, {
         method: "PUT",
         body: JSON.stringify(datos),

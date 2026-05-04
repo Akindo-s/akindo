@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon } from "../icons/NavigationIcons";
@@ -11,7 +12,11 @@ const links = [
     { label: "Mi Perfil", href: "/perfil", Icon: AccountCircleIcon },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+    tipoUsuario?: string;
+}
+
+export function Sidebar({ tipoUsuario }: SidebarProps) {
     const pathname = usePathname();
 
     const isActive = (href: string) => {
@@ -24,16 +29,51 @@ export function Sidebar() {
             {/* Navegación principal */}
             <nav className="flex flex-col gap-1 p-3 flex-1">
                 {links.map(({ label, href, Icon }) => {
+                    if (label === "Mi Perfil" && tipoUsuario === "admin") {
+                        // Insertar Administración antes de Mi Perfil para administradores
+                        const adminActive = isActive("/admin/categorias");
+                        return (
+                            <React.Fragment key="admin-group">
+                                <Link
+                                    href="/admin/categorias"
+                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${adminActive
+                                            ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
+                                            : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                                        }`}
+                                >
+                                    <AccountCircleIcon // Reusando icono para evitar importar otro
+                                        size={20}
+                                        className={adminActive ? "text-[var(--color-primary-500)]" : "text-stone-400"}
+                                    />
+                                    Administración
+                                </Link>
+                                <Link
+                                    key={label}
+                                    href={href}
+                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(href)
+                                            ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
+                                            : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                                        }`}
+                                >
+                                    <Icon
+                                        size={20}
+                                        className={isActive(href) ? "text-[var(--color-primary-500)]" : "text-stone-400"}
+                                    />
+                                    {label}
+                                </Link>
+                            </React.Fragment>
+                        );
+                    }
+
                     const active = isActive(href);
                     return (
                         <Link
                             key={label}
                             href={href}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                                active
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${active
                                     ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
                                     : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
-                            }`}
+                                }`}
                         >
                             <Icon
                                 size={20}

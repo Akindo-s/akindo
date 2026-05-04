@@ -12,7 +12,16 @@ class ProductoRepo(BaseRepository[Producto]):
         id_obj = uuid.UUID(row["id"]) if isinstance(row["id"], str) else row["id"]
         dist_obj = uuid.UUID(row["distribuidor_id"]) if isinstance(row["distribuidor_id"], str) else row["distribuidor_id"]
         medida_obj = uuid.UUID(row["medida"]) if isinstance(row["medida"], str) else row["medida"]
-        
+        from app.models.categoria import CategoriaProducto
+        categorias_data = row.get("categoria_producto", [])
+        categorias = [
+            CategoriaProducto(
+                id=uuid.UUID(c["id"]) if isinstance(c["id"], str) else c["id"],
+                nombre=c["nombre"],
+                imagen=c.get("imagen")
+            ) for c in categorias_data
+        ]
+
         return Producto(
             id=id_obj,
             distribuidor_id=dist_obj,
@@ -23,10 +32,12 @@ class ProductoRepo(BaseRepository[Producto]):
             disponible=row["disponible"],
             atributos_extra=row.get("atributos_extra"),
             imagen=row.get("imagen"),
+            categorias=categorias,
         )
 
     async def save(self, aggregate: Producto) -> Producto:
         data = aggregate.to_dict()
+        data.pop('categorias')
         await self.db.upsert(self.table, data)
         return aggregate
 
@@ -35,10 +46,18 @@ class ProductoRepo(BaseRepository[Producto]):
         return await self.db.select("unidad_medida_producto", "*")
     
     async def get(self, id: UUID) -> Producto | None:
-        result = await self.db.select(self.table, "*", filters={"id": str(id)})
+        result = await self.db.select(self.table, "*, categoria_producto(*)", filters={"id": str(id)})
         if not result:
             return None
         return self._to_aggregate(result[0])
+
+    async def set_categorias(self, producto_id: UUID, categorias: list[UUID]) -> None:
+        await self.db.delete("producto_con_categoria", {"producto_id": str(producto_id)})
+        for cat_id in categorias:
+            await self.db.insert("producto_con_categoria", {
+                "producto_id": str(producto_id),
+                "categoria_id": str(cat_id)
+            })
 
     async def get_catalogo(self,limit:int, offset:int,categorias:list[UUID]|None=None,nombre:str|None = None,id_distribuidor:UUID|None = None)->dict:
         pagina = (offset // limit) + 1 if limit > 0 else 1
