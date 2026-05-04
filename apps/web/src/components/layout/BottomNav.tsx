@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, StorefrontIcon, AllInboxIcon, MoreVertIcon } from "../icons/NavigationIcons";
+import { ReactNode } from "react";
 
 const tabs = [
   { label: "Inicio", href: "/", Icon: HomeIcon },

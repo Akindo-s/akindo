@@ -1,12 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ShoppingCartIcon, NotificationsIcon, AccountCircleIcon } from "../icons/NavigationIcons";
 import { LogInIcon } from "../icons/AuthIcons";
+import { Boton } from "@/components/ui/Boton";
 
 interface HeaderProps {
   isLoggedIn: boolean;
+  tipoUsuario?: string;
 }
 
-export function Header({ isLoggedIn }: HeaderProps) {
+export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
+  const router = useRouter();
+  const isAdminOrDistributor = tipoUsuario === "distribuidor" || tipoUsuario === "administrador";
+  
   return (
     <header className="sticky top-0 z-30 bg-white w-full flex items-center justify-between px-4 py-3 border-b border-stone-100">
       <Link href="/" className="text-xl font-bold text-[var(--color-neutral-900)] select-none">
@@ -16,15 +24,30 @@ export function Header({ isLoggedIn }: HeaderProps) {
       <nav className="flex items-center gap-3">
         {isLoggedIn ? (
           <>
-            <Link href="/carrito" className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
+            {isAdminOrDistributor && (
+              <Boton 
+                className="text-xs"
+
+                onClick={() => router.push('/distribuidor')}
+              >
+                Administrar negocio
+              </Boton>
+            )}
+            {
+              !isAdminOrDistributor&&(<>
+
+                <Link href="/carrito" className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
               <ShoppingCartIcon size={22} />
             </Link>
-            <button className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition cursor-pointer">
-              <NotificationsIcon size={22} />
-            </button>
             <Link href="/perfil" className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
               <AccountCircleIcon size={22} />
             </Link>
+              </>)
+            }
+            <button className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition cursor-pointer">
+              <NotificationsIcon size={22} />
+            </button>
+            
           </>
         ) : (
           <>

@@ -9,11 +9,13 @@ export default async function ProtectedLayout({
 }>) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
+  const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
+  console.log("TIPO USUARIO",tipoUsuario)
   const isLoggedIn = !!token;
 
   return (
     <>
-      <Header isLoggedIn={isLoggedIn} />
+      <Header isLoggedIn={isLoggedIn} tipoUsuario={tipoUsuario} />
       <div className="flex-1 pb-16">
         {children}
       </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Badge } from "@/components/ui/Badge";
 import { Boton } from "@/components/ui/Boton";
+import FooterFijo from "../layout/FooterFijo";
 
 interface Direccion {
     id: string;

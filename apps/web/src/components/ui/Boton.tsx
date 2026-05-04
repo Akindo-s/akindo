@@ -87,7 +87,7 @@ export function Boton({
     variante === "chip" ? 16 : variante === "secundario" ? 18 : 20;
   const size = iconoSize ?? defaultIconSize;
 
-  const baseClasses = `${variantes[variante]} flex flex-row items-center justify-center gap-2 h-fit w-fit ${className}`;
+  const baseClasses = `${variantes[variante]} flex flex-row items-center justify-center gap-2 h-fit w-fit ${className} px-2`;
 
   const content = (
     <>
