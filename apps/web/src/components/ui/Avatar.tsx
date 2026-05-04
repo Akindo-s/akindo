@@ -25,7 +25,6 @@ export default function Avatar({ editable=true,nameInput="avatar",urlPreview=nul
 
 
     useEffect(()=>{
-        console.log(urlPreview)
         setPreview(urlPreview);
     },[urlPreview])
 

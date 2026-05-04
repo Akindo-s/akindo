@@ -19,7 +19,6 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
   const isAdminOrDistributor = tipoUsuario === "distribuidor" || tipoUsuario === "admin";
 
   const isActive = (href: string) => pathname.startsWith(href);
-  console.log(tipoUsuario)
   return (
     <header className="sticky top-0 z-30 bg-white w-full flex items-center justify-between px-4 md:px-8 lg:px-16 py-3 border-b border-stone-100">
       <div className="flex items-center gap-8">

@@ -191,7 +191,6 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
     const postSubmit = async (productoId: string) => {
         // Subir imagen principal
         if (imagenPrincipal) {
-            console.log(productoId)
             await subirImagenProducto(productoId, imagenPrincipal);
         }
         /*

@@ -119,7 +119,6 @@ export async function obtenerUnidadesMedida(): Promise<UnidadMedida[]> {
         
         if (respuesta.ok) {
             const body = await respuesta.json();
-            console.log(body)
             return body;
         }
         return [];
@@ -136,7 +135,6 @@ export async function obtenerUnidadesMedida(): Promise<UnidadMedida[]> {
  */
 export async function crearProducto(datos: DatosCrearProducto,es_borrador:boolean=false): Promise<ProductoResponse | null> {
     const token = await getToken();
-    console.log(datos.categoria)
     const body = {
         nombre: datos.nombre,
         costo: datos.costo,
@@ -277,7 +275,6 @@ export async function actualizarProducto(
     datos: DatosActualizarProducto,
 ): Promise<ProductoResponse | null> {
     const token = await getToken();
-    console.log(datos)
     const respuesta = await fetchWithAuth(`/productos/${productoId}`, {
         method: "PUT",
         body: JSON.stringify(datos),
