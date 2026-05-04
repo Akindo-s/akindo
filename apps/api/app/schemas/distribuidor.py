@@ -64,6 +64,8 @@ class ProductoCatalogoResponse(BaseModel):
     costo: float
     disponible: bool
     unidad: str
+    existencias: int
+    imagen: str | None = None
 
 
 class CatalogoPaginatedResponse(BaseModel):

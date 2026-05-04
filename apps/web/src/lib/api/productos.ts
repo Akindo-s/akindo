@@ -47,6 +47,37 @@ export interface ProductoResponse {
     existencias: number;
     disponible: boolean;
     atributos_extra: Record<string, unknown> | null;
+    imagen?: string | null;
+}
+
+export interface ProductoCatalogoResponse {
+    producto_id: string;
+    nombre: string;
+    costo: number;
+    disponible: boolean;
+    unidad: string;
+    existencias:number,
+    imagen:string
+}
+
+export interface CatalogoPaginatedResponse {
+    total_productos: number;
+    total_paginas: number;
+    pagina_actual: number;
+    tiene_siguiente: boolean;
+    tiene_anterior: boolean;
+    siguiente_url: string | null;
+    anterior_url: string | null;
+    productos: ProductoCatalogoResponse[];
+}
+
+export interface DatosActualizarProducto {
+    nombre: string;
+    costo: number;
+    medida: string;
+    existencias: number;
+    atributos_extra?: Record<string, unknown> | null;
+    categorias?: string[] | null;
 }
 
 // ─── Funciones ───────────────────────────────────────────────────────────────
@@ -144,4 +175,110 @@ export async function subirImagenProducto(productoId: string, file: File): Promi
         return data.imagen_url ?? data.url ?? null;
     }
     return null;
+}
+
+// ─── Catálogo e Inventario ────────────────────────────────────────────────────
+
+/**
+ * Obtiene el catálogo paginado de productos de un distribuidor.
+ * Soporta búsqueda por nombre y filtrado por categorías.
+ * @param distribuidorId UUID del distribuidor.
+ * @param pagina Número de página (1-indexed).
+ * @param cantidad Cantidad de productos por página.
+ * @param nombre Filtro de búsqueda por nombre.
+ * @param categorias UUIDs de categorías para filtrar.
+ */
+export async function obtenerCatalogoDistribuidor(
+    distribuidorId: string,
+    pagina: number = 1,
+    cantidad: number = 20,
+    nombre: string = "",
+    categorias: string[] | null = null,
+): Promise<CatalogoPaginatedResponse> {
+    const token = await getToken();
+    const params = new URLSearchParams({
+        distribuidor_id: distribuidorId,
+        numero_pagina: String(pagina),
+        cantidad_pagina: String(cantidad),
+        nombre,
+    });
+
+    const options: RequestInit = {
+        method: categorias && categorias.length > 0 ? "POST" : "GET",
+        ...(categorias && categorias.length > 0
+            ? { body: JSON.stringify(categorias) }
+            : {}),
+    };
+
+    // GET /productos/catalogo usa query params; categorías van en body como POST
+    const respuesta = await fetchWithAuth(`/productos/catalogo?${params.toString()}`, options, token);
+
+    if (respuesta.ok) {
+        return await respuesta.json();
+    }
+    return {
+        total_productos: 0,
+        total_paginas: 0,
+        pagina_actual: 1,
+        tiene_siguiente: false,
+        tiene_anterior: false,
+        siguiente_url: null,
+        anterior_url: null,
+        productos: [],
+    };
+}
+
+/**
+ * Obtiene los datos completos de un producto por su ID.
+ * TODO: Conectar cuando el backend exponga GET /productos/{producto_id}
+ * @param productoId UUID del producto.
+ */
+export async function obtenerProducto(productoId: string): Promise<ProductoResponse | null> {
+    const token = await getToken();
+    // TODO: Implementar cuando el backend tenga GET /productos/{producto_id}
+    const respuesta = await fetchWithAuth(`/productos/${productoId}`, {
+        method: "GET",
+    }, token);
+
+    if (respuesta.ok) {
+        return await respuesta.json();
+    }
+    return null;
+}
+
+/**
+ * Actualiza toda la información de un producto existente.
+ * @param productoId UUID del producto a actualizar.
+ * @param datos Datos actualizados del producto.
+ */
+export async function actualizarProducto(
+    productoId: string,
+    datos: DatosActualizarProducto,
+): Promise<ProductoResponse | null> {
+    const token = await getToken();
+
+    const respuesta = await fetchWithAuth(`/productos/${productoId}`, {
+        method: "PUT",
+        body: JSON.stringify(datos),
+    }, token);
+
+    if (respuesta.ok) {
+        return await respuesta.json();
+    }
+    return null;
+}
+
+/**
+ * Archiva un producto (borrado lógico).
+ * El producto deja de aparecer en el catálogo pero no se elimina permanentemente.
+ * @param productoId UUID del producto a archivar.
+ */
+export async function archivarProducto(productoId: string): Promise<boolean> {
+    const token = await getToken();
+
+    const respuesta = await fetchWithAuth(`/productos/${productoId}`, {
+        method: "DELETE",
+    }, token);
+
+    return respuesta.status === 204;
 }

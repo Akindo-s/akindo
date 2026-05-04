@@ -172,3 +172,10 @@ class ProductoService:
 
         url: str = await self.storage.upload(bucket, path, file, content_type)
         return url
+    
+    async def obtener_producto(self,producto_id:UUID,distribuidor_id:UUID)->Producto:
+        producto = await self.repo.get(producto_id)
+        if not producto or producto.distribuidor_id != distribuidor_id:
+            raise NotFoundException("Producto no encontrado")
+        return producto
+    

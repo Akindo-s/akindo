@@ -94,6 +94,17 @@ async def actualizar_producto(
         atributos_extra=data.atributos_extra
     )
 
+@router.get("/{producto_id}", response_model=ProductoResponse)
+async def obtener_producto(
+    producto_id: UUID,
+    distribuidor: Usuario = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db),
+    storage: StorageAdapter = Depends(get_storage)
+):
+    """Obtiene los detalles de un producto."""
+    service = ProductoService(db,storage)
+    return await service.obtener_producto(producto_id, distribuidor.id)
+
 
 @router.delete("/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def eliminar_producto(

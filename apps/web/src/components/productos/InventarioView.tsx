@@ -1,0 +1,222 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Plus } from "lucide-react";
+import { EncabezadoPagina } from "@/components/ui/EncabezadoPagina";
+import { Buscador } from "@/components/ui/Buscador";
+import { Boton } from "@/components/ui/Boton";
+import { TarjetaProducto, type ProductoInventario } from "@/components/productos/TarjetaProducto";
+import { VentanaEmergente } from "@/components/VentanaEmergente";
+import FooterFijo from "@/components/layout/FooterFijo";
+import {
+    obtenerCatalogoDistribuidor,
+    archivarProducto,
+    type CatalogoPaginatedResponse,
+} from "@/lib/api/productos";
+
+interface InventarioViewProps {
+    /** UUID del distribuidor autenticado. */
+    distribuidorId: string;
+}
+
+/**
+ * Vista de inventario del distribuidor con scroll infinito, buscador y filtros.
+ * Se renderiza como Client Component ya que necesita estado interactivo.
+ */
+export default function InventarioView({ distribuidorId }: InventarioViewProps) {
+    const [productos, setProductos] = useState<ProductoInventario[]>([]);
+    const [pagina, setPagina] = useState(1);
+    const [tieneSiguiente, setTieneSiguiente] = useState(false);
+    const [cargando, setCargando] = useState(false);
+    const [cargandoMas, setCargandoMas] = useState(false);
+    const [busqueda, setBusqueda] = useState("");
+    const [error, setError] = useState<string | null>(null);
+
+    // TODO: Conectar cuando se implemente el fetch de categorías
+    const [categoriasFiltro, _setCategoriasFiltro] = useState<string[]>([]);
+
+    const observerRef = useRef<IntersectionObserver | null>(null);
+    const centinelaRef = useRef<HTMLDivElement | null>(null);
+
+    // ── Cargar productos ──────────────────────────────────────────────────
+    const cargarProductos = useCallback(
+        async (pag: number, query: string, resetear: boolean = false) => {
+            if (resetear) {
+                setCargando(true);
+            } else {
+                setCargandoMas(true);
+            }
+
+            try {
+                const data: CatalogoPaginatedResponse = await obtenerCatalogoDistribuidor(
+                    distribuidorId,
+                    pag,
+                    20,
+                    query,
+                    categoriasFiltro.length > 0 ? categoriasFiltro : null,
+                );
+
+                const nuevosProductos: ProductoInventario[] = data.productos.map((p) => ({
+                    producto_id: p.producto_id,
+                    nombre: p.nombre,
+                    costo: p.costo,
+                    disponible: p.disponible,
+                    unidad: p.unidad,
+                    existencias:p.existencias,
+                    imagen:p.imagen
+                }));
+
+                setProductos((prev) => (resetear ? nuevosProductos : [...prev, ...nuevosProductos]));
+                setTieneSiguiente(data.tiene_siguiente);
+                setPagina(pag);
+            } catch (e: any) {
+                setError(e.message || "Error al cargar productos");
+            } finally {
+                setCargando(false);
+                setCargandoMas(false);
+            }
+        },
+        [distribuidorId, categoriasFiltro]
+    );
+
+    // Carga inicial
+    useEffect(() => {
+        cargarProductos(1, busqueda, true);
+    }, [cargarProductos]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── Scroll infinito ────────────────────────────────────────────────────
+    useEffect(() => {
+        if (observerRef.current) observerRef.current.disconnect();
+
+        observerRef.current = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && tieneSiguiente && !cargandoMas) {
+                    cargarProductos(pagina + 1, busqueda);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (centinelaRef.current) {
+            observerRef.current.observe(centinelaRef.current);
+        }
+
+        return () => observerRef.current?.disconnect();
+    }, [tieneSiguiente, cargandoMas, pagina, busqueda, cargarProductos]);
+
+    // ── Handlers ───────────────────────────────────────────────────────────
+    const handleBuscar = useCallback(
+        (query: string) => {
+            setBusqueda(query);
+            cargarProductos(1, query, true);
+        },
+        [cargarProductos]
+    );
+
+    const handleArchivar = useCallback(
+        async (productoId: string) => {
+            const ok = await archivarProducto(productoId);
+            if (ok) {
+                setProductos((prev) => prev.filter((p) => p.producto_id !== productoId));
+            } else {
+                setError("No se pudo archivar el producto");
+            }
+        },
+        []
+    );
+
+    const handleToggleDisponible = useCallback(
+        async (productoId: string, nuevoEstado: boolean) => {
+            // TODO: Conectar con endpoint PUT /productos/{id} para cambiar disponibilidad
+            // Por ahora solo actualiza el estado local
+            setProductos((prev) =>
+                prev.map((p) =>
+                    p.producto_id === productoId ? { ...p, disponible: nuevoEstado } : p
+                )
+            );
+        },
+        []
+    );
+
+    // ── Render ─────────────────────────────────────────────────────────────
+    return (
+        <div className="flex flex-col w-full max-w-2xl mx-auto pb-24 bg-[#FAF7F2] min-h-screen">
+            {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />}
+
+            <EncabezadoPagina titulo="Inventario" href="/distribuidor" className="mb-2" />
+
+            {/* Buscador */}
+            <div className="px-4 mb-4">
+                <Buscador
+                    placeholder="Buscar productos..."
+                    onBuscar={handleBuscar}
+                />
+            </div>
+
+            {/* TODO: Chips de filtro por categoría — conectar cuando se implementen las categorías */}
+            {/* <div className="px-4 mb-6">
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                    {categorias.map((cat) => (
+                        <Boton key={cat.id} variante="chip" onClick={() => toggleCategoria(cat.id)}>
+                            {cat.nombre}
+                        </Boton>
+                    ))}
+                </div>
+            </div> */}
+
+            {/* Lista de productos */}
+            <div className="px-4 flex flex-col gap-4">
+                {cargando ? (
+                    // Skeleton
+                    Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden animate-pulse">
+                            <div className="w-full h-44 bg-stone-200" />
+                            <div className="p-4 flex flex-col gap-2">
+                                <div className="h-4 w-3/4 bg-stone-200 rounded" />
+                                <div className="h-3 w-1/3 bg-stone-200 rounded" />
+                                <div className="h-5 w-1/2 bg-stone-200 rounded" />
+                            </div>
+                        </div>
+                    ))
+                ) : productos.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <p className="text-stone-400 text-sm mb-2">No se encontraron productos</p>
+                        <p className="text-stone-300 text-xs">
+                            {busqueda ? "Intenta con otro término de búsqueda" : "Agrega tu primer producto desde el botón de abajo"}
+                        </p>
+                    </div>
+                ) : (
+                    productos.map((producto) => (
+                        <TarjetaProducto
+                            key={producto.producto_id}
+                            producto={producto}
+                            onArchivar={handleArchivar}
+                            onToggleDisponible={handleToggleDisponible}
+                        />
+                    ))
+                )}
+
+                {/* Centinela de scroll infinito */}
+                {tieneSiguiente && (
+                    <div ref={centinelaRef} className="flex justify-center py-6">
+                        {cargandoMas && (
+                            <div className="w-6 h-6 border-2 border-[#DAA520] border-t-transparent rounded-full animate-spin" />
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Footer: Agregar producto */}
+            <FooterFijo>
+                <Boton
+                    variante="primario"
+                    Icono={Plus}
+                    onClick={() => window.location.href = "/distribuidor/productos/crear"}
+                    className="flex-1 justify-center py-3 rounded-xl"
+                >
+                    Agregar producto
+                </Boton>
+            </FooterFijo>
+        </div>
+    );
+}

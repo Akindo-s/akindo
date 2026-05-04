@@ -37,7 +37,7 @@ interface BotonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantes: Record<NonNullable<BotonProps["variante"]>, string> = {
   primario:
-    "bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white w-full py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition cursor-pointer uppercase text-sm tracking-wide disabled:opacity-75",
+    " bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white w-full py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition cursor-pointer uppercase text-sm tracking-wide disabled:opacity-75",
   secundario:
     "bg-[#FDF2E3] hover:bg-[#FCEAD2] text-[#4F4634] rounded-full font-medium transition border-none shadow-none cursor-pointer",
   peligro:
@@ -87,7 +87,7 @@ export function Boton({
     variante === "chip" ? 16 : variante === "secundario" ? 18 : 20;
   const size = iconoSize ?? defaultIconSize;
 
-  const baseClasses = `${variantes[variante]} flex flex-row items-center justify-center gap-2 h-fit w-fit ${className} px-2`;
+  const baseClasses = `${variantes[variante]} flex flex-row items-center justify-center gap-2 h-fit w-fit px-2 ${className}`;
 
   const content = (
     <>

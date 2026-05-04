@@ -15,10 +15,19 @@ import {
     crearProducto,
     guardarBorradorProducto,
     subirImagenProducto,
+    actualizarProducto,
     type UnidadMedida,
     type NivelPrecio,
+    type ProductoResponse,
 } from "@/lib/api/productos";
 import FooterFijo from "../layout/FooterFijo";
+
+interface ProductoFormProps {
+    /** Modo del formulario: crear un nuevo producto o editar uno existente. */
+    modo?: "crear" | "editar";
+    /** Datos del producto a editar (solo en modo editar). */
+    productoInicial?: ProductoResponse | null;
+}
 
 // Categorías estáticas hasta que el backend implemente el endpoint
 // TODO: Reemplazar con GET /categorias cuando esté disponible
@@ -33,8 +42,9 @@ const CATEGORIAS_ESTATICAS = [
     "Otros",
 ];
 
-export default function RegistrarProductoForm() {
+export default function RegistrarProductoForm({ modo = "crear", productoInicial }: ProductoFormProps) {
     const router = useRouter();
+    const esEdicion = modo === "editar";
 
     // ── Estado del formulario ─────────────────────────────────────────────────
     const [nombre, setNombre] = useState("");
@@ -71,9 +81,35 @@ export default function RegistrarProductoForm() {
     useEffect(() => {
         obtenerUnidadesMedida().then((data) => {
             setUnidades(data);
-            if (data.length > 0) setMedidaId(data[0].id);
+            if (!esEdicion && data.length > 0) setMedidaId(data[0].id);
         });
-    }, []);
+    }, [esEdicion]);
+
+    // ── Precargar datos del producto en modo edición ─────────────────────────
+    useEffect(() => {
+        if (esEdicion && productoInicial) {
+            setNombre(productoInicial.nombre);
+            setMedidaId(productoInicial.medida);
+            setExistencias(productoInicial.existencias);
+
+            const attrs = productoInicial.atributos_extra;
+            if (attrs) {
+                if (attrs.descripcion) setDescripcion(String(attrs.descripcion));
+                if (attrs.categoria) setCategorias(String(attrs.categoria).split(","));
+                if (Array.isArray(attrs.niveles_precio)) {
+                    setNiveles(attrs.niveles_precio as NivelPrecio[]);
+                }
+            }
+
+            if (!attrs?.niveles_precio) {
+                setNiveles([{ cantidad_minima: 1, costo_por_medida: productoInicial.costo }]);
+            }
+
+            if (productoInicial.imagen) {
+                setImagenPrincipalPreview(productoInicial.imagen);
+            }
+        }
+    }, [esEdicion, productoInicial]);
 
     // ── Handlers de imagen ────────────────────────────────────────────────────
     const handleImagenPrincipal = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +203,7 @@ export default function RegistrarProductoForm() {
             const producto = await crearProducto(buildDatos());
             if (!producto) throw new Error("Error al crear el producto");
             await postSubmit(producto.id);
-            router.push("/distribuidor");
+            router.push("/distribuidor/productos");
         } catch (e: any) {
             setError(e.message || "Ocurrió un error al publicar el producto");
         } finally {
@@ -183,11 +219,42 @@ export default function RegistrarProductoForm() {
             const producto = await guardarBorradorProducto(buildDatos());
             if (!producto) throw new Error("Error al guardar el borrador");
             await postSubmit(producto.id);
-            router.push("/distribuidor");
+            router.push("/distribuidor/productos");
         } catch (e: any) {
             setError(e.message || "Ocurrió un error al guardar el borrador");
         } finally {
             setLoadingBorrador(false);
+        }
+    };
+
+    const handleActualizar = async () => {
+        if (!productoInicial) return;
+        const err = validar();
+        if (err) { setError(err); return; }
+        setLoading(true);
+        try {
+            const datosUpdate = {
+                nombre: nombre.trim(),
+                costo: niveles[0]?.costo_por_medida ?? 0,
+                medida: medidaId,
+                existencias,
+                atributos_extra: {
+                    ...(descripcion.trim() ? { descripcion: descripcion.trim() } : {}),
+                    ...(categorias.length > 0 ? { categoria: categorias.join(",") } : {}),
+                    ...(niveles.length > 0 ? { niveles_precio: niveles } : {}),
+                },
+            };
+            const producto = await actualizarProducto(productoInicial.id, datosUpdate);
+            if (!producto) throw new Error("Error al actualizar el producto");
+            // Subir nueva imagen si se seleccionó una
+            if (imagenPrincipal) {
+                await subirImagenProducto(producto.id, imagenPrincipal);
+            }
+            router.push("/distribuidor/productos");
+        } catch (e: any) {
+            setError(e.message || "Ocurrió un error al actualizar el producto");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -209,11 +276,17 @@ export default function RegistrarProductoForm() {
         <div className="flex flex-col w-full max-w-2xl mx-auto pb-24 bg-[#FAF7F2] min-h-screen">
             {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />}
 
-            <EncabezadoPagina titulo="Registrar producto" href="/distribuidor" className="mb-2" />
+            <EncabezadoPagina
+                titulo={esEdicion ? "Editar producto" : "Registrar producto"}
+                href="/distribuidor"
+                className="mb-2"
+            />
 
             {/* Subtítulo */}
             <div className="px-4 mb-6">
-                <p className="text-sm text-stone-500">Agrega un nuevo producto a tu catálogo al mayoreo.</p>
+                <p className="text-sm text-stone-500">
+                    {esEdicion ? "Modifica la información de tu producto." : "Agrega un nuevo producto a tu catálogo al mayoreo."}
+                </p>
             </div>
 
             {/* ── Imagen principal ──────────────────────────────────────────── */}
@@ -404,25 +477,38 @@ export default function RegistrarProductoForm() {
             </section>
 
             <FooterFijo>
-
-                <Boton
-                    variante="secundario"
-                    onClick={handleGuardarBorrador}
-                    loading={loadingBorrador}
-                    loadingText="Guardando..."
-                    className="flex-1 justify-center py-3 rounded-xl border border-[#E8DEC1] font-semibold text-sm text-stone-800"
-                >
-                    Guardar como borrador
-                </Boton>
-                <Boton
-                    variante="primario"
-                    onClick={handlePublicar}
-                    loading={loading}
-                    loadingText="Publicando..."
-                    className="flex-1 justify-center py-3 rounded-xl"
-                >
-                    Publicar producto
-                </Boton>
+                {esEdicion ? (
+                    <Boton
+                        variante="primario"
+                        onClick={handleActualizar}
+                        loading={loading}
+                        loadingText="Guardando..."
+                        className="flex-1 justify-center py-3 rounded-xl"
+                    >
+                        Guardar cambios
+                    </Boton>
+                ) : (
+                    <>
+                        <Boton
+                            variante="secundario"
+                            onClick={handleGuardarBorrador}
+                            loading={loadingBorrador}
+                            loadingText="Guardando..."
+                            className="flex-1 justify-center py-3 rounded-xl border border-[#E8DEC1] font-semibold text-sm text-stone-800"
+                        >
+                            Guardar como borrador
+                        </Boton>
+                        <Boton
+                            variante="primario"
+                            onClick={handlePublicar}
+                            loading={loading}
+                            loadingText="Publicando..."
+                            className="flex-1 justify-center py-3 rounded-xl"
+                        >
+                            Publicar producto
+                        </Boton>
+                    </>
+                )}
             </FooterFijo>
 
         </div>

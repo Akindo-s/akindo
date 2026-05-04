@@ -6,6 +6,7 @@ import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Badge } from "@/components/ui/Badge";
 import { Boton } from "@/components/ui/Boton";
 import FooterFijo from "../layout/FooterFijo";
+import { AllInboxIcon } from "../icons/NavigationIcons";
 
 interface Direccion {
     id: string;
@@ -47,6 +48,9 @@ export default function PerfilDistribuidor({ distribuidor }: Props) {
             </header>
 
             {/* Resumen */}
+
+            <hr />
+            <span>** sin hacer jaja salu2 que miras o que**</span>    
             <section className="px-4 mb-4">
                 <h2 className="text-2xl font-bold text-stone-900 mb-1">Resumen</h2>
                 <p className="text-sm text-stone-500">Cifras de ventas de este ultimo mes.</p>
@@ -87,11 +91,15 @@ export default function PerfilDistribuidor({ distribuidor }: Props) {
                     </Tarjeta>
                 </div>
             </section>
+            <hr />
 
             {/* Acciones rápidas */}
             <section className="px-4 mb-8">
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                    <Boton variante="chip" Icono={PlusCircle} href="/distribuidor/productos/crear" className="bg-[#DDA11E] border-transparent text-stone-900">
+                <div className="flex gap-3 overflow-x-auto no-scrollbar p-2">
+                    <Boton variante="chip" Icono={AllInboxIcon} href="/distribuidor/productos/" className="m-0  px-5">
+                        Inventario
+                    </Boton>
+                    <Boton variante="chip" Icono={PlusCircle} href="/distribuidor/productos/crear" className="bg-[#DDA11E]">
                         Nuevo producto
                     </Boton>
                     <Boton variante="chip" Icono={FileText}>

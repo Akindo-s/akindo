@@ -33,6 +33,12 @@ class ProductoRepo(BaseRepository[Producto]):
     async def get_unidades_medida(self) -> list[dict[str, Any]]:
         """Obtiene todas las unidades de medida disponibles."""
         return await self.db.select("unidad_medida_producto", "*")
+    
+    async def get(self, id: UUID) -> Producto | None:
+        result = await self.db.select(self.table, "*", filters={"id": str(id)})
+        if not result:
+            return None
+        return self._to_aggregate(result[0])
 
     async def get_catalogo(self,limit:int, offset:int,categorias:list[UUID]|None=None,nombre:str|None = None,id_distribuidor:UUID|None = None)->dict:
         pagina = (offset // limit) + 1 if limit > 0 else 1
@@ -77,7 +83,9 @@ class ProductoRepo(BaseRepository[Producto]):
                 "nombre": row["nombre"],
                 "costo": row["costo"],
                 "disponible": row["disponible"],
-                "unidad": row["unidad"]
+                "unidad": row["unidad"],
+                'existencias': row["existencias"],
+                'imagen': row.get("imagen")
             })
             
         metadata["productos"] = productos
