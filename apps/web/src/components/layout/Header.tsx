@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { ShoppingCartIcon, NotificationsIcon, AccountCircleIcon } from "../icons/NavigationIcons";
 import { LogInIcon } from "../icons/AuthIcons";
 import { Boton } from "@/components/ui/Boton";
@@ -11,15 +11,24 @@ interface HeaderProps {
   tipoUsuario?: string;
 }
 
+
+
 export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const isAdminOrDistributor = tipoUsuario === "distribuidor" || tipoUsuario === "administrador";
-  
+
+  const isActive = (href: string) => pathname.startsWith(href);
+
   return (
-    <header className="sticky top-0 z-30 bg-white w-full flex items-center justify-between px-4 py-3 border-b border-stone-100">
-      <Link href="/" className="text-xl font-bold text-[var(--color-neutral-900)] select-none">
-        Akindo
-      </Link>
+    <header className="sticky top-0 z-30 bg-white w-full flex items-center justify-between px-4 md:px-8 lg:px-16 py-3 border-b border-stone-100">
+      <div className="flex items-center gap-8">
+        <Link href="/" className="text-xl md:text-2xl font-bold text-[var(--color-neutral-900)] select-none">
+          Akindo
+        </Link>
+
+
+      </div>
 
       <nav className="flex items-center gap-3">
         {isLoggedIn ? (
