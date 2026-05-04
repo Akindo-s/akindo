@@ -21,7 +21,7 @@ interface InventarioViewProps {
 
 /**
  * Vista de inventario del distribuidor con scroll infinito, buscador y filtros.
- * Se renderiza como Client Component ya que necesita estado interactivo.
+ * Se renderiza como Client Component ya que necesita estado interactivo y porque se me antojo como ves tienes bronca o que?!!.
  */
 export default function InventarioView({ distribuidorId }: InventarioViewProps) {
     const [productos, setProductos] = useState<ProductoInventario[]>([]);
@@ -84,7 +84,7 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
         cargarProductos(1, busqueda, true);
     }, [cargarProductos]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // ── Scroll infinito ────────────────────────────────────────────────────
+    // ── Algoritmo de Scroll infinito ────────────────────────────────────────────────────
     useEffect(() => {
         if (observerRef.current) observerRef.current.disconnect();
 
@@ -125,22 +125,9 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
         []
     );
 
-    const handleToggleDisponible = useCallback(
-        async (productoId: string, nuevoEstado: boolean) => {
-            // TODO: Conectar con endpoint PUT /productos/{id} para cambiar disponibilidad
-            // Por ahora solo actualiza el estado local
-            setProductos((prev) =>
-                prev.map((p) =>
-                    p.producto_id === productoId ? { ...p, disponible: nuevoEstado } : p
-                )
-            );
-        },
-        []
-    );
-
     // ── Render ─────────────────────────────────────────────────────────────
     return (
-        <div className="flex flex-col w-full max-w-2xl mx-auto pb-24 bg-[#FAF7F2] min-h-screen">
+        <div className="flex flex-col w-full max-w-2xl lg:max-w-6xl mx-auto pb-24 bg-[#FAF7F2] min-h-screen">
             {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />}
 
             <EncabezadoPagina titulo="Inventario" href="/distribuidor" className="mb-2" />
@@ -165,7 +152,7 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
             </div> */}
 
             {/* Lista de productos */}
-            <div className="px-4 flex flex-col gap-4">
+            <div className="px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {cargando ? (
                     // Skeleton
                     Array.from({ length: 3 }).map((_, i) => (
@@ -191,7 +178,6 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
                             key={producto.producto_id}
                             producto={producto}
                             onArchivar={handleArchivar}
-                            onToggleDisponible={handleToggleDisponible}
                         />
                     ))
                 )}

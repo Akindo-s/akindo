@@ -22,7 +22,7 @@ export async function actualizarImagenPerfil(file: File): Promise<boolean> {
     const formData = new FormData();
     formData.append('file', file);
 
-    const respuesta = await fetchWithAuth('/clientes/me/imagen-perfil', {
+    const respuesta = await fetchWithAuth('/usuarios/me/imagen-perfil', {
         method: 'PUT',
         body: formData
     }, token);

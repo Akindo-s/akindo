@@ -6,7 +6,7 @@ interface HeroCardProps {
 
 export function HeroCard({ imageSrc }: HeroCardProps) {
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden min-h-[280px] flex flex-col justify-end bg-[var(--color-neutral-700)]">
+    <div className="relative w-full rounded-2xl overflow-hidden min-h-[280px] md:min-h-[360px] flex flex-col justify-end bg-[var(--color-neutral-700)]">
       {/* Imagen de fondo */}
       {imageSrc && (
         <img
