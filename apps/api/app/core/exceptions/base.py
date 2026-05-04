@@ -51,10 +51,10 @@ class ForbiddenException(AkindoBaseException):
 
 
 class TokenExpiredException(AkindoBaseException):
-    """El JWT ha expirado — HTTP 401."""
+    """El JWT ha expirado — HTTP 498."""
 
     def __init__(self, detail: str = "Token expirado"):
-        super().__init__(detail=detail, status_code=401)
+        super().__init__(detail=detail, status_code=498)
 
 
 class InvalidTokenException(AkindoBaseException):

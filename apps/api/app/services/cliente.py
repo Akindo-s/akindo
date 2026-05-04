@@ -24,6 +24,7 @@ from app.schemas.cliente import (
     ImagenPerfilResponse,
     PedidoResumenResponse,
 )
+from app.services.usuario import UsuarioService
 
 
 class ClienteService:
@@ -37,6 +38,7 @@ class ClienteService:
         self.usuario_repo = UsuarioRepo(db)
         self.cliente_repo = ClienteRepo(db)
         self.storage = storage
+        self.usuario_service = UsuarioService(db, storage) if storage else None
 
     # ── Perfil ─────────────────────────────────────────────────────
 
@@ -102,47 +104,16 @@ class ClienteService:
         self, usuario_id: UUID, file_data: bytes, content_type: str, filename: str
     ) -> ImagenPerfilResponse:
         """
-        Sube la imagen de perfil a Supabase Storage y actualiza la URL en la DB.
+        Sube la imagen de perfil del cliente delegando a UsuarioService.
         """
-        # Validar tipo de archivo
-        if content_type not in self.ALLOWED_IMAGE_TYPES:
-            raise ValidationException(
-                f"Tipo de archivo no permitido: {content_type}. "
-                f"Permitidos: {', '.join(self.ALLOWED_IMAGE_TYPES)}"
-            )
-
-        # Validar tamaño
-        if len(file_data) > self.MAX_IMAGE_SIZE:
-            raise ValidationException(
-                f"La imagen excede el tamaño máximo de {self.MAX_IMAGE_SIZE // (1024 * 1024)} MB"
-            )
-
-        # Determinar extensión
-        ext = content_type.split("/")[-1]
-        if ext == "jpeg":
-            ext = "jpg"
-        path = f"avatars/{usuario_id}.{ext}"
-
-        # Subir a Supabase Storage
-        url = await self.storage.upload("avatars", path, file_data, content_type)
-
-        # Actualizar URL en el Aggregate
-        usuario = await self.usuario_repo.get_by_id(usuario_id)
-        if not usuario:
-            raise NotFoundException("Cliente no encontrado")
-        
-        usuario.imagen_perfil = url
-        await self.usuario_repo.save(usuario)
-
-        # Publicar evento
-        await event_bus.publish(
-            ClienteImagenPerfilSubida(
-                usuario_id=usuario_id,
-                url_imagen=url,
-            )
+        if not self.usuario_service:
+            raise Exception("Storage provider not configured")
+        return await self.usuario_service.subir_imagen_perfil(
+            usuario_id=usuario_id,
+            file_data=file_data,
+            content_type=content_type,
+            filename=filename,
         )
-
-        return ImagenPerfilResponse(imagen_perfil=url)
 
     # ── Direcciones ────────────────────────────────────────────────
 

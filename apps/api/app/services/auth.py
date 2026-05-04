@@ -181,4 +181,4 @@ class AuthService:
             )
         )
 
-        return TokenResponse(access_token=token)
+        return TokenResponse(access_token=token, tipo_usuario=usuario.tipo.value)

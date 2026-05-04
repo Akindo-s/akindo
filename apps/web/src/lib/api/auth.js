@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.akindapi || 'http://127.0.0.1:8000';
+import {API_URL} from "@/lib/api/constants"
 
 export async function registrarCliente(datos) {
   const response = await fetch(`${API_URL}/clientes`, {
@@ -14,7 +14,7 @@ export async function registrarCliente(datos) {
     try {
       errorData = await response.json();
     } catch (e) {
-      // Ignorar si no es JSON
+      // Ignorar si no es JSON... pero no deberia de no ser JSON eh cuidado
     }
     const message = errorData.detail || 'Error al registrar cliente';
     throw new Error(typeof message === 'string' ? message : JSON.stringify(message));

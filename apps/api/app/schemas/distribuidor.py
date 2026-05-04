@@ -64,6 +64,8 @@ class ProductoCatalogoResponse(BaseModel):
     costo: float
     disponible: bool
     unidad: str
+    existencias: int
+    imagen: str | None = None
 
 
 class CatalogoPaginatedResponse(BaseModel):
@@ -113,4 +115,38 @@ class DistribuidoresPaginatedResponse(BaseModel):
     siguiente_url: str | None = None
     anterior_url: str | None = None
     distribuidores: list[MiniDistribuidorResponse]
+
+
+# ── Dashboard y Alertas ───────────────────────────────────────────
+
+class ResumenDashboardResponse(BaseModel):
+    """Resumen para el dashboard del distribuidor."""
+    volumen_bruto_mes: float
+    pedidos_activos: int
+    productos_poco_stock: int
+
+
+class AlertaExistenciaResponse(BaseModel):
+    """Alerta de existencias bajas para un producto."""
+    producto_id: UUID
+    nombre: str
+    sku: str
+    existencias: int
+    costo: float
+    unidad: str
+    imagen: str | None = None
+    disponible: bool
+    estado_stock: str
+
+
+class PedidoActivoDistribuidorResponse(BaseModel):
+    """Información de un pedido activo de un distribuidor."""
+    pedido_id: UUID
+    orden_id: UUID
+    cliente_nombre: str
+    cliente_email: str
+    total: float
+    estado: str
+    confirmado_at: datetime
+
 

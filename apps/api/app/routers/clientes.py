@@ -5,7 +5,6 @@ Endpoints:
   POST /clientes                   → Registrar cliente (público)
   GET  /clientes/me                → Obtener perfil (autenticado)
   PATCH /clientes/me               → Actualizar perfil (autenticado)
-  PUT  /clientes/me/imagen-perfil  → Subir imagen de perfil (autenticado)
   GET  /clientes/me/direcciones    → Obtener direcciones (autenticado)
   GET  /clientes/me/pedidos        → Obtener pedidos (autenticado)
   GET  /clientes/me/carrito        → Obtener carritos (autenticado)
@@ -95,33 +94,6 @@ async def actualizar_mi_perfil(
     """
     service = ClienteService(db)
     return await service.actualizar_perfil(cliente.id, data)
-
-
-@router.put(
-    "/me/imagen-perfil",
-    response_model=ImagenPerfilResponse,
-    summary="Subir imagen de perfil",
-)
-async def subir_imagen_perfil(
-    file: UploadFile = File(...),
-    cliente: Cliente = Depends(get_current_cliente),
-    db: DatabaseSession = Depends(get_db),
-    storage: StorageAdapter = Depends(get_storage),
-):
-    """
-    Sube o reemplaza la imagen de perfil del cliente autenticado.
-
-    - Acepta: JPEG, PNG, WebP.
-    - Tamaño máximo: 5 MB.
-    """
-    file_data = await file.read()
-    service = ClienteService(db, storage)
-    return await service.subir_imagen_perfil(
-        usuario_id=cliente.id,
-        file_data=file_data,
-        content_type=file.content_type or "image/jpeg",
-        filename=file.filename or "avatar",
-    )
 
 
 # ── Sub-recursos del cliente autenticado ───────────────────────────

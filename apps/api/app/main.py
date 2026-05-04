@@ -22,8 +22,9 @@ from app.events.cliente_perfil import (
     RegistrarCambioImagenPerfil,
 )
 from app.events.distribuidor_registrado import EventoEnviarMensajeBienvenidaDistribuidor
+from app.events.usuario_imagen import UsuarioImagenSubidaSuscriptor
 from app.infrastructure.database import DatabaseSession, get_db
-from app.routers import auth, clientes, distribuidores, pedidos, productos
+from app.routers import auth, clientes, distribuidores, pedidos, productos, usuarios
 import logging
 
 logging.basicConfig(
@@ -64,6 +65,7 @@ app.include_router(distribuidores.router)
 app.include_router(productos.router)
 app.include_router(clientes.router)
 app.include_router(pedidos.router)
+app.include_router(usuarios.router)
 
 # ── Suscriptores de eventos ────────────────────────────────────────
 event_bus.subscribe("cliente.registrado", EventoEnviarMensajeBienvenidaCliente())
@@ -72,6 +74,7 @@ event_bus.subscribe("cliente.perfil_consultado", RegistrarConsultaPerfil())
 event_bus.subscribe("cliente.perfil_actualizado", NotificarCambioPerfilCliente())
 event_bus.subscribe("cliente.imagen_perfil_subida", RegistrarCambioImagenPerfil())
 event_bus.subscribe("distribuidor.registrado", EventoEnviarMensajeBienvenidaDistribuidor())
+event_bus.subscribe("usuario.imagen_subida", UsuarioImagenSubidaSuscriptor())
 
 # ── Health check ───────────────────────────────────────────────────
 @app.get("/health")

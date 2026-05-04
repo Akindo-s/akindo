@@ -38,6 +38,7 @@ class TokenResponse(BaseModel):
     """Respuesta tras login exitoso — contiene el JWT."""
     access_token: str
     token_type: str = "bearer"
+    tipo_usuario:str
 
 
 class RegistroDireccionDistribuidorRequest(BaseModel):

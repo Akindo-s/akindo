@@ -18,7 +18,10 @@ from app.schemas.distribuidor import (
     DistribuidoresPaginatedResponse,
     ValoracionResponse,
     UpsertDireccionDistribuidorRequest,
-    DireccionDistribuidorResponse
+    DireccionDistribuidorResponse,
+    ResumenDashboardResponse,
+    AlertaExistenciaResponse,
+    PedidoActivoDistribuidorResponse
 )
 from app.services.auth import AuthService
 from app.services.distribuidor import DistribuidorService
@@ -73,7 +76,7 @@ async def listar_distribuidores(
     return response
 
 
-@router.get("/{distribuidor_id}", response_model=DistribuidorResponse)
+@router.get("/other/{distribuidor_id}", response_model=DistribuidorResponse) # TODO : este endpoint esta MUY mal, pero tenemos que arreglarlo despues
 async def obtener_distribuidor(
     distribuidor_id: UUID,
     user: Usuario = Depends(get_current_user),
@@ -118,6 +121,27 @@ async def get_valoraciones(
 
 # ── Solo para el propio distribuidor ───────────────────────────────
 
+@router.get('/me', response_model=DistribuidorResponse, summary="Obtener mi perfil")
+async def get_mi_perfil_distribuidor(
+    distribuidor_auth: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Obtiene el perfil del distribuidor autenticado."""
+    service = DistribuidorService(db)
+    return await service.obtener_distribuidor(distribuidor_auth.id)
+
+
+@router.patch('/me', response_model=DistribuidorResponse, summary="Actualizar mi perfil")
+async def actualizar_mi_perfil_distribuidor(
+    data: DistribuidorUpdateInfo,
+    distribuidor_auth: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Actualiza la información del distribuidor autenticado."""
+    service = DistribuidorService(db)
+    return await service.actualizar_informacion_distribuidor(distribuidor_auth.id, data)
+
+
 @router.get('/me/estadisticas', response_model=EstadisticasDistribuidorResponse)
 async def obtener_estadisticas_distribuidor(
     tipo: TipoEstadistica = Query(..., description="Tipo de estadística a consultar"),
@@ -127,6 +151,38 @@ async def obtener_estadisticas_distribuidor(
     """Obtiene estadísticas del negocio del distribuidor."""
     service = EstadisticasService(db)
     return await service.obtener_estadistica(distribuidor_auth.id, tipo)
+
+
+@router.get('/me/resumen', response_model=ResumenDashboardResponse)
+async def get_resumen_dashboard(
+    umbral_stock: int = Query(67, description="Umbral para considerar productos con poco stock"),
+    distribuidor_auth: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db)
+):
+    """Obtiene el resumen para el dashboard del distribuidor."""
+    service = DistribuidorService(db)
+    return await service.get_resumen_dashboard(distribuidor_auth.id, umbral_stock)
+
+
+@router.get('/me/alertas-existencias', response_model=list[AlertaExistenciaResponse])
+async def get_alertas_existencias(
+    umbral_stock: int = Query(67, description="Umbral para considerar productos con poco stock"),
+    distribuidor_auth: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db)
+):
+    """Obtiene los productos con existencias bajas."""
+    service = DistribuidorService(db)
+    return await service.get_alertas_existencias(distribuidor_auth.id, umbral_stock)
+
+
+@router.get('/me/pedidos-activos', response_model=list[PedidoActivoDistribuidorResponse])
+async def get_pedidos_activos(
+    distribuidor_auth: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db)
+):
+    """Obtiene los pedidos activos del distribuidor."""
+    service = DistribuidorService(db)
+    return await service.get_pedidos_activos(distribuidor_auth.id)
 
 
 @router.patch('/{distribuidor_id}', response_model=DistribuidorResponse)
