@@ -11,7 +11,7 @@ export function HeroCard({ imageSrc }: HeroCardProps) {
       {imageSrc && (
         <img
           src={imageSrc}
-          alt="Marketplace Akindo"
+          alt="Mercado Akindo"
           className="absolute inset-0 w-full h-full object-cover"
         />
       )}
@@ -38,7 +38,7 @@ export function HeroCard({ imageSrc }: HeroCardProps) {
           href="/catalogo"
           className="self-start bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white text-xs font-medium px-5 py-2.5 rounded-xl transition shadow-md hover:shadow-lg select-none"
         >
-          Explora el Marketplace
+          Explora el Mercado
         </Link>
       </div>
     </div>

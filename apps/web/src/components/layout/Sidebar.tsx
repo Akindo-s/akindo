@@ -7,7 +7,7 @@ import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon } from "../ic
 
 const links = [
     { label: "Inicio", href: "/", Icon: HomeIcon },
-    { label: "Marketplace", href: "/catalogo", Icon: StorefrontIcon },
+    { label: "Mercado", href: "/catalogo", Icon: StorefrontIcon },
     { label: "Pedidos", href: "/pedidos", Icon: AllInboxIcon },
     { label: "Mi Perfil", href: "/perfil", Icon: AccountCircleIcon },
 ];
@@ -37,8 +37,8 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                                 <Link
                                     href="/admin/categorias"
                                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${adminActive
-                                            ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
-                                            : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                                        ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
+                                        : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
                                         }`}
                                 >
                                     <AccountCircleIcon // Reusando icono para evitar importar otro
@@ -51,8 +51,8 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                                     key={label}
                                     href={href}
                                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(href)
-                                            ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
-                                            : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                                        ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
+                                        : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
                                         }`}
                                 >
                                     <Icon
@@ -71,8 +71,8 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                             key={label}
                             href={href}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${active
-                                    ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
-                                    : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                                ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
+                                : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
                                 }`}
                         >
                             <Icon
