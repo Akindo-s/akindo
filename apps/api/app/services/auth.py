@@ -4,6 +4,10 @@ AuthService — Login · registro.
 Implementación de los use cases: RegistroCliente, LoginCliente.
 """
 
+from app.repositories.administrador import AdministradorRepo
+from app.models.administrador import Administrador
+from app.schemas.auth import RegistroAdministradorResponse
+from app.schemas.auth import RegistroAdministradorRequest
 from app.models import TipoUsuario
 import logging
 from app.core.exceptions import ConflictException, NotFoundException, UnauthorizedException
@@ -83,6 +87,28 @@ class AuthService:
             telefono=cliente.telefono,
             es_verificado=cliente.es_verificado,
             fecha_creacion=cliente.fecha_creacion,
+        )
+
+    # -- Registro de administrador
+
+    async def registrar_administrador(self,data:RegistroAdministradorRequest)->RegistroAdministradorResponse:
+        existente = await self.usuario_repo.get_by_email(data.email)
+        if existente:
+            raise ConflictException("El email ya esta registrado")
+        repo = AdministradorRepo(self.db)
+        administrador = Administrador.crear(
+            nombre=data.nombre,
+            email=data.email,
+            password = data.password
+        )
+        await repo.save(administrador)
+
+
+        return RegistroAdministradorResponse(
+            id=administrador.id,
+            nombre=administrador.nombre,
+            email=administrador.email,
+            fecha_creacion=administrador.fecha_creacion
         )
 
     # ── Registro de distribuidor ────────────────────────────────────────

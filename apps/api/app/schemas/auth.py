@@ -70,3 +70,16 @@ class RegistroDistribuidorResponse(BaseModel):
     fecha_creacion: datetime | None
 
     model_config = {"from_attributes": True}
+
+class RegistroAdministradorResponse(BaseModel):
+    """Respuesta tras un registro de administrador exitoso."""
+    id:UUID
+    nombre:str
+    email: str
+    fecha_creacion: datetime | None
+
+
+class RegistroAdministradorRequest(BaseModel):
+    nombre:str
+    email:str
+    password:str

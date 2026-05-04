@@ -79,8 +79,29 @@ export interface DatosActualizarProducto {
     atributos_extra?: Record<string, unknown> | null;
     categorias?: string[] | null;
 }
+export interface CategoriaProductos{
+    id:string;
+    nombre:string;
+    imagen:string;
+}
 
 // ─── Funciones ───────────────────────────────────────────────────────────────
+
+export async function obtenerCategoriasDisponibles():Promise<CategoriaProductos[]>{
+    try{
+        const respuesta = await fetch(`${API_URL}/categorias/productos`);
+        if (respuesta.ok){
+            return await respuesta.json()
+        }
+        if (respuesta.status === 500){
+            throw Error("Error del servidor, intente mas tarde")
+        }
+
+    }catch(e){
+        console.log("Error fetching obtener unidades medida")
+    }
+    return []
+}
 
 /**
  * Obtiene el catálogo de unidades de medida disponibles para productos.

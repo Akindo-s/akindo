@@ -19,8 +19,10 @@ import {
     type UnidadMedida,
     type NivelPrecio,
     type ProductoResponse,
+    obtenerCategoriasDisponibles,
 } from "@/lib/api/productos";
 import FooterFijo from "../layout/FooterFijo";
+import useSWR from "swr";
 
 interface ProductoFormProps {
     /** Modo del formulario: crear un nuevo producto o editar uno existente. */
@@ -29,22 +31,26 @@ interface ProductoFormProps {
     productoInicial?: ProductoResponse | null;
 }
 
-// Categorías estáticas hasta que el backend implemente el endpoint
-// TODO: Reemplazar con GET /categorias cuando esté disponible
-const CATEGORIAS_ESTATICAS = [
-    "Aceites y grasas",
-    "Lácteos",
-    "Granos y cereales",
-    "Especias y condimentos",
-    "Bebidas",
-    "Conservas",
-    "Snacks",
-    "Otros",
-];
 
 export default function RegistrarProductoForm({ modo = "crear", productoInicial }: ProductoFormProps) {
     const router = useRouter();
     const esEdicion = modo === "editar";
+
+    const { data, cerror } = useSWR('categorias', () => obtenerCategoriasDisponibles());
+
+    const [opcionesCategorias, setOpcionesCategorias] = useState([])
+
+    useEffect(() => {
+        (function () {
+            if (data == undefined) return;
+            data.map((cat) => (
+                {
+                    valor: cat.id,
+                    etiqueta: cat.nombre
+                }
+            ))
+        })()
+    }, [data])
 
     // ── Estado del formulario ─────────────────────────────────────────────────
     const [nombre, setNombre] = useState("");
@@ -176,7 +182,7 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
         costo: niveles[0]?.costo_por_medida ?? 0,
         existencias,
         descripcion: descripcion.trim() || undefined,
-        categoria: categorias.length > 0 ? categorias.join(",") : undefined,
+        categoria: categorias.length > 0 ? categorias : undefined,
         niveles_precio: niveles,
     });
 
@@ -266,10 +272,9 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
         etiqueta: `${u.nombre} (${u.unidad})`,
     }));
 
-    const opcionesCategorias = CATEGORIAS_ESTATICAS.map((cat) => ({
-        valor: cat,
-        etiqueta: cat,
-    }));
+
+
+
 
     // ── Render ────────────────────────────────────────────────────────────────
     return (

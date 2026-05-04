@@ -23,6 +23,8 @@ from app.repositories.cliente import ClienteRepo
 from app.models.cliente import Cliente
 from app.repositories.distribuidor import DistribuidorRepo
 from app.models.distribuidor import Distribuidor
+from app.repositories.administrador import AdministradorRepo
+from app.models.administrador import Administrador
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
@@ -95,3 +97,20 @@ async def get_current_distribuidor(
         raise NotFoundException("Entidad Distribuidor no encontrada para este usuario")
         
     return distribuidor
+
+async def get_current_admin(
+    user: Usuario = Depends(get_current_user),
+    db: DatabaseSession = Depends(get_db)
+) -> Administrador:
+    """
+    Pre-filtra: solo permite acceso a usuarios de tipo 'admin' y retorna el Aggregate Administrador.
+    """
+    if user.tipo != TipoUsuario.ADMIN:
+        raise ForbiddenException("Solo los administradores autenticados pueden acceder a este recurso")
+    
+    repo = AdministradorRepo(db)
+    admin = await repo.get_by_id(user.id)
+    if not admin:
+        raise NotFoundException("Entidad Administrador no encontrada para este usuario")
+        
+    return admin

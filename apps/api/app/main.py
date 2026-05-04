@@ -24,7 +24,7 @@ from app.events.cliente_perfil import (
 from app.events.distribuidor_registrado import EventoEnviarMensajeBienvenidaDistribuidor
 from app.events.usuario_imagen import UsuarioImagenSubidaSuscriptor
 from app.infrastructure.database import DatabaseSession, get_db
-from app.routers import auth, clientes, distribuidores, pedidos, productos, usuarios
+from app.routers import auth, clientes, distribuidores, pedidos, productos, usuarios, categorias
 import logging
 
 logging.basicConfig(
@@ -66,6 +66,7 @@ app.include_router(productos.router)
 app.include_router(clientes.router)
 app.include_router(pedidos.router)
 app.include_router(usuarios.router)
+app.include_router(categorias.router)
 
 # ── Suscriptores de eventos ────────────────────────────────────────
 event_bus.subscribe("cliente.registrado", EventoEnviarMensajeBienvenidaCliente())
