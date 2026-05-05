@@ -2,7 +2,7 @@ from uuid import UUID
 import uuid
 from typing import Any
 
-from app.models.producto import Producto
+from app.models.producto import Producto, Medida
 from app.repositories.base import BaseRepository
 
 class ProductoRepo(BaseRepository[Producto]):
@@ -11,7 +11,19 @@ class ProductoRepo(BaseRepository[Producto]):
     def _to_aggregate(self, row: dict) -> Producto:
         id_obj = uuid.UUID(row["id"]) if isinstance(row["id"], str) else row["id"]
         dist_obj = uuid.UUID(row["distribuidor_id"]) if isinstance(row["distribuidor_id"], str) else row["distribuidor_id"]
-        medida_obj = uuid.UUID(row["medida"]) if isinstance(row["medida"], str) else row["medida"]
+        
+        medida_data = row.get("unidad_medida_producto")
+        if medida_data:
+            medida_obj = Medida(
+                id=uuid.UUID(medida_data["id"]) if isinstance(medida_data["id"], str) else medida_data["id"],
+                unidad=medida_data["unidad"],
+                nombre=medida_data["nombre"]
+            )
+        else:
+            # Fallback por si no viene el join (aunque debería)
+            medida_id = uuid.UUID(row["medida"]) if isinstance(row["medida"], str) else row["medida"]
+            medida_obj = Medida(id=medida_id, unidad="N/A", nombre="N/A")
+
         from app.models.categoria import CategoriaProducto
         categorias_data = row.get("categoria_producto", [])
         categorias = [
@@ -38,15 +50,31 @@ class ProductoRepo(BaseRepository[Producto]):
     async def save(self, aggregate: Producto) -> Producto:
         data = aggregate.to_dict()
         data.pop('categorias')
+        # Mapeamos el Value Object de vuelta al ID para la base de datos
+        if isinstance(data["medida"], dict):
+            data["medida"] = data["medida"]["id"]
+            
         await self.db.upsert(self.table, data)
         return aggregate
 
     async def get_unidades_medida(self) -> list[dict[str, Any]]:
         """Obtiene todas las unidades de medida disponibles."""
         return await self.db.select("unidad_medida_producto", "*")
+
+    async def get_unidad_medida_por_id(self, id: UUID) -> Medida | None:
+        """Obtiene una unidad de medida por su ID."""
+        result = await self.db.select("unidad_medida_producto", "*", filters={"id": str(id)})
+        if not result:
+            return None
+        row = result[0]
+        return Medida(
+            id=uuid.UUID(row["id"]) if isinstance(row["id"], str) else row["id"],
+            unidad=row["unidad"],
+            nombre=row["nombre"]
+        )
     
     async def get(self, id: UUID) -> Producto | None:
-        result = await self.db.select(self.table, "*, categoria_producto(*)", filters={"id": str(id)})
+        result = await self.db.select(self.table, "*, categoria_producto(*), unidad_medida_producto(*)", filters={"id": str(id)})
         if not result:
             return None
         return self._to_aggregate(result[0])

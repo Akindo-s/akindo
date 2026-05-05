@@ -30,20 +30,21 @@ class ProductoService:
         distribuidor_id: uuid.UUID,
         nombre: str,
         costo: float,
-        medida: uuid.UUID,
+        medida_id: uuid.UUID,
         existencias: int,
         atributos_extra: dict[str, Any] | None,
         categorias: list[uuid.UUID] | None,
         es_borrador: bool = False
     ) -> Producto:
-        # Aquí se podría validar si la unidad de medida existe llamando a la BD
-        # Por ahora asumimos que el UUID que viene del front existe (ya que lo sacan del catálogo) si todo sale mal, llamen a dios...
+        medida_vo = await self.repo.get_unidad_medida_por_id(medida_id)
+        if not medida_vo:
+            raise ValidationException("La unidad de medida especificada no existe")
         
         producto = Producto.crear(
             distribuidor_id=distribuidor_id,
             nombre=nombre,
             costo=costo,
-            medida=medida,
+            medida=medida_vo,
             existencias=existencias,
             atributos_extra=atributos_extra,
         )
@@ -72,7 +73,7 @@ class ProductoService:
         distribuidor_id: uuid.UUID,
         nombre: str,
         costo: float,
-        medida: uuid.UUID,
+        medida_id: uuid.UUID,
         existencias: int,
         atributos_extra: dict[str, Any] | None,
         categorias: list[uuid.UUID] | None = None
@@ -81,10 +82,14 @@ class ProductoService:
         if not producto or producto.distribuidor_id != distribuidor_id:
             raise NotFoundException("Producto no encontrado o no pertenece a este distribuidor")
             
+        medida_vo = await self.repo.get_unidad_medida_por_id(medida_id)
+        if not medida_vo:
+            raise ValidationException("La unidad de medida especificada no existe")
+
         producto.actualizar_datos(
             nombre=nombre,
             costo=costo,
-            medida=medida,
+            medida=medida_vo,
             atributos_extra=atributos_extra
         )
         

@@ -15,6 +15,8 @@ import {
 import { useScrollInfinito } from "@/components/hooks/useScrollInfinito";
 import { Parrafo, SubTitulo, Titulo } from "@/components/titles";
 import { Boton } from "@/components/ui/Boton";
+import { MONEDA } from "@/lib/api/constants";
+
 
 // ── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -95,7 +97,7 @@ function CatalogoDistribuidor({ distribuidorId }: { distribuidorId: string }) {
                                 </div>
                                 <div className="mt-auto flex items-center justify-between">
                                     <span className="text-sm font-semibold text-stone-900">
-                                        ${p.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                                        ${p.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {MONEDA}
                                         <span className="text-[10px] text-stone-500 font-normal">/{p.unidad}</span>
                                     </span>
                                     {p.disponible && (

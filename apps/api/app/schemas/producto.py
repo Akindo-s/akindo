@@ -42,7 +42,7 @@ class ProductoResponse(BaseModel):
     distribuidor_id: UUID
     nombre: str
     costo: float
-    medida: UUID
+    medida: UnidadMedidaResponse
     existencias: int
     disponible: bool
     atributos_extra: dict[str, Any] | None

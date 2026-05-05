@@ -1,5 +1,7 @@
 import { Package } from "lucide-react";
 import Link from "next/link";
+import { MONEDA } from "@/lib/api/constants";
+
 
 interface TarjetaProductoCatalogoProps {
     productoId: string;
@@ -57,7 +59,7 @@ export function TarjetaProductoCatalogo({
                     {nombre}
                 </h3>
                 <p className="text-base font-bold text-[var(--color-primary-500)] mt-auto">
-                    ${costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                    ${costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {MONEDA}
                     <span className="text-xs font-normal text-stone-400 ml-0.5">/{unidad}</span>
                 </p>
             </div>

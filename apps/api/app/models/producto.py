@@ -5,16 +5,30 @@ from dataclasses import dataclass, field
 import uuid
 from typing import Any
 
-from app.models.base import Aggregate
+from app.models.base import Aggregate, ValueObject
 from app.core.exceptions import AggregateNoValido
 from app.models.categoria import CategoriaProducto
+
+@dataclass(frozen=True)
+class Medida(ValueObject):
+    id: uuid.UUID
+    unidad: str
+    nombre: str
+    
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "unidad": self.unidad,
+            "nombre": self.nombre
+        }
+
 
 @dataclass
 class Producto(Aggregate):
     distribuidor_id: uuid.UUID
     nombre: str
     costo: float
-    medida: uuid.UUID
+    medida: Medida
     existencias: int = 0
     disponible: bool = True
     atributos_extra: dict[str, Any] | None = None
@@ -43,7 +57,7 @@ class Producto(Aggregate):
         distribuidor_id: uuid.UUID,
         nombre: str,
         costo: float,
-        medida: uuid.UUID,
+        medida: Medida,
         existencias: int = 0,
         atributos_extra: dict[str, Any] | None = None
     ) -> "Producto":
@@ -66,7 +80,7 @@ class Producto(Aggregate):
         self,
         nombre: str | None = None,
         costo: float | None = None,
-        medida: uuid.UUID | None = None,
+        medida: Medida | None = None,
         atributos_extra: dict[str, Any] | None = None
     ) -> None:
         if nombre is not None:
@@ -120,7 +134,7 @@ class Producto(Aggregate):
             "distribuidor_id": str(self.distribuidor_id),
             "nombre": self.nombre,
             "costo": self.costo,
-            "medida": str(self.medida),
+            "medida": self.medida.to_dict(),
             "existencias": self.existencias,
             "disponible": self.disponible,
             "atributos_extra": self.atributos_extra,

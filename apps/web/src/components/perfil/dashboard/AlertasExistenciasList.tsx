@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Image as ImageIcon } from "lucide-react";
 import { obtenerProductosPocasExistencias } from "@/lib/api/distribuidor";
 import ProductActionsMenu from "./ProductActionsMenu";
+import { MONEDA } from "@/lib/api/constants";
+
 
 export function AlertasExistenciasSkeleton() {
     return (
@@ -64,7 +66,7 @@ export default async function AlertasExistenciasList() {
                             <p className="text-[10px] text-stone-500 mb-1">SKU: {producto.sku || 'N/A'}</p>
                             <div className="flex items-center gap-2">
                                 <span className="text-xs font-semibold text-stone-800">
-                                    ${producto.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} / {producto.unidad}
+                                    ${producto.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {MONEDA} / {producto.unidad}
                                 </span>
                                 <Badge variante={producto.existencias === 0 ? "error" : "advertencia"} className="text-[9px] px-1.5 py-0.5">
                                     {producto.existencias === 0 ? "Sin Stock" : `Bajo Stock (${producto.existencias})`}

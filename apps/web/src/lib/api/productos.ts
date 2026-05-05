@@ -42,7 +42,7 @@ export interface ProductoResponse {
     distribuidor_id: string;
     nombre: string;
     costo: number;
-    medida: string;
+    medida: UnidadMedida;
     existencias: number;
     disponible: boolean;
     atributos_extra: Record<string, unknown> | null;

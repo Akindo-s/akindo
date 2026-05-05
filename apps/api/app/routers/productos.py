@@ -79,7 +79,7 @@ async def crear_producto(
         distribuidor_id=distribuidor.id,
         nombre=data.nombre,
         costo=data.costo,
-        medida=data.medida,
+        medida_id=data.medida,
         existencias=data.existencias,
         atributos_extra=data.atributos_extra,
         categorias=data.categorias,
@@ -105,7 +105,7 @@ async def actualizar_producto(
         distribuidor_id=distribuidor.id,
         nombre=data.nombre,
         costo=data.costo,
-        medida=data.medida,
+        medida_id=data.medida,
         existencias=data.existencias,
         atributos_extra=data.atributos_extra,
         categorias=data.categorias

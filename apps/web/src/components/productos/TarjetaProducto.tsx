@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Boton } from "@/components/ui/Boton";
 import { useEffect, useState } from "react";
 import { ModalConfirmacion } from "@/components/ui/ModalConfirmacion";
+import { MONEDA } from "@/lib/api/constants";
+
 
 export interface ProductoInventario {
     producto_id: string;
@@ -103,7 +105,7 @@ export function TarjetaProducto({
 
                 <div className="flex items-end justify-between mt-1">
                     <p className="text-lg font-bold text-[#DAA520]">
-                        ${producto.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                        ${producto.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {MONEDA}
                         <span className="text-xs font-normal text-stone-400 ml-0.5">/{producto.unidad}</span>
                     </p>
 

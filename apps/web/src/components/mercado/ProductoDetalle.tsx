@@ -8,6 +8,8 @@ import { obtenerDistribuidor, type DistribuidorPublicoResponse } from "@/lib/api
 import { StorefrontIcon } from "../icons/NavigationIcons";
 import { SubTitulo } from "../titles";
 import { CostosVolumen, type NivelPrecio } from "./CostosVolumen";
+import { MONEDA } from "@/lib/api/constants";
+
 
 export function ProductoDetalle({ productoId }: { productoId: string }) {
     const router = useRouter();
@@ -31,7 +33,7 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
                 setProducto(prod);
 
                 console.log(prod)
-                setUnidadMedidaStr(prod.atributos_extra?.unidad as string || "unidad");
+                setUnidadMedidaStr(prod.medida.unidad);
 
                 // Obtener distribuidor
                 if (prod.distribuidor_id) {
@@ -144,7 +146,7 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
 
                 <div className="flex items-baseline gap-1.5 mb-5">
                     <span className="text-3xl font-extrabold text-[#992B2B]">
-                        ${producto.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                        ${producto.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {MONEDA}
                     </span>
                     <span className="text-sm font-medium text-stone-500">
                         / {unidadMedidaStr}

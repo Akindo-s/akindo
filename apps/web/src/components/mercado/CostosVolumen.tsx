@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { MONEDA } from "@/lib/api/constants";
+
 
 export interface NivelPrecio {
     cantidad_minima: number;
@@ -87,7 +89,7 @@ export function CostosVolumen({ costoBase, unidadMedida, nivelesPrecio }: Costos
                             </span>
                             <div className="text-right">
                                 <span className={`text-3xl font-bold ${isSelected ? "text-[#DAA520]" : "text-stone-900"}`}>
-                                    ${range.cost.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    ${range.cost.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {MONEDA}
                                 </span>
                                 <span className={`text-xs ml-1 font-semibold ${isSelected ? "text-[#DAA520]" : "text-stone-900"}`}>
                                     /{unidadMedida}
