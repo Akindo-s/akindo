@@ -97,7 +97,7 @@ async function parseError(
   }
 }
 
-async function fetchCarritosRaw(): Promise<RawCarrito[]> {
+export async function fetchCarritosRaw(): Promise<RawCarrito[]> {
   const token = await getToken();
   const res = await fetchWithAuth("/carrito/", { method: "GET" }, token);
   if (!res.ok) {
@@ -106,6 +106,13 @@ async function fetchCarritosRaw(): Promise<RawCarrito[]> {
   }
   const data = (await res.json()) as RawCarrito[];
   return Array.isArray(data) ? data : [];
+}
+
+export async function obtenerIdsCarrito(): Promise<string[]> {
+  const carrito: RawCarrito[] = await fetchCarritosRaw();
+  return carrito.flatMap(c => 
+    (c.items ?? []).flatMap(item => item.producto_id ?? [])
+  );
 }
 
 async function getProductosDetalle(

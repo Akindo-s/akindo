@@ -127,9 +127,9 @@ function DistribuidoresContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {cargando
                         ? Array.from({ length: 6 }).map((_, i) => <SkeletonDistribuidor key={i} />)
-                        : distriburidoresMostrados.map((d) => (
+                        : distriburidoresMostrados.map((d,index) => (
                               <TarjetaDistribuidor
-                                  key={`${d.distribuidor_id}${Math.random()}`}
+                                  key={`${d.distribuidor_id}-${index}`}
                                   distribuidorId={d.distribuidor_id}
                                   nombreNegocio={d.nombre_negocio}
                                   imagenFondo={d.imagen_fondo}

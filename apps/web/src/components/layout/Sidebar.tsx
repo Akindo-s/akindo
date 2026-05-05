@@ -101,9 +101,9 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                 <p className="text-[10px] text-stone-400 font-medium tracking-wider uppercase">
                     Akindo © {new Date().getFullYear()}
                 </p>
-                {akindoMiembros.map(a => ( //no hay necesidad, pudiste escribirlos birote, eh!
+                {akindoMiembros.map((a,index) => ( //no hay necesidad, pudiste escribirlos birote, eh!
 
-                    <Parrafo key={`${a}${Math.random()}`} className="text-xs text-stone-400 font-normal tracking-wider uppercase">
+                    <Parrafo key={`${a}-${index}`} className="text-xs text-stone-400 font-normal tracking-wider uppercase">
                         {a}
                     </Parrafo>
                 ))}

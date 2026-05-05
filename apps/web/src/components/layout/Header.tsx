@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { ShoppingCartIcon, NotificationsIcon, AccountCircleIcon } from "../icons/NavigationIcons";
 import { LogInIcon, LogOutIcon } from "../icons/AuthIcons";
 import { Boton } from "@/components/ui/Boton";
-import { ConstructionIcon } from "lucide-react";
+import { useIdsCarrito } from "@/lib/carrito-context";
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -16,33 +16,11 @@ interface HeaderProps {
 export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
   
   const router = useRouter();
-  const pathname = usePathname();
-  const [cartCount, setCartCount] = useState(0);
+  
+  const idsCarrito = useIdsCarrito();
   const isAdminOrDistributor = tipoUsuario === "distribuidor" || tipoUsuario === "admin";
 
-  useEffect(() => {
-    if (!isLoggedIn || isAdminOrDistributor) {
-      setCartCount(0);
-      return;
-    }
-
-    const fetchCartCount = async () => {
-      try {
-        const res = await fetch("/api/carrito", { cache: "reload" });
-        if (!res.ok) return;
-        const data = (await res.json()) as { items?:[] };
-        setCartCount(Number(data.items?.length ?? 0));
-      } catch {
-        // ignore header badge fetch errors
-      }
-    };
-
-    fetchCartCount();
-
-    const onCarritoUpdated = () => fetchCartCount();
-    window.addEventListener("carrito:updated", onCarritoUpdated);
-    return () => window.removeEventListener("carrito:updated", onCarritoUpdated);
-  }, [isLoggedIn, isAdminOrDistributor, pathname]);
+  
 
   const handleLogout = async () => {
     try {
@@ -53,7 +31,7 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
       console.error("Error al cerrar sesión", error);
     }
   };
-
+  
   return (
     <header className="relative top-0 z-30 bg-white w-full flex items-center justify-between px-4 md:px-8 lg:px-16 py-3 border-b border-stone-100">
       <div className="flex items-center gap-8">
@@ -85,9 +63,9 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
               !isAdminOrDistributor && (<>
                 <Link href="/carrito" className="relative text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
                   <ShoppingCartIcon size={22} />
-                  {cartCount > 0 ? (
+                  {idsCarrito.size > 0 ? (
                     <span className="absolute -right-2.5 -top-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-primary-500)] px-1 text-[10px] font-bold leading-none text-white">
-                      {cartCount > 99 ? "99+" : cartCount}
+                      {idsCarrito.size > 99 ? "99+" : idsCarrito.size}
                     </span>
                   ) : null}
                 </Link>

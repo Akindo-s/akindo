@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ProductoDetalle } from "@/components/mercado/ProductoDetalle";
+import { CategoriasProvider } from "@/lib/categorias-context";
 
 export default async function ProductoDetallePage({
     searchParams,
@@ -26,7 +27,9 @@ export default async function ProductoDetallePage({
                 <div className="w-8 h-8 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full animate-spin" />
             </div>
         }>
-            <ProductoDetalle productoId={productoId} />
+            
+                <ProductoDetalle productoId={productoId} />
+            
         </Suspense>
     );
 }

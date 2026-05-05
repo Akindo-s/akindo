@@ -7,6 +7,7 @@ import { obtenerCategoriasDisponibles, type CategoriaProductos } from "@/lib/api
 import { TarjetaProductoCatalogo } from "@/components/mercado/TarjetaProductoCatalogo";
 import { BarraBusquedaFiltros } from "@/components/mercado/BarraBusquedaFiltros";
 import { useScrollInfinito } from "@/components/hooks/useScrollInfinito";
+import { useCategorias } from "@/lib/categorias-context";
 
 function SkeletonProducto() {
     return (
@@ -25,7 +26,7 @@ function ProductosContent() {
     const qParam = searchParams.get("q") ?? "";
     const categoriaParam = searchParams.get("categoria");
 
-    const [categorias, setCategorias] = useState<CategoriaProductos[]>([]);
+    const categorias = useCategorias()
     const [busqueda, setBusqueda] = useState(qParam);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string | null>(
         categoriaParam ?? null
@@ -49,10 +50,7 @@ function ProductosContent() {
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
-    // Cargar categorías de productos para los filtros
-    useEffect(() => {
-        obtenerCategoriasDisponibles().then(setCategorias);
-    }, []);
+   
 
     const resetKey = `${busqueda}|${categoriaSeleccionada ?? ""}`;
 
@@ -105,9 +103,9 @@ function ProductosContent() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {cargando
                         ? Array.from({ length: 8 }).map((_, i) => <SkeletonProducto key={i} />)
-                        : items.map((p) => (
+                        : items.map((p,index) => (
                               <TarjetaProductoCatalogo
-                                  key={`${p.producto_id}${Math.random()}`}
+                                  key={`${p.producto_id}`}
                                   productoId={p.producto_id}
                                   nombre={p.nombre}
                                   costo={p.costo}

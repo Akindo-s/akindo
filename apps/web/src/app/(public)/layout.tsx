@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { CategoriasProvider } from "@/lib/categorias-context";
+import { CarritoProvider } from "@/lib/carrito-context";
 
 export default async function PublicLayout({
   children,
@@ -15,15 +16,20 @@ export default async function PublicLayout({
   const isLoggedIn = !!token;
   return (
     <>
+        <CarritoProvider>
       <Header isLoggedIn={isLoggedIn} tipoUsuario={tipoUsuario} />
+        </CarritoProvider>
       <div className="flex flex-1">
         <Sidebar tipoUsuario={tipoUsuario} />
+
         
 
-        <main className="flex-1 min-w-0 pb-16 md:pb-0">
-          {children}
-        </main>
+
+          <main className="flex-1 min-w-0 pb-16 md:pb-0">
+            {children}
+          </main>
         
+
       </div>
       <BottomNav tipoUsuario={tipoUsuario} />
     </>

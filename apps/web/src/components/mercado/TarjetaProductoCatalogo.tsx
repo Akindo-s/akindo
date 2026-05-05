@@ -7,6 +7,7 @@ import { MONEDA } from "@/lib/api/constants";
 import { agregarProductoCliente } from "@/lib/client/carrito";
 import { verificarProductoEnCarrito } from "@/lib/api/carrito";
 import { VentanaEmergente } from "../VentanaEmergente";
+import { useIdsCarrito } from "@/lib/carrito-context";
 
 interface TarjetaProductoCatalogoProps {
     productoId: string;
@@ -30,17 +31,9 @@ export function TarjetaProductoCatalogo({
     disponible,
 }: TarjetaProductoCatalogoProps) {
     const [agregando, setAgregando] = useState(false);
-    const [agregado, setAgregado] = useState(false);
     const [toast, setToast] = useState<string | null>(null);
-
-    useEffect(() => {
-        // Verificar si es cliente mediante cookie para evitar llamadas innecesarias
-        const checkCarrito = async () => {
-            const yaEsta = await verificarProductoEnCarrito(productoId);
-            if (yaEsta) setAgregado(true);
-        };
-        checkCarrito();
-    }, [productoId]);
+    const idsCarrito = useIdsCarrito();
+    const [agregado, setAgregado] = useState(() => idsCarrito.has(productoId));
 
     return (
         <>
