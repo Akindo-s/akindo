@@ -16,6 +16,7 @@ interface BuscadorProps {
     debounceMs?: number;
     /** Clases Tailwind adicionales para el contenedor raíz. */
     className?: string;
+    desactivarAutoBusqueda:boolean
 }
 
 /**
@@ -47,6 +48,7 @@ export function Buscador({
     onBuscar,
     debounceMs = 300,
     className = "",
+    desactivarAutoBusqueda = false
 }: BuscadorProps) {
     const [interno, setInterno] = useState("");
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,6 +64,7 @@ export function Buscador({
             onChange?.(nuevoValor);
 
             // Debounce para onBuscar
+            if (desactivarAutoBusqueda) return
             if (timerRef.current) clearTimeout(timerRef.current);
             timerRef.current = setTimeout(() => {
                 onBuscar?.(nuevoValor);

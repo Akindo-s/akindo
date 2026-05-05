@@ -1,5 +1,4 @@
-import { SearchBar } from "@/components/home/SearchBar";
-import { CategoryChips } from "@/components/home/CategoryChips";
+import { MercadoBuscador } from "@/components/mercado/MercadoBuscador";
 import { InfoBanner } from "@/components/home/InfoBanner";
 import { HeroCard } from "@/components/home/HeroCard";
 import { FeaturedCategories } from "@/components/home/FeaturedCategories";
@@ -12,11 +11,8 @@ export default function Home() {
         ¿Qué quieres <span className="text-[var(--color-primary-500)]">comprar</span> hoy?
       </h1>
 
-      {/* Barra de búsqueda */}
-      <SearchBar />
-
-      {/* Chips de categorías */}
-      <CategoryChips />
+      {/* Buscador unificado y filtros */}
+      <MercadoBuscador />
 
       {/* Banner informativo */}
       <InfoBanner />

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { 
-    obtenerCategoriasProductos, 
-    obtenerCategoriasDistribuidores, 
-    crearCategoriaProducto, 
+import {
+    obtenerCategoriasProductos,
+    obtenerCategoriasDistribuidores,
+    crearCategoriaProducto,
     crearCategoriaDistribuidor,
     eliminarCategoriaProducto,
     eliminarCategoriaDistribuidor
@@ -13,6 +13,53 @@ import {
 import { Boton } from "@/components/ui/Boton";
 import { ModalConfirmacion } from "@/components/ui/ModalConfirmacion";
 import { Trash2 } from "lucide-react";
+
+function FallBackCategoria() {
+    return (
+        <div className="relative group border border-stone-100 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:border-[var(--color-primary-200)] transition-colors">
+            ola
+        </div>
+    )
+}
+
+function CategoriaCard({ cat, eliminando, setCategoriaAEliminar }) {
+    const [imgCargada, setImgCargada] = useState(false);
+
+    return (
+        <div key={cat.id} className="relative group border border-stone-100 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:border-[var(--color-primary-200)] transition-colors">
+            <button
+                onClick={() => setCategoriaAEliminar({ id: cat.id, tipo: "productos", nombre: cat.nombre })}
+                className="absolute top-2 right-2 p-1.5 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                title="Eliminar categoría"
+                disabled={eliminando}
+            >
+                <Trash2 size={16} />
+            </button>
+
+            {cat.imagen ? (
+                <div className="w-12 h-12 relative">
+                    {/* Skeleton visible hasta que cargue */}
+                    {!imgCargada && (
+                        <div className="absolute inset-0 rounded-full bg-stone-200 animate-pulse" />
+                    )}
+                    <img
+                        src={cat.imagen}
+                        alt={cat.nombre}
+                        onLoad={() => setImgCargada(true)}
+                        className={`w-12 h-12 rounded-full object-cover border border-stone-100 transition-opacity duration-300 ${imgCargada ? "opacity-100" : "opacity-0"
+                            }`}
+                    />
+                </div>
+            ) : (
+                <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 font-bold text-lg border border-stone-200">
+                    {cat.nombre.charAt(0).toUpperCase()}
+                </div>
+            )}
+
+            <span className="text-sm font-medium text-stone-800">{cat.nombre}</span>
+        </div>
+    );
+}
 
 export default function CategoriasAdminPage() {
     const router = useRouter();
@@ -99,7 +146,7 @@ export default function CategoriasAdminPage() {
         }
         setCategoriaAEliminar(null);
     };
-    
+
     return (
         <div className="p-6 max-w-6xl mx-auto flex flex-col gap-8">
             <div>
@@ -111,7 +158,7 @@ export default function CategoriasAdminPage() {
                 {/* FORMULARIO */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 lg:col-span-1 h-fit">
                     <h2 className="text-lg font-semibold text-stone-800 mb-4">Nueva Categoría</h2>
-                    
+
                     {mensaje && (
                         <div className={`p-3 rounded-lg mb-4 text-sm ${mensaje.tipo === "exito" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
                             {mensaje.texto}
@@ -121,7 +168,7 @@ export default function CategoriasAdminPage() {
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                         <div className="flex flex-col gap-1.5">
                             <label className="text-sm font-medium text-stone-700">Tipo de Categoría</label>
-                            <select 
+                            <select
                                 value={tipoSeleccionado}
                                 onChange={(e) => setTipoSeleccionado(e.target.value as "productos" | "distribuidores")}
                                 className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-sm outline-none focus:border-[var(--color-primary-500)] transition-colors"
@@ -133,7 +180,7 @@ export default function CategoriasAdminPage() {
 
                         <div className="flex flex-col gap-1.5">
                             <label className="text-sm font-medium text-stone-700">Nombre</label>
-                            <input 
+                            <input
                                 type="text"
                                 value={nombre}
                                 onChange={(e) => setNombre(e.target.value)}
@@ -145,7 +192,7 @@ export default function CategoriasAdminPage() {
 
                         <div className="flex flex-col gap-1.5">
                             <label className="text-sm font-medium text-stone-700">Imagen (Opcional)</label>
-                            <input 
+                            <input
                                 type="file"
                                 accept="image/*"
                                 ref={fileInputRef}
@@ -168,37 +215,19 @@ export default function CategoriasAdminPage() {
                             Categorías de Productos
                             <span className="bg-stone-100 text-stone-600 text-xs px-2 py-1 rounded-full">{categoriasProductos.length}</span>
                         </h2>
-                        {categoriasProductos.length === 0 ? (
-                            <p className="text-sm text-stone-500 italic">No hay categorías registradas.</p>
-                        ) : (
+                    
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {categoriasProductos.map((cat) => (
-                                    <div key={cat.id} className="relative group border border-stone-100 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:border-[var(--color-primary-200)] transition-colors">
-                                        <button 
-                                            onClick={() => setCategoriaAEliminar({ id: cat.id, tipo: "productos", nombre: cat.nombre })}
-                                            className="absolute top-2 right-2 p-1.5 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                                            title="Eliminar categoría"
-                                            disabled={eliminando}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                        {cat.imagen ? (
-                                            <Suspense fallback={
-                                                <div className="w-12 h-12 rounded-full object-cover bg-stone-50 border border-stone-100"/>
-                                            }>
-                                                <img src={cat.imagen} alt={cat.nombre} className="w-12 h-12 rounded-full object-cover bg-stone-50 border border-stone-100" />
-
-                                            </Suspense>
-                                        ) : (
-                                            <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 font-bold text-lg border border-stone-200">
-                                                {cat.nombre.charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-                                        <span className="text-sm font-medium text-stone-800">{cat.nombre}</span>
-                                    </div>
+                                    <Suspense key={cat.id} fallback={<FallBackCategoria />}>
+                                        <CategoriaCard
+                                            cat={cat}
+                                            eliminando={eliminando}
+                                            setCategoriaAEliminar={setCategoriaAEliminar}
+                                        />
+                                    </Suspense>
                                 ))}
                             </div>
-                        )}
+                    
                     </div>
 
                     {/* DISTRIBUIDORES */}
@@ -207,32 +236,19 @@ export default function CategoriasAdminPage() {
                             Categorías de Distribuidores
                             <span className="bg-stone-100 text-stone-600 text-xs px-2 py-1 rounded-full">{categoriasDistribuidores.length}</span>
                         </h2>
-                        {categoriasDistribuidores.length === 0 ? (
-                            <p className="text-sm text-stone-500 italic">No hay categorías registradas.</p>
-                        ) : (
+                    
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {categoriasDistribuidores.map((cat) => (
-                                    <div key={cat.id} className="relative group border border-stone-100 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:border-[var(--color-primary-200)] transition-colors">
-                                        <button 
-                                            onClick={() => setCategoriaAEliminar({ id: cat.id, tipo: "distribuidores", nombre: cat.nombre })}
-                                            className="absolute top-2 right-2 p-1.5 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                                            title="Eliminar categoría"
-                                            disabled={eliminando}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                        {cat.imagen ? (
-                                            <img src={cat.imagen} alt={cat.nombre} className="w-12 h-12 rounded-full object-cover bg-stone-50 border border-stone-100" />
-                                        ) : (
-                                            <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 font-bold text-lg border border-stone-200">
-                                                {cat.nombre.charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-                                        <span className="text-sm font-medium text-stone-800">{cat.nombre}</span>
-                                    </div>
+                                    <Suspense key={cat.id} fallback={<FallBackCategoria />}>
+                                        <CategoriaCard
+                                            cat={cat}
+                                            eliminando={eliminando}
+                                            setCategoriaAEliminar={setCategoriaAEliminar}
+                                        />
+                                    </Suspense>
                                 ))}
                             </div>
-                        )}
+                    
                     </div>
                 </div>
             </div>

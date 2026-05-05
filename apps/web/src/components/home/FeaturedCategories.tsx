@@ -18,7 +18,7 @@ const CATEGORIES: CategoryCardProps[] = [
 function CategoryCard({ label, slug, imageSrc, Icon }: CategoryCardProps) {
   return (
     <Link
-      href={`/catalogo?categoria=${slug}`}
+      href={`/mercado/categorias`}
       className="relative rounded-xl overflow-hidden aspect-square flex flex-col justify-end bg-[var(--color-neutral-200)] hover:scale-[1.02] transition-transform"
     >
       {/* Imagen de fondo */}
@@ -54,7 +54,7 @@ export function FeaturedCategories() {
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-[var(--color-neutral-900)]">Categorías destacadas</h3>
         <Link
-          href="/catalogo"
+          href="/mercado"
           className="text-xs font-medium text-[var(--color-primary-500)] hover:underline transition select-none"
         >
           Ver todo →

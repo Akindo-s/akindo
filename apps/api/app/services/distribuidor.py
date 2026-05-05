@@ -71,8 +71,8 @@ class DistribuidorService:
     async def get_catalogo(self, distribuidor_id: UUID, numero_pagina: int, cantidad_pagina: int) -> CatalogoPaginatedResponse:
         """Obtiene el catálogo paginado llamando al RPC."""
         # Verificar que el distribuidor exista
-        distribuidor = await self.repo.get_by_id(distribuidor_id)
-        if not distribuidor:
+        exists = await self.db.select("usuario", "id", {"id": str(distribuidor_id)})
+        if not exists:
             raise NotFoundException("Distribuidor no encontrado")
 
         limit = max(1, cantidad_pagina)
@@ -84,8 +84,8 @@ class DistribuidorService:
     async def get_valoraciones(self, distribuidor_id: UUID) -> list[ValoracionResponse]:
         """Obtiene las valoraciones de un distribuidor."""
         # Verificar que el distribuidor exista
-        distribuidor = await self.repo.get_by_id(distribuidor_id)
-        if not distribuidor:
+        exists = await self.db.select("usuario", "id", {"id": str(distribuidor_id)})
+        if not exists:
             raise NotFoundException("Distribuidor no encontrado")
             
         rows = await self.repo.get_valoraciones(distribuidor_id)
@@ -166,8 +166,8 @@ class DistribuidorService:
 
     async def get_resumen_dashboard(self, distribuidor_id: UUID, umbral_stock: int = 67) -> ResumenDashboardResponse:
         """Obtiene el resumen del dashboard llamando al RPC."""
-        distribuidor = await self.repo.get_by_id(distribuidor_id)
-        if not distribuidor:
+        exists = await self.db.select("usuario", "id", {"id": str(distribuidor_id)})
+        if not exists:
             raise NotFoundException("Distribuidor no encontrado")
             
         data = await self.db.rpc("get_resumen_distribuidor", {
@@ -182,8 +182,8 @@ class DistribuidorService:
 
     async def get_alertas_existencias(self, distribuidor_id: UUID, umbral_stock: int = 67) -> list[AlertaExistenciaResponse]:
         """Obtiene las alertas de existencias llamando al RPC."""
-        distribuidor = await self.repo.get_by_id(distribuidor_id)
-        if not distribuidor:
+        exists = await self.db.select("usuario", "id", {"id": str(distribuidor_id)})
+        if not exists:
             raise NotFoundException("Distribuidor no encontrado")
             
         data = await self.db.rpc("get_alertas_existencias", {
@@ -195,8 +195,8 @@ class DistribuidorService:
 
     async def get_pedidos_activos(self, distribuidor_id: UUID) -> list[PedidoActivoDistribuidorResponse]:
         """Obtiene los pedidos activos llamando al RPC."""
-        distribuidor = await self.repo.get_by_id(distribuidor_id)
-        if not distribuidor:
+        exists = await self.db.select("usuario", "id", {"id": str(distribuidor_id)})
+        if not exists:
             raise NotFoundException("Distribuidor no encontrado")
             
         data = await self.db.rpc("get_pedidos_activos_distribuidor", {

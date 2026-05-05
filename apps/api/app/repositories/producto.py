@@ -66,7 +66,7 @@ class ProductoRepo(BaseRepository[Producto]):
             "p_distribuidor_id": str(id_distribuidor) if id_distribuidor else None,
             "p_pagina": pagina,
             "p_por_pagina": limit,
-            "p_categorias": categorias,
+            "p_categorias": [str(c) for c in categorias] if categorias else None,
             'p_nombre':nombre
         }
         

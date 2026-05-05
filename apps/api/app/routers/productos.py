@@ -7,7 +7,7 @@ from fastapi import File, Request, UploadFile
 from app.infrastructure import storage
 from app.infrastructure.storage import StorageAdapter, get_storage
 from app.schemas.distribuidor import CatalogoPaginatedResponse
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from uuid import UUID
 from typing import Any
 
@@ -36,7 +36,7 @@ async def get_catalogo(
     numero_pagina: int = 1,
     cantidad_pagina: int = 20,
     nombre: str = "",
-    categorias: list[UUID]|None = None,
+    categorias: list[UUID] | None = Query(None),
     db: DatabaseSession = Depends(get_db),
     storage: StorageAdapter = Depends(get_storage)
 ):

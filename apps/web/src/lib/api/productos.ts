@@ -105,6 +105,46 @@ export async function obtenerCategoriasDisponibles():Promise<CategoriaProductos[
 }
 
 /**
+ * Lista el catálogo global de productos de forma paginada. Público, sin autenticación.
+ * Soporta búsqueda por nombre y filtrado por categorías.
+ */
+export async function listarProductosCatalogo(
+    pagina: number = 1,
+    cantidad: number = 12,
+    nombre: string = "",
+    categorias?: string[],
+): Promise<CatalogoPaginatedResponse> {
+    const params = new URLSearchParams({
+        numero_pagina: String(pagina),
+        cantidad_pagina: String(cantidad),
+        nombre,
+    });
+    if (categorias && categorias.length > 0) {
+        categorias.forEach((c) => params.append("categorias", c));
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/productos/catalogo?${params.toString()}`, {
+            cache: "no-store",
+        });
+        if (res.ok) return await res.json();
+    } catch (e) {
+        console.error("Error listando catálogo de productos:", e);
+    }
+    return {
+        total_productos: 0,
+        total_paginas: 0,
+        pagina_actual: 1,
+        tiene_siguiente: false,
+        tiene_anterior: false,
+        siguiente_url: null,
+        anterior_url: null,
+        productos: [],
+    };
+}
+
+
+/**
  * Obtiene el catálogo de unidades de medida disponibles para productos.
  * No requiere autenticación.
  */

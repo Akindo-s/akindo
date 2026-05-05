@@ -52,12 +52,11 @@ async def listar_distribuidores(
     categorias: list[UUID] | None = Query(None, description="Lista de UUIDs de categorías para filtrar"),
     valoracion_min: float | None = Query(None, ge=0, le=5, description="Valoración mínima (0-5)"),
     valoracion_max: float | None = Query(None, ge=0, le=5, description="Valoración máxima (0-5)"),
-    user: Usuario = Depends(get_current_user),
     db: DatabaseSession = Depends(get_db)
 ):
     """ Obtiene un catálogo minificado y paginado de distribuidores.
     Permite filtrar por categorías y rango de valoración.
-    Requiere autenticación (cliente o distribuidor).
+    Público — no requiere autenticación.
     """
     service = DistribuidorService(db)
     response = await service.listar_distribuidores(
@@ -76,13 +75,12 @@ async def listar_distribuidores(
     return response
 
 
-@router.get("/other/{distribuidor_id}", response_model=DistribuidorResponse) # TODO : este endpoint esta MUY mal, pero tenemos que arreglarlo despues
+@router.get("/other/{distribuidor_id}", response_model=DistribuidorResponse)
 async def obtener_distribuidor(
     distribuidor_id: UUID,
-    user: Usuario = Depends(get_current_user),
     db: DatabaseSession = Depends(get_db)
 ):
-    """ Obtiene los detalles de un distribuidor """
+    """ Obtiene los detalles de un distribuidor. Público — no requiere autenticación. """
     service = DistribuidorService(db)
     return await service.obtener_distribuidor(distribuidor_id)
 
@@ -93,10 +91,9 @@ async def get_catalogo(
     distribuidor_id: UUID,
     numero_pagina: int = 1,
     cantidad_pagina: int = 20,
-    user: Usuario = Depends(get_current_user),
     db: DatabaseSession = Depends(get_db)
 ):
-    """ Obtiene una mini versión paginada de todos los productos de un distribuidor"""
+    """ Obtiene una mini versión paginada de todos los productos de un distribuidor. Público — no requiere autenticación. """
     service = DistribuidorService(db)
     response = await service.get_catalogo(distribuidor_id, numero_pagina, cantidad_pagina)
     

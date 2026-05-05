@@ -242,7 +242,9 @@ class DistribuidorRepo(BaseRepository[Distribuidor]):
                 "nombre": row["nombre"],
                 "costo": row["costo"],
                 "disponible": row["disponible"],
-                "unidad": row["unidad"]
+                "unidad": row["unidad"],
+                "existencias": row.get("existencias", 0),
+                "imagen": row.get("imagen")
             })
             
         metadata["productos"] = productos

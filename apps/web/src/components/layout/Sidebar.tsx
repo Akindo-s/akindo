@@ -7,7 +7,7 @@ import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon } from "../ic
 
 const links = [
     { label: "Inicio", href: "/", Icon: HomeIcon },
-    { label: "Mercado", href: "/catalogo", Icon: StorefrontIcon },
+    { label: "Mercado", href: "/mercado", Icon: StorefrontIcon },
     { label: "Pedidos", href: "/pedidos", Icon: AllInboxIcon },
     { label: "Mi Perfil", href: "/perfil", Icon: AccountCircleIcon },
 ];

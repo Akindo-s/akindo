@@ -7,7 +7,7 @@ import { ReactNode } from "react";
 
 const tabs = [
   { label: "Inicio", href: "/", Icon: HomeIcon },
-  { label: "Mercado", href: "/catalogo", Icon: StorefrontIcon },
+  { label: "Mercado", href: "/mercado", Icon: StorefrontIcon },
   { label: "Pedidos", href: "/pedidos", Icon: AllInboxIcon },
   { label: "Más", href: "#", Icon: MoreVertIcon },
 ];

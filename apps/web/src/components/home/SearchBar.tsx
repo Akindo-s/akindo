@@ -11,7 +11,9 @@ export function SearchBar() {
     const formData = new FormData(e.currentTarget);
     const q = (formData.get("q") as string)?.trim();
     if (q) {
-      router.push(`/catalogo?q=${encodeURIComponent(q)}`);
+      router.push(`/mercado/productos?q=${encodeURIComponent(q)}`);
+    } else {
+      router.push("/mercado/productos");
     }
   };
 
