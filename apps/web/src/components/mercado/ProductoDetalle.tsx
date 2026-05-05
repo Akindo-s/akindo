@@ -202,7 +202,7 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
             )}
 
             {/* Descripción (si existe en atributos extra) */}
-            {producto.atributos_extra && producto.atributos_extra.descripcion && (
+            {!!(producto.atributos_extra && producto.atributos_extra.descripcion) && (
                 <div className="bg-white p-5 md:p-6 shadow-sm border-y border-stone-100 mb-2 mx-0 lg:mx-4 lg:rounded-2xl lg:border lg:mb-4">
                     <h3 className="text-sm font-bold text-stone-800 mb-3 uppercase tracking-wide">Descripción</h3>
                     <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-wrap">
@@ -212,7 +212,7 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
             )}
 
             {/* Atributos Extra */}
-            {producto.atributos_extra && producto.atributos_extra.niveles_precio && (
+            {!!(producto.atributos_extra && producto.atributos_extra.niveles_precio) && (
                 <CostosVolumen 
                     costoBase={producto.costo}
                     unidadMedida={unidadMedidaStr}
