@@ -46,7 +46,7 @@ export function BarraBusquedaFiltros({
 
     return (
         <div
-            className={`sticky top-[49px] z-20 bg-white border-b border-stone-100 shadow-sm px-4 pt-3 pb-3 flex flex-col gap-2.5 ${className}`}
+            className={`w-full sticky top-[67px] z-20 bg-white border-b border-stone-100 shadow-sm px-4 pt-3 pb-3 flex flex-col gap-2.5 ${className}`}
         >
             <div className="flex items-center gap-3">
                 {mostrarVolver && (
@@ -71,7 +71,7 @@ export function BarraBusquedaFiltros({
 
             {/* Chips de categoría */}
             {categorias.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+                <div className="flex gap-2 overflow-x-auto pb-0.5 w-[60lvw] scroll-auto ">
                     {/* Chip "Todas" */}
                     <button
                         type="button"
