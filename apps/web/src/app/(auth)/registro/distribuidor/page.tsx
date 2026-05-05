@@ -1,7 +1,7 @@
 import RegistroDistribuidorForm from "@/components/auth/RegistroDistribuidorForm";
 
 export const metadata = {
-  title: "Registro Distribuidor — Akindo",
+  title: "Registro Distribuidor",
   description: "Únete como distribuidor en la plataforma mayorista Akindo.",
 };
 

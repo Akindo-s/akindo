@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { MapPin, Star, Store, Package, ArrowLeft, Plus, Hourglass, Plane, BadgeCheck, ShoppingCart, ChevronRight, Camera, Settings } from "lucide-react";
+import { MapPin, Star, Store, Package, ArrowLeft, Plus, Hourglass, Plane, BadgeCheck, ShoppingCart, ChevronRight, Camera, Settings, PlusCircle } from "lucide-react";
 import { esDistribuidorDueno, actualizarImagenPerfil, actualizarPerfilDistribuidor } from "@/lib/api/usuario";
 import {
     obtenerDistribuidor,
@@ -16,6 +16,7 @@ import { useScrollInfinito } from "@/components/hooks/useScrollInfinito";
 import { Parrafo, SubTitulo, Titulo } from "@/components/titles";
 import { Boton } from "@/components/ui/Boton";
 import { MONEDA } from "@/lib/api/constants";
+import { AllInboxIcon } from "@/components/icons/NavigationIcons";
 
 
 // ── Skeleton ─────────────────────────────────────────────────────────────────
@@ -375,11 +376,19 @@ function TiendaContent() {
                 )}
 
                 {/* Catálogo Destacado */}
-                <div className="mt-6 mb-4 flex items-center justify-between">
+                <div className="mt-6 mb-4 flex items-center justify-between flex-wrap gap-4 ">
                     <Titulo>
                         Productos
                     </Titulo>
+                    <div className="flex flex-wrap gap-2">
 
+                    <Boton className="max-w-fit px-6" Icono={PlusCircle} href="/distribuidor/productos/crear">
+                        
+                    </Boton>
+                    <Boton variante="secundario" className="max-w-fit px-6 " Icono={AllInboxIcon} href="/distribuidor/productos">
+                        gestionar inventario
+                    </Boton>
+                    </div>
 
                 </div>
 

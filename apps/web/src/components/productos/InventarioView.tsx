@@ -83,6 +83,7 @@ function ProductoInventario({ producto, onArchivar }: { producto: ProductoInvent
  * Se renderiza como Client Component ya que necesita estado interactivo y porque se me antojo como ves tienes bronca o que?!!.
  */
 export default function InventarioView({ distribuidorId }: InventarioViewProps) {
+    const router = useRouter();
     
     const [productos, setProductos] = useState<ProductoInventario[]>([]);
     const [pagina, setPagina] = useState(1);
@@ -197,10 +198,10 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
         <div className="flex flex-col w-full max-w-2xl lg:max-w-6xl mx-auto pb-24 bg-[#FAF7F2] min-h-screen">
             {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />}
 
-            <EncabezadoPagina titulo="Inventario" href="/distribuidor" className="mb-2" />
 
             {/* Buscador */}
-            <div className="px-4 mb-4">
+            <div className="px-4 mb-4 sticky top-0 z-10 bg-[#FAF7F2] shadow-md pb-2">
+            <EncabezadoPagina titulo="Inventario"  className="mb-2" onClick={() => router.back()}/>
                 <Buscador
                     placeholder="Buscar productos..."
                     onBuscar={handleBuscar}

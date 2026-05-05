@@ -30,6 +30,14 @@ export function LogInIcon({ size = 24, color = "currentColor", className = "", .
   );
 }
 
+export function LogOutIcon({ size = 24, color = "currentColor", className = "", ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={`icon ${className}`} {...props}>
+      <path fill={color} d="m17 16 4-4-4-4-1.41 1.41L18.17 11H9v2h9.17l-2.58 2.59zM5 5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h7v-2H5z"/>
+    </svg>
+  );
+}
+
 export function PersonAddIcon({ size = 24, color = "currentColor", className = "", ...props }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={`icon ${className}`} {...props}>

@@ -39,7 +39,7 @@ const variantes: Record<NonNullable<BotonProps["variante"]>, string> = {
   primario:
     " bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white w-full py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition cursor-pointer uppercase text-sm tracking-wide disabled:opacity-75",
   secundario:
-    "bg-[#FDF2E3] hover:bg-[#FCEAD2] text-[#4F4634] rounded-full font-medium transition border-none shadow-none cursor-pointer",
+    "bg-transparent hover:bg-[#FCEAD2] text-[#4F4634] rounded-xl font-medium transition border-none py-3 shadow-none cursor-pointer",
   peligro:
     "text-red-600 font-medium text-sm px-6 py-2 border border-red-200 rounded-full hover:bg-red-50 transition cursor-pointer",
   chip: "flex items-center gap-2 bg-transparent border border-[#E8DEC1] text-stone-800 px-4 py-2.5 rounded-full font-medium text-xs whitespace-nowrap hover:bg-stone-50 transition cursor-pointer",

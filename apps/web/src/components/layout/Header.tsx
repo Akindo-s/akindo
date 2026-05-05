@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { ShoppingCartIcon, NotificationsIcon, AccountCircleIcon } from "../icons/NavigationIcons";
-import { LogInIcon } from "../icons/AuthIcons";
+import { LogInIcon, LogOutIcon } from "../icons/AuthIcons";
 import { Boton } from "@/components/ui/Boton";
 
 interface HeaderProps {
@@ -11,30 +11,36 @@ interface HeaderProps {
   tipoUsuario?: string;
 }
 
-
-
 export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const isAdminOrDistributor = tipoUsuario === "distribuidor" || tipoUsuario === "admin";
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Error al cerrar sesión", error);
+    }
+  };
+
   const isActive = (href: string) => pathname.startsWith(href);
   return (
-    <header className="sticky top-0 z-30 bg-white w-full flex items-center justify-between px-4 md:px-8 lg:px-16 py-3 border-b border-stone-100">
+    <header className="relative top-0 z-30 bg-white w-full flex items-center justify-between px-4 md:px-8 lg:px-16 py-3 border-b border-stone-100">
       <div className="flex items-center gap-8">
         <Link href="/" className="text-xl md:text-2xl font-bold text-[var(--color-neutral-900)] select-none">
           Akindo
         </Link>
-
-
       </div>
 
-      <nav className="flex items-center gap-3">
+      <nav className="flex items-center gap-3 flex-wrap justify-end-safe">
         {isLoggedIn ? (
           <>
             {tipoUsuario === "admin" && (
               <Boton
-                className="text-xs"
+                className="text-xs max-w-fit"
                 onClick={() => router.push('/admin/categorias')}
               >
                 Administración
@@ -42,7 +48,7 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
             )}
             {tipoUsuario === "distribuidor" && (
               <Boton
-                className="text-xs"
+                className="text-xs max-w-fit"
                 onClick={() => router.push('/distribuidor')}
               >
                 Administrar negocio
@@ -50,7 +56,6 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
             )}
             {
               !isAdminOrDistributor && (<>
-
                 <Link href="/carrito" className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
                   <ShoppingCartIcon size={22} />
                 </Link>
@@ -59,9 +64,22 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
                 </Link>
               </>)
             }
-            <button className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition cursor-pointer">
+            
+
+            {isAdminOrDistributor && (
+              <Boton
+              variante="peligro" 
+                onClick={handleLogout}
+                className="flex  gap-1 text-stone-400 hover:text-red-500 transition cursor-pointer items-center justify-center p-1.5 hover:bg-red-50 rounded-lg"
+                title="Cerrar sesión"
+              >
+                <LogOutIcon size={20} />
+                <span className="text-nowrap">cerrar sesion</span>
+              </Boton>
+            )}
+            <Boton variante="secundario" className=" bg-transparent text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition cursor-pointer">
               <NotificationsIcon size={22} />
-            </button>
+            </Boton>
 
           </>
         ) : (

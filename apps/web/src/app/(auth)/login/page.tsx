@@ -1,7 +1,7 @@
 import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata = {
-  title: "Iniciar Sesión — Akindo",
+  title: "Iniciar Sesión",
   description: "Accede a la plataforma de comercio mayorista más exclusiva.",
 };
 

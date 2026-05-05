@@ -9,7 +9,7 @@ const tabs = [
   { label: "Inicio", href: "/", Icon: HomeIcon },
   { label: "Mercado", href: "/mercado", Icon: StorefrontIcon },
   { label: "Pedidos", href: "/pedidos", Icon: AllInboxIcon },
-  { label: "Más", href: "#", Icon: MoreVertIcon },
+  { label: "Perfil", href: "/perfil", Icon: MoreVertIcon },
 ];
 
 interface BottomNavProps {
