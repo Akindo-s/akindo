@@ -254,9 +254,11 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
                     costoBase={producto.costo}
                     unidadMedida={unidadMedidaStr}
                     nivelesPrecio={producto.atributos_extra.niveles_precio as NivelPrecio[]}
-                    seleccionCantidad={(cantidad) => {
-                        if (!cantidad) return
-                        setCantidadSeleccionada(cantidad)
+                    seleccionCantidad={(cantidad:number) => {
+                        if (cantidad) {
+                            setCantidadSeleccionada(cantidad)
+                        }
+                        
                     }}
                 />
             )}

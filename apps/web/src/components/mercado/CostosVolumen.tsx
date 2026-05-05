@@ -13,7 +13,7 @@ interface CostosVolumenProps {
     costoBase: number;
     unidadMedida: string;
     nivelesPrecio?: NivelPrecio[];
-    seleccionCantidad:(cantidad:number)=>{};
+    seleccionCantidad:(cantidad:number)=>void;
 }
 
 export function CostosVolumen({ costoBase, unidadMedida, nivelesPrecio,seleccionCantidad}: CostosVolumenProps) {
@@ -90,8 +90,7 @@ export function CostosVolumen({ costoBase, unidadMedida, nivelesPrecio,seleccion
     if (ranges.length === 0) return null;
 
     useEffect(()=>{
-
-        console.log(nivelesPrecio[selectedTier-1]?.cantidad_minima??1)
+        if (!nivelesPrecio)return;
         seleccionCantidad(nivelesPrecio[selectedTier-1]?.cantidad_minima??1)
     },[selectedTier])
 

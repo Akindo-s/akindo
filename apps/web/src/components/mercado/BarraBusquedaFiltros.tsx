@@ -46,7 +46,7 @@ export function BarraBusquedaFiltros({
 
     return (
         <div
-            className={`w-full sticky top-2 z-20 bg-white border-b border-stone-100 shadow-sm px-4 pt-3 pb-3 flex flex-col gap-2.5 ${className}`}
+            className={`w-full sticky top-0 z-20 bg-white border-b border-stone-100 shadow-sm px-4 pt-3 pb-3 flex flex-col gap-2.5 ${className}`}
         >
             <div className="flex items-center gap-3">
                 {mostrarVolver && (
