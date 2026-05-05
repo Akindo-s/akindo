@@ -38,7 +38,7 @@ export async function obtenerCategoriasDestacadas(clienteId?: string, limite: nu
 
 export async function obtenerCategoriasProductos(): Promise<CategoriaResponse[]> {
     const token = await getToken();
-    const respuesta = await fetchWithAuth('/categorias/productos', { method: "GET" }, token);
+    const respuesta = await fetchWithAuth('/categorias/productos', { method: "GET" }, token,60);
     
     if (respuesta.status === 200) {
         return await respuesta.json();

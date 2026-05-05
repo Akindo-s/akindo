@@ -4,6 +4,8 @@ import { Buscador } from "@/components/ui/Buscador";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Package } from "lucide-react";
 import { StorefrontIcon } from "../icons/NavigationIcons";
+import { useState } from "react";
+import { useCategorias } from "@/lib/categorias-context";
 
 interface Categoria {
     id: string;
@@ -32,17 +34,42 @@ interface BarraBusquedaFiltrosProps {
  */
 export function BarraBusquedaFiltros({
     placeholder = "Buscar...",
-    categorias = [],
-    categoriaSeleccionada,
-    onBuscar,
-    onCategoriaChange,
+    
+    
+    
+    
     className = "",
     mostrarVolver = false,
-    valorBusqueda,
-    onChange,
+    
+    
     desactivarAutoBusqueda = false
 }: BarraBusquedaFiltrosProps) {
+    
+
+
     const router = useRouter();
+    const [q, setQ] = useState("");
+    const categorias = useCategorias();
+    const [categoriaSeleccionada,setCategoriaSeleccionada] = useState({id:'',tipo:''});
+
+    const handleBuscar = (busqueda: string) => {
+        const trimmed = busqueda.trim();
+        if (trimmed) {
+            router.push(`/mercado/productos?q=${encodeURIComponent(trimmed)}`);
+        } else {
+            router.push("/mercado/productos");
+        }
+    };
+
+    const handleCategoria = (id: string | null, tipo?: "producto" | "distribuidor") => {
+        if (!id || !tipo) return;
+        setCategoriaSeleccionada({id:id,tipo:tipo})
+        if (tipo === "producto") {
+            router.push(`/mercado/productos?categoria=${id}`);
+        } else {
+            router.push(`/mercado/distribuidores?categoria=${id}`);
+        }
+    };
 
     return (
         <div
@@ -60,22 +87,24 @@ export function BarraBusquedaFiltros({
                 {/* Buscador */}
                 <Buscador
                     placeholder={placeholder}
-                    valor={valorBusqueda}
-                    onBuscar={onBuscar}
+                    valor={q}
+                    onBuscar={handleBuscar}
                     debounceMs={350}
-                    onChange={onChange}
+                    onChange={setQ}
                     className="flex-1"
                     desactivarAutoBusqueda={desactivarAutoBusqueda}
                 />
             </div>
 
             {/* Chips de categoría */}
-            {categorias.length > 0 && (
+
+            
+            {categorias&&categorias.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pb-0.5 w-full scroll-auto ">
                     {/* Chip "Todas" */}
                     <button
                         type="button"
-                        onClick={() => onCategoriaChange?.(null, undefined)}
+                        onClick={() => handleCategoria?.(null, undefined)}
                         className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors cursor-pointer ${
                             !categoriaSeleccionada
                                 ? "bg-[var(--color-primary-500)] text-white border-[var(--color-primary-500)]"
@@ -90,7 +119,7 @@ export function BarraBusquedaFiltros({
                             key={cat.id}
                             type="button"
                             onClick={() =>
-                                onCategoriaChange?.(
+                                handleCategoria?.(
                                     categoriaSeleccionada === cat.id ? null : cat.id,
                                     cat.tipo
                                 )

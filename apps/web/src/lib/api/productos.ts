@@ -56,8 +56,8 @@ export interface ProductoCatalogoResponse {
     costo: number;
     disponible: boolean;
     unidad: string;
-    existencias:number,
-    imagen:string
+    existencias: number,
+    imagen: string
 }
 
 export interface CatalogoPaginatedResponse {
@@ -79,25 +79,25 @@ export interface DatosActualizarProducto {
     atributos_extra?: Record<string, unknown> | null;
     categorias?: string[] | null;
 }
-export interface CategoriaProductos{
-    id:string;
-    nombre:string;
-    imagen:string;
+export interface CategoriaProductos {
+    id: string;
+    nombre: string;
+    imagen: string;
 }
 
 // ─── Funciones ───────────────────────────────────────────────────────────────
 
-export async function obtenerCategoriasDisponibles():Promise<CategoriaProductos[]>{
-    try{
+export async function obtenerCategoriasDisponibles(): Promise<CategoriaProductos[]> {
+    try {
         const respuesta = await fetch(`${API_URL}/categorias/productos`);
-        if (respuesta.ok){
+        if (respuesta.ok) {
             return await respuesta.json()
         }
-        if (respuesta.status === 500){
+        if (respuesta.status === 500) {
             throw Error("Error del servidor, intente mas tarde")
         }
 
-    }catch(e){
+    } catch (e) {
         console.log("Error fetching obtener unidades medida")
     }
     return []
@@ -112,6 +112,7 @@ export async function listarProductosCatalogo(
     cantidad: number = 12,
     nombre: string = "",
     categorias?: string[],
+    opciones?: { revalidate?: number | false }
 ): Promise<CatalogoPaginatedResponse> {
     const params = new URLSearchParams({
         numero_pagina: String(pagina),
@@ -124,7 +125,7 @@ export async function listarProductosCatalogo(
 
     try {
         const res = await fetch(`${API_URL}/productos/catalogo?${params.toString()}`, {
-            cache: "no-store",
+            next: { revalidate: opciones?.revalidate ?? 60 }, // 60s por defecto,
         });
         if (res.ok) return await res.json();
     } catch (e) {
@@ -170,7 +171,7 @@ export async function obtenerUnidadesMedida(): Promise<UnidadMedida[]> {
                 "Accept": "application/json"
             },
         });
-        
+
         if (respuesta.ok) {
             const body = await respuesta.json();
             return body;
@@ -187,7 +188,7 @@ export async function obtenerUnidadesMedida(): Promise<UnidadMedida[]> {
  * Envía categoría y niveles de precio en `atributos_extra`.
  * La imagen del producto se maneja por separado (pendiente de endpoint en backend).
  */
-export async function crearProducto(datos: DatosCrearProducto,es_borrador:boolean=false): Promise<ProductoResponse | null> {
+export async function crearProducto(datos: DatosCrearProducto, es_borrador: boolean = false): Promise<ProductoResponse | null> {
     const token = await getToken();
     const body = {
         nombre: datos.nombre,
@@ -199,7 +200,7 @@ export async function crearProducto(datos: DatosCrearProducto,es_borrador:boolea
             ...(datos.niveles_precio?.length ? { niveles_precio: datos.niveles_precio } : {}),
             ...(datos.descripcion ? { descripcion: datos.descripcion } : {}),
         },
-        es_borrador:es_borrador,
+        es_borrador: es_borrador,
         categorias: datos.categorias
     };
 
@@ -222,7 +223,7 @@ export async function crearProducto(datos: DatosCrearProducto,es_borrador:boolea
  */
 export async function guardarBorradorProducto(datos: DatosCrearProducto): Promise<ProductoResponse | null> {
     // TODO: Pasar { disponible: false } cuando el backend lo soporte en POST /productos/
-    return crearProducto(datos,true);
+    return crearProducto(datos, true);
 }
 
 /**

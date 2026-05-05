@@ -10,7 +10,9 @@ import { API_URL } from "./constants";
 export async function fetchWithAuth(
     endpoint: string,
     options: RequestInit = {},
-    token?: string
+    token?: string,
+    revalidate: number | false = false  // 👈 false = no-store por defecto
+
 ) {
     // Solo leer cookies si el token no fue pasado directamente
     const authToken = token ?? (await cookies()).get("token")?.value;
@@ -31,8 +33,9 @@ export async function fetchWithAuth(
     const response = await fetch(url, {
         ...options,
         headers,
-        // Sin caché para que siempre refleje el estado real del servidor
-        cache: "no-store",
+        ...(revalidate === false
+            ? { cache: "no-store" }
+            : { next: { revalidate } }),
     });
 
     if (response.status === 498) {

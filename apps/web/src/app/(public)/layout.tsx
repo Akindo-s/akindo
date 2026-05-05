@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { CategoriasProvider } from "@/lib/categorias-context";
 
 export default async function PublicLayout({
   children,
@@ -17,9 +18,12 @@ export default async function PublicLayout({
       <Header isLoggedIn={isLoggedIn} tipoUsuario={tipoUsuario} />
       <div className="flex flex-1">
         <Sidebar tipoUsuario={tipoUsuario} />
+        
+
         <main className="flex-1 min-w-0 pb-16 md:pb-0">
           {children}
         </main>
+        
       </div>
       <BottomNav tipoUsuario={tipoUsuario} />
     </>

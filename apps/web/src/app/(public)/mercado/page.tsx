@@ -1,3 +1,4 @@
+'use server'
 import Link from "next/link";
 import { ChevronRight, Grid3X3, Package } from "lucide-react";
 import { MercadoBuscador } from "@/components/mercado/MercadoBuscador";
@@ -5,7 +6,7 @@ import { listarProductosCatalogo } from "@/lib/api/productos";
 import { TarjetaProductoCatalogo } from "@/components/mercado/TarjetaProductoCatalogo";
 import { StorefrontIcon } from "@/components/icons/NavigationIcons";
 
-export const metadata = {
+const metadata = {
     title: "Mercado",
     description: "Explora categorías, distribuidores y productos en el mercado de Akindo.",
 };
