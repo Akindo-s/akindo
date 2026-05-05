@@ -22,71 +22,71 @@ function SkeletonProducto() {
 }
 
 function ProductosContent() {
-    const searchParams = useSearchParams();
+    
+   const searchParams = useSearchParams();
     const qParam = searchParams.get("q") ?? "";
     const categoriaParam = searchParams.get("categoria");
 
-    const categorias = useCategorias()
+    const categorias = useCategorias();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // valorInput: lo que se ve en el input (actualiza con cada tecla)
+    const [valorInput, setValorInput] = useState(qParam);
+    // busqueda: lo que realmente se busca (solo cambia tras debounce)
     const [busqueda, setBusqueda] = useState(qParam);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string | null>(
         categoriaParam ?? null
     );
 
-    const router = useRouter();
-    const pathname = usePathname();
+    // Sincronizar con URL cuando cambia externamente
+    useEffect(() => { setValorInput(qParam); setBusqueda(qParam); }, [qParam]);
+    useEffect(() => { setCategoriaSeleccionada(categoriaParam ?? null); }, [categoriaParam]);
+const resetKey = `${busqueda}|${categoriaSeleccionada ?? ""}`;
 
-    const handleBusqueda = (q: string) => {
+    const fetchFn = useCallback(async (pagina: number) => {
+        const data = await listarProductosCatalogo(
+            pagina, 12, busqueda,
+            categoriaSeleccionada ? [categoriaSeleccionada] : undefined,
+        );
+        return { items: data.productos, tieneSiguiente: data.tiene_siguiente };
+    }, [busqueda, categoriaSeleccionada]);
+
+    const { items, cargando, cargandoMas, centinelaRef ,tieneSiguiente} = useScrollInfinito<ProductoCatalogoResponse>({
+        fetchFn,
+        resetKey,
+    });
+    const handleBusqueda = useCallback((q: string) => {
+        // Se llama tras el debounce — actualiza búsqueda Y URL
+        setBusqueda(q);
         const params = new URLSearchParams(searchParams.toString());
         if (q) params.set("q", q);
         else params.delete("q");
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    };
+    }, [searchParams, pathname, router]);
 
-    const handleCategoria = (c: string | null) => {
+    const handleCategoria = useCallback((c: string | null) => {
         setCategoriaSeleccionada(c);
         const params = new URLSearchParams(searchParams.toString());
         if (c) params.set("categoria", c);
         else params.delete("categoria");
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    };
+    }, [searchParams, pathname, router]);
 
-   
-
-    const resetKey = `${busqueda}|${categoriaSeleccionada ?? ""}`;
-
-    const fetchFn = useCallback(
-        async (pagina: number) => {
-            const data = await listarProductosCatalogo(
-                pagina,
-                12,
-                busqueda,
-                categoriaSeleccionada ? [categoriaSeleccionada] : undefined,
-            );
-            return {
-                items: data.productos,
-                tieneSiguiente: data.tiene_siguiente,
-            };
-        },
-        [busqueda, categoriaSeleccionada]
-    );
-
-    const { items, cargando, cargandoMas, centinelaRef } = useScrollInfinito<ProductoCatalogoResponse>({
-        fetchFn,
-        resetKey,
-    });
-
+    
+    
     return (
         <div className="flex flex-col min-h-screen bg-white">
             {/* Barra sticky */}
             <BarraBusquedaFiltros
                 placeholder="Buscar productos..."
-                valorBusqueda={busqueda}
-                categorias={categorias}
+                valorBusqueda={valorInput}        
+                categorias={categorias ?? []}
                 categoriaSeleccionada={categoriaSeleccionada}
-                onBuscar={handleBusqueda}
+                onBuscar={handleBusqueda}         
                 onCategoriaChange={handleCategoria}
                 mostrarVolver={true}
-                onChange={setBusqueda}
+                onChange={setValorInput}         
             />
 
             {/* Lista */}
@@ -105,7 +105,7 @@ function ProductosContent() {
                         ? Array.from({ length: 8 }).map((_, i) => <SkeletonProducto key={i} />)
                         : items.map((p,index) => (
                               <TarjetaProductoCatalogo
-                                  key={`${p.producto_id}`}
+                                  key={`${p.producto_id}${index}`}
                                   productoId={p.producto_id}
                                   nombre={p.nombre}
                                   costo={p.costo}
@@ -126,12 +126,13 @@ function ProductosContent() {
                     </div>
                 )}
 
-                {/* Centinela */}
-                <div ref={centinelaRef} className="flex justify-center py-6">
-                    {cargandoMas && (
-                        <div className="w-6 h-6 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full animate-spin" />
-                    )}
-                </div>
+                {tieneSiguiente && (
+    <div ref={centinelaRef} className="flex justify-center py-6">
+        {cargandoMas && (
+            <div className="w-6 h-6 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full animate-spin" />
+        )}
+    </div>
+)}
             </div>
         </div>
     );

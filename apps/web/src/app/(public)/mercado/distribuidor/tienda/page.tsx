@@ -53,7 +53,7 @@ function CatalogoDistribuidor({ distribuidorId }: { distribuidorId: string }) {
         [distribuidorId]
     );
 
-    const { items, cargando, cargandoMas, centinelaRef } = useScrollInfinito<ProductoCatalogoPublico>({
+    const { items, cargando, cargandoMas, centinelaRef, tieneSiguiente } = useScrollInfinito<ProductoCatalogoPublico>({
         fetchFn,
         resetKey: distribuidorId,
     });
@@ -143,11 +143,13 @@ function CatalogoDistribuidor({ distribuidorId }: { distribuidorId: string }) {
                 })}
             </div>
             {/* Centinela */}
-            <div ref={centinelaRef} className="flex justify-center py-6">
-                {cargandoMas && (
-                    <div className="w-6 h-6 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full animate-spin" />
-                )}
-            </div>
+            {tieneSiguiente && (
+                <div ref={centinelaRef} className="flex justify-center py-6">
+                    {cargandoMas && (
+                        <div className="w-6 h-6 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full animate-spin" />
+                    )}
+                </div>
+            )}
             {toast ? <VentanaEmergente mensaje={toast} onClose={() => setToast(null)} /> : null}
         </>
     );

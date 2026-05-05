@@ -43,7 +43,7 @@ export function HeroCard({ imageSrc }: HeroCardProps) {
         <div className="flex flex-row gap-6">
 
           <Link
-            href="/catalogo"
+            href="/mercado"
             className="self-start bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white text-xs font-medium px-5 py-2.5 rounded-xl transition shadow-md hover:shadow-lg select-none"
           >
             Explora el Mercado

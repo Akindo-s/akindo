@@ -90,6 +90,7 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
     const [tieneSiguiente, setTieneSiguiente] = useState(false);
     const [cargando, setCargando] = useState(false);
     const [cargandoMas, setCargandoMas] = useState(false);
+    const [valorInput, setValorInput] = useState("");
     const [busqueda, setBusqueda] = useState("");
     const [error, setError] = useState<string | null>(null);
 
@@ -204,6 +205,8 @@ export default function InventarioView({ distribuidorId }: InventarioViewProps) 
             <EncabezadoPagina titulo="Inventario"  className="mb-2" onClick={() => router.back()}/>
                 <Buscador
                     placeholder="Buscar productos..."
+                    valor={valorInput}
+                    onChange={setValorInput}
                     onBuscar={handleBuscar}
                 />
             </div>

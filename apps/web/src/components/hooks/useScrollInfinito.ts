@@ -47,15 +47,11 @@ export function useScrollInfinito<T>({ fetchFn, resetKey }: UseScrollInfinitoOpt
     const [cargandoMas, setCargandoMas] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const centinelaRef = useRef<HTMLDivElement | null>(null);
     const observerRef = useRef<IntersectionObserver | null>(null);
-
-    // Refs para que el observer siempre lea valores actuales sin recrearse
     const paginaRef = useRef(1);
     const tieneSiguienteRef = useRef(false);
     const cargandoMasRef = useRef(false);
 
-    // Mantener refs sincronizados
     useEffect(() => { paginaRef.current = pagina; }, [pagina]);
     useEffect(() => { tieneSiguienteRef.current = tieneSiguiente; }, [tieneSiguiente]);
     useEffect(() => { cargandoMasRef.current = cargandoMas; }, [cargandoMas]);
@@ -74,16 +70,20 @@ export function useScrollInfinito<T>({ fetchFn, resetKey }: UseScrollInfinitoOpt
             setCargando(false);
             setCargandoMas(false);
         }
-    }, [fetchFn]);
+    }, [fetchFn, resetKey]);
 
-    // Reset cuando cambia resetKey
     useEffect(() => {
         cargar(1, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resetKey]);
 
-    // Observer se monta UNA sola vez — lee estado via refs
-    useEffect(() => {
+    // se ejecuta cuando el elemento entra/sale del DOM
+    const centinelaRef = useCallback((nodo: HTMLDivElement | null) => {
+        // Limpiar observer anterior si el nodo cambia
+        observerRef.current?.disconnect();
+
+        if (!nodo) return;
+
         observerRef.current = new IntersectionObserver((entries) => {
             if (
                 entries[0].isIntersecting &&
@@ -94,10 +94,10 @@ export function useScrollInfinito<T>({ fetchFn, resetKey }: UseScrollInfinitoOpt
             }
         }, { threshold: 0.1 });
 
-        if (centinelaRef.current) observerRef.current.observe(centinelaRef.current);
-        return () => observerRef.current?.disconnect();
-    }, []); // ← sin dependencias
+        observerRef.current.observe(nodo);
+    }, [cargar]);
 
     const recargar = useCallback(() => cargar(1, true), [cargar]);
-    return { items, cargando, cargandoMas, error, centinelaRef, recargar };
+
+    return { items, cargando, cargandoMas, error, centinelaRef, recargar,tieneSiguiente };
 }

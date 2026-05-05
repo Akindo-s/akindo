@@ -56,22 +56,21 @@ export function Buscador({
     // Valor activo: controlado o interno
     const valorActivo = valor !== undefined ? valor : interno;
 
-    const handleChange = useCallback(
-        (nuevoValor: string) => {
-            if (valor === undefined) {
-                setInterno(nuevoValor);
-            }
-            onChange?.(nuevoValor);
+    const onBuscarRef = useRef(onBuscar);
+useEffect(() => { onBuscarRef.current = onBuscar; }, [onBuscar]);
 
-            // Debounce para onBuscar
-            if (desactivarAutoBusqueda) return
-            if (timerRef.current) clearTimeout(timerRef.current);
-            timerRef.current = setTimeout(() => {
-                onBuscar?.(nuevoValor);
-            }, debounceMs);
-        },
-        [valor, onChange, onBuscar, debounceMs]
-    );
+const handleChange = useCallback(
+    (nuevoValor: string) => {
+        if (valor === undefined) setInterno(nuevoValor);
+        onChange?.(nuevoValor);
+        if (desactivarAutoBusqueda) return;
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+            onBuscarRef.current?.(nuevoValor); // ← siempre lee la versión actual
+        }, debounceMs);
+    },
+    [valor, onChange, debounceMs, desactivarAutoBusqueda] // ← onBuscar ya no es dependencia
+);
 
     const handleLimpiar = useCallback(() => {
         handleChange("");

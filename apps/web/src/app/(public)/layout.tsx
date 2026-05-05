@@ -18,7 +18,6 @@ export default async function PublicLayout({
     <>
         <CarritoProvider>
       <Header isLoggedIn={isLoggedIn} tipoUsuario={tipoUsuario} />
-        </CarritoProvider>
       <div className="flex flex-1">
         <Sidebar tipoUsuario={tipoUsuario} />
 
@@ -31,6 +30,7 @@ export default async function PublicLayout({
         
 
       </div>
+        </CarritoProvider>
       <BottomNav tipoUsuario={tipoUsuario} />
     </>
   );

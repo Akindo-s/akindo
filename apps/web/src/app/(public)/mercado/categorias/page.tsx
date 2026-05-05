@@ -25,31 +25,39 @@ function SkeletonCategoria() {
 
 function CategoriasPage() {
     const searchParams = useSearchParams();
+    const qParam = searchParams.get("q") ?? "";
     const router = useRouter();
     const pathname = usePathname();
 
     const [todas, setTodas] = useState<Categoria[]>([]);
     const [cargando, setCargando] = useState(true);
     
-    const [busqueda, setBusqueda] = useState(searchParams.get("q") ?? "");
+    // valorInput: lo que se ve en el input (actualiza con cada tecla)
+    const [valorInput, setValorInput] = useState(qParam);
+    // busqueda: lo que realmente se busca (solo cambia tras debounce)
+    const [busqueda, setBusqueda] = useState(qParam);
     const [tipoFiltro, setTipoFiltro] = useState<TipoFiltro>(
         (searchParams.get("tipo") as TipoFiltro) ?? "todas"
     );
 
-    const handleBusqueda = (q: string) => {
+    // Sincronizar con URL cuando cambia externamente
+    useEffect(() => { setValorInput(qParam); setBusqueda(qParam); }, [qParam]);
+
+    const handleBusqueda = useCallback((q: string) => {
+        setBusqueda(q);
         const params = new URLSearchParams(searchParams.toString());
         if (q) params.set("q", q);
         else params.delete("q");
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    };
+    }, [searchParams, pathname, router]);
 
-    const handleTipo = (t: TipoFiltro) => {
+    const handleTipo = useCallback((t: TipoFiltro) => {
         setTipoFiltro(t);
         const params = new URLSearchParams(searchParams.toString());
         if (t && t !== "todas") params.set("tipo", t);
         else params.delete("tipo");
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    };
+    }, [searchParams, pathname, router]);
 
     useEffect(() => {
         async function cargar() {
@@ -92,11 +100,11 @@ function CategoriasPage() {
                     </button>
                     <Buscador
                         placeholder="Buscar categorías..."
-                        valor={busqueda}
+                        valor={valorInput}
                         onBuscar={handleBusqueda}
                         debounceMs={200}
                         className="flex-1"
-                        onChange={setBusqueda}
+                        onChange={setValorInput}
                     />
                 </div>
                 {/* Chips de tipo */}

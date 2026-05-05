@@ -157,7 +157,7 @@ export default function CarritoView({
 
   const resumen = useMemo(
     () => [
-      { label: `Subtotal (${viewData.totalArticulos} articulos)`, value: `$${formatMoney(viewData.subtotal)} ${MONEDA}` },
+      { label: `Subtotal (${viewData.totalArticulos})`, value: `$${formatMoney(viewData.subtotal)} ${MONEDA}` },
       { label: "Gastos de envio estimados", value: viewData.envio === 0 ? "Gratis" : `$${formatMoney(viewData.envio)} ${MONEDA}` },
       {
         label: "Impuestos",

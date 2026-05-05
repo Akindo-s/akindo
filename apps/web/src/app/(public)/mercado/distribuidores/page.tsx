@@ -7,6 +7,7 @@ import { obtenerCategoriasDistribuidores } from "@/lib/api/categorias";
 import { TarjetaDistribuidor } from "@/components/mercado/TarjetaDistribuidor";
 import { BarraBusquedaFiltros } from "@/components/mercado/BarraBusquedaFiltros";
 import { useScrollInfinito } from "@/components/hooks/useScrollInfinito";
+import { useCategorias } from "@/lib/categorias-context";
 
 function SkeletonDistribuidor() {
     return (
@@ -26,36 +27,40 @@ function SkeletonDistribuidor() {
 
 function DistribuidoresContent() {
     const searchParams = useSearchParams();
+    const qParam = searchParams.get("q") ?? "";
     const categoriaParam = searchParams.get("categoria");
 
-    const [categorias, setCategorias] = useState<{ id: string; nombre: string }[]>([]);
-    const [busqueda, setBusqueda] = useState(searchParams.get("q") ?? "");
+    const categorias = useCategorias();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // valorInput: lo que se ve en el input (actualiza con cada tecla)
+    const [valorInput, setValorInput] = useState(qParam);
+    // busqueda: lo que realmente se busca (solo cambia tras debounce)
+    const [busqueda, setBusqueda] = useState(qParam);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string | null>(
         categoriaParam ?? null
     );
 
-    const router = useRouter();
-    const pathname = usePathname();
+    // Sincronizar con URL cuando cambia externamente
+    useEffect(() => { setValorInput(qParam); setBusqueda(qParam); }, [qParam]);
+    useEffect(() => { setCategoriaSeleccionada(categoriaParam ?? null); }, [categoriaParam]);
 
-    const handleBusqueda = (q: string) => {
+    const handleBusqueda = useCallback((q: string) => {
+        setBusqueda(q);
         const params = new URLSearchParams(searchParams.toString());
         if (q) params.set("q", q);
         else params.delete("q");
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    };
+    }, [searchParams, pathname, router]);
 
-    const handleCategoria = (c: string | null) => {
+    const handleCategoria = useCallback((c: string | null) => {
         setCategoriaSeleccionada(c);
         const params = new URLSearchParams(searchParams.toString());
         if (c) params.set("categoria", c);
         else params.delete("categoria");
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    };
-
-    // Cargar categorías de distribuidores para los filtros
-    useEffect(() => {
-        obtenerCategoriasDistribuidores().then(setCategorias);
-    }, []);
+    }, [searchParams, pathname, router]);
 
     // La resetKey combina búsqueda + categoría para recargar la lista cuando cambian
     const resetKey = `${busqueda}|${categoriaSeleccionada ?? ""}`;
@@ -75,7 +80,7 @@ function DistribuidoresContent() {
         [categoriaSeleccionada]
     );
 
-    const { items, cargando, cargandoMas, centinelaRef } = useScrollInfinito<MiniDistribuidorResponse>({
+    const { items, cargando, cargandoMas, centinelaRef, tieneSiguiente } = useScrollInfinito<MiniDistribuidorResponse>({
         fetchFn,
         resetKey,
     });
@@ -103,13 +108,13 @@ function DistribuidoresContent() {
             {/* Barra sticky */}
             <BarraBusquedaFiltros
                 placeholder="Buscar distribuidores..."
-                valorBusqueda={busqueda}
-                categorias={categorias}
+                valorBusqueda={valorInput}
+                categorias={categorias ?? []}
                 categoriaSeleccionada={categoriaSeleccionada}
                 onBuscar={handleBusqueda}
                 onCategoriaChange={handleCategoria}
                 mostrarVolver={true}
-                onChange={setBusqueda}
+                onChange={setValorInput}
             />
 
             {/* Lista */}
@@ -129,7 +134,7 @@ function DistribuidoresContent() {
                         ? Array.from({ length: 6 }).map((_, i) => <SkeletonDistribuidor key={i} />)
                         : distriburidoresMostrados.map((d,index) => (
                               <TarjetaDistribuidor
-                                  key={`${d.distribuidor_id}-${index}`}
+                                  key={`${d.distribuidor_id}`}
                                   distribuidorId={d.distribuidor_id}
                                   nombreNegocio={d.nombre_negocio}
                                   imagenFondo={d.imagen_fondo}
@@ -151,11 +156,13 @@ function DistribuidoresContent() {
                 )}
 
                 {/* Centinela de scroll infinito */}
-                <div ref={centinelaRef} className="flex justify-center py-6">
-                    {cargandoMas && (
-                        <div className="w-6 h-6 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full animate-spin" />
-                    )}
-                </div>
+                {tieneSiguiente && (
+                    <div ref={centinelaRef} className="flex justify-center py-6">
+                        {cargandoMas && (
+                            <div className="w-6 h-6 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full animate-spin" />
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -20,7 +20,6 @@ export default async function ProtectedLayout({
 
         <CarritoProvider>
       <Header isLoggedIn={isLoggedIn} tipoUsuario={tipoUsuario}/>
-        </CarritoProvider>
       <div className="flex flex-1">
         <Sidebar tipoUsuario={tipoUsuario} />
 
@@ -28,6 +27,7 @@ export default async function ProtectedLayout({
           {children}
         </main>
       </div>
+        </CarritoProvider>
       <BottomNav tipoUsuario={tipoUsuario} />
     
     </>

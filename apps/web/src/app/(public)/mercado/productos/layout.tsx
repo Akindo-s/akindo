@@ -1,3 +1,4 @@
+import { CategoriasProvider } from "@/lib/categorias-context";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ProductosLayout({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+    return <CategoriasProvider>{children}</CategoriasProvider>;
 }
