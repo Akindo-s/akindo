@@ -11,8 +11,8 @@ interface BannerData {
 async function fetchBanner(): Promise<BannerData | null> {
   // Simula un banner activo
   return {
-    title: "Actualización de precios por volumen",
-    description: "Consulte nuestras tarifas actualizadas para pedidos de gran volumen",
+    title: "TIENDA EN BETA",
+    description: "actualmente la tienda esta en desarrllo, ESTOS SON PRODUCTOS DE PRUEBA SOLAMENTE",
   };
 }
 

@@ -11,7 +11,8 @@ from app.infrastructure.storage import StorageAdapter, get_storage
 from app.schemas.categoria import (
     CategoriaBatchCreate,
     CategoriaResponse,
-    CategoriaBatchResponse
+    CategoriaBatchResponse,
+    CategoriaDestacadaResponse
 )
 from app.services.categoria import CategoriaProductoService, CategoriaDistribuidorService
 
@@ -30,6 +31,17 @@ async def get_categorias_productos(
     service = CategoriaProductoService(db, storage)
     categorias = await service.get_all()
     return [c.to_dict() for c in categorias]
+
+@router.get("/productos/destacadas", response_model=list[CategoriaDestacadaResponse])
+async def get_categorias_productos_destacadas(
+    cliente_id: uuid.UUID | None = None,
+    limite: int = 10,
+    db: DatabaseSession = Depends(get_db),
+    storage: StorageAdapter = Depends(get_storage)
+):
+    """Obtiene las categorías de productos más compradas en el mes actual."""
+    service = CategoriaProductoService(db, storage)
+    return await service.get_featured(cliente_id=cliente_id, limite=limite)
 
 @router.get("/distribuidores", response_model=list[CategoriaResponse])
 async def get_categorias_distribuidores(

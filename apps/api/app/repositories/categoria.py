@@ -34,6 +34,14 @@ class CategoriaProductoRepo:
     async def delete(self, id: uuid.UUID) -> None:
         await self.db.delete(self.table, {"id": str(id)})
 
+    async def get_featured(self, cliente_id: uuid.UUID | None = None, limite: int = 10) -> list[dict]:
+        params = {
+            "p_cliente_id": str(cliente_id) if cliente_id else None,
+            "p_limite": limite
+        }
+        return await self.db.rpc("get_categorias_destacadas", params)
+
+
     def _to_aggregate(self, row: dict) -> CategoriaProducto:
         id_obj = uuid.UUID(row["id"]) if isinstance(row["id"], str) else row["id"]
         return CategoriaProducto(

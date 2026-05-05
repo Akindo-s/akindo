@@ -3,6 +3,11 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import PerfilCliente from "@/components/perfil/PerfilCliente";
 import { obtenerInformacionPerfil, obtenerPerfilDistribuidor } from "@/lib/api/usuario";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Mi Perfil",
+};
 
 // Skeleton mientras se cargan los datos
 function PerfilSkeleton() {

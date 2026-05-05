@@ -92,6 +92,12 @@ export function Buscador({
                 value={valorActivo}
                 onChange={(e) => handleChange(e.target.value)}
                 placeholder={placeholder}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                        onBuscar?.(valorActivo);
+                    }
+                }}
                 className="flex-1 bg-transparent text-sm text-stone-800 placeholder-stone-400 outline-none"
             />
             {valorActivo && (

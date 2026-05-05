@@ -32,3 +32,9 @@ class CategoriaBatchError(BaseModel):
 class CategoriaBatchResponse(BaseModel):
     categorias: list[CategoriaResponse]
     categorias_fallidas: list[CategoriaBatchError]
+
+class CategoriaDestacadaResponse(BaseModel):
+    categoria_id: uuid.UUID
+    nombre: str
+    imagen: str | None
+    total_compras: int

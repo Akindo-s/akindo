@@ -132,7 +132,11 @@ class ClienteService:
     async def crear_direccion(self, cliente_id: UUID, direccion) -> DireccionResponse:
         from app.models.direccion import DireccionCliente
         
-        # 1. Crear el Aggregate (se ejecuta check() en el constructor)
+        # 1. Si es predeterminada, quitar a las demás
+        if direccion.es_predeterminada:
+            await self.db.update("direccion_cliente", {"es_predeterminada": False}, {"cliente_id": str(cliente_id)})
+
+        # 2. Crear el Aggregate (se ejecuta check() en el constructor)
         nueva_direccion = DireccionCliente.crear(
             calle=direccion.calle,
             estado=direccion.estado,
@@ -141,7 +145,7 @@ class ClienteService:
             es_predeterminada=direccion.es_predeterminada
         )
         
-        # 2. Persistir
+        # 3. Persistir
         guardada = await self.cliente_repo.crear_direccion(cliente_id, nueva_direccion)
         
         return DireccionResponse(
@@ -152,6 +156,41 @@ class ClienteService:
             codigo_postal=guardada.codigo_postal,
             es_predeterminada=guardada.es_predeterminada
         )
+
+    async def actualizar_direccion(self, cliente_id: UUID, direccion_id: UUID, data) -> DireccionResponse:
+        # Obtener direcciones actuales
+        direcciones = await self.cliente_repo.get_direcciones(cliente_id)
+        direccion_agg = next((d for d in direcciones if d.id == direccion_id), None)
+        
+        if not direccion_agg:
+            raise NotFoundException("Dirección no encontrada")
+            
+        # Actualizar campos
+        campos = data.model_dump(exclude_unset=True)
+        
+        # Si se está marcando como predeterminada, quitar predeterminada a las demás
+        if campos.get("es_predeterminada"):
+            await self.db.update("direccion_cliente", {"es_predeterminada": False}, {"cliente_id": str(cliente_id)})
+
+        for key, value in campos.items():
+            setattr(direccion_agg, key, value)
+            
+        direccion_agg.check()
+        
+        # Persistir
+        await self.db.update("direccion_cliente", direccion_agg.to_dict(), {"id": str(direccion_id)})
+        
+        return DireccionResponse(
+            id=direccion_agg.id,
+            calle=direccion_agg.calle,
+            ciudad=direccion_agg.ciudad,
+            estado=direccion_agg.estado,
+            codigo_postal=direccion_agg.codigo_postal,
+            es_predeterminada=direccion_agg.es_predeterminada
+        )
+
+    async def eliminar_direccion(self, cliente_id: UUID, direccion_id: UUID) -> None:
+        await self.db.delete("direccion_cliente", {"id": str(direccion_id), "cliente_id": str(cliente_id)})
 
     # ── Pedidos ────────────────────────────────────────────────────
 

@@ -20,9 +20,15 @@ export function HeroCard({ imageSrc }: HeroCardProps) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
       {/* Badge */}
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-4 left-4 z-10 flex flex-row gap-6 opacity-80">
         <span className="text-[10px] font-bold uppercase tracking-widest bg-[var(--color-primary-500)] text-white px-3 py-1 rounded-md select-none">
           Calidad Premium
+        </span>
+        <span className="text-[10px] font-bold uppercase tracking-widest bg-[var(--color-primary-500)] text-white px-3 py-1 rounded-md select-none">
+          Variedad de productos
+        </span>
+        <span className="text-[10px] font-bold uppercase tracking-widest bg-[var(--color-primary-500)] text-white px-3 py-1 rounded-md select-none">
+          Productos cachanillas
         </span>
       </div>
 
@@ -34,12 +40,21 @@ export function HeroCard({ imageSrc }: HeroCardProps) {
         <p className="text-xs text-stone-300 leading-relaxed max-w-[300px]">
           Conéctate con distribuidores de primer nivel y gestiona pedidos al por mayor sin complicaciones.
         </p>
-        <Link
-          href="/catalogo"
-          className="self-start bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white text-xs font-medium px-5 py-2.5 rounded-xl transition shadow-md hover:shadow-lg select-none"
-        >
-          Explora el Mercado
-        </Link>
+        <div className="flex flex-row gap-6">
+
+          <Link
+            href="/catalogo"
+            className="self-start bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white text-xs font-medium px-5 py-2.5 rounded-xl transition shadow-md hover:shadow-lg select-none"
+          >
+            Explora el Mercado
+          </Link>
+          <Link
+            href="/sobrenosotros"
+            className="self-start bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white text-xs font-medium px-5 py-2.5 rounded-xl transition shadow-md hover:shadow-lg select-none"
+          >
+            Conocenos
+          </Link>
+        </div>
       </div>
     </div>
   );

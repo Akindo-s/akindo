@@ -98,3 +98,56 @@ export async function esDistribuidorDueno(distribuidorId: string): Promise<boole
     
     return false;
 }
+
+// === DIRECCIONES ===
+
+export async function obtenerMisDirecciones(): Promise<any[]> {
+    const token = await getToken();
+    const respuesta = await fetchWithAuth('/clientes/me/direcciones', { method: "GET" }, token);
+
+    if (respuesta.status === 200) {
+        return await respuesta.json();
+    }
+    return [];
+}
+
+export async function crearDireccion(datos: {
+    calle: string;
+    ciudad: string;
+    estado: string;
+    codigo_postal: string;
+    es_predeterminada?: boolean;
+}): Promise<boolean> {
+    const token = await getToken();
+    const respuesta = await fetchWithAuth('/clientes/me/direcciones', {
+        method: "POST",
+        body: JSON.stringify(datos)
+    }, token);
+
+    return respuesta.status === 200 || respuesta.status === 201;
+}
+
+export async function actualizarDireccion(direccionId: string, datos: {
+    calle?: string;
+    ciudad?: string;
+    estado?: string;
+    codigo_postal?: string;
+    es_predeterminada?: boolean;
+}): Promise<boolean> {
+    const token = await getToken();
+    const respuesta = await fetchWithAuth(`/clientes/me/direcciones/${direccionId}`, {
+        method: "PATCH",
+        body: JSON.stringify(datos)
+    }, token);
+
+    return respuesta.status === 200;
+}
+
+export async function eliminarDireccion(direccionId: string): Promise<boolean> {
+    const token = await getToken();
+    const respuesta = await fetchWithAuth(`/clientes/me/direcciones/${direccionId}`, {
+        method: "DELETE"
+    }, token);
+
+    return respuesta.status === 204;
+}

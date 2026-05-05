@@ -69,6 +69,9 @@ class CategoriaProductoService:
         # Opcionalmente se puede borrar la imagen de storage
         await self.repo.delete(categoria.id)
 
+    async def get_featured(self, cliente_id: uuid.UUID | None = None, limite: int = 10) -> list[dict]:
+        return await self.repo.get_featured(cliente_id, limite)
+
     async def _subir_imagen(self, categoria: CategoriaProducto, file_data: bytes, content_type: str) -> CategoriaProducto:
         if content_type not in self.ALLOWED_IMAGE_TYPES:
             raise ValidationException(f"Tipo de archivo no permitido: {content_type}. Permitidos: {', '.join(self.ALLOWED_IMAGE_TYPES)}")

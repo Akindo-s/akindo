@@ -14,7 +14,27 @@ export interface CategoriaResponse {
     imagen: string | null;
 }
 
+export interface CategoriaDestacada {
+    categoria_id: string;
+    nombre: string;
+    imagen: string | null;
+    total_compras: number;
+}
+
 // === OBTENER CATEGORÍAS ===
+
+export async function obtenerCategoriasDestacadas(clienteId?: string, limite: number = 10): Promise<CategoriaDestacada[]> {
+    const token = await getToken();
+    let url = `/categorias/productos/destacadas?limite=${limite}`;
+    if (clienteId) url += `&cliente_id=${clienteId}`;
+    
+    const respuesta = await fetchWithAuth(url, { method: "GET" }, token);
+    
+    if (respuesta.status === 200) {
+        return await respuesta.json();
+    }
+    return [];
+}
 
 export async function obtenerCategoriasProductos(): Promise<CategoriaResponse[]> {
     const token = await getToken();

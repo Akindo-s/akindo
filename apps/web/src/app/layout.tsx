@@ -8,6 +8,14 @@ const plus_jakarta_sans = Plus_Jakarta_Sans(
   }
 )
 
+export const metadata: Metadata = {
+  title: {
+    default: "Akindo",
+    template: "%s | Akindo",
+  },
+  description: "Akindo Marketplace",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

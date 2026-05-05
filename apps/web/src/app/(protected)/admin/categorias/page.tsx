@@ -26,17 +26,18 @@ function FallBackCategoria() {
 interface CategoriaCardProps {
     cat: CategoriaResponse;
     eliminando: boolean;
+    tipo: "productos" | "distribuidores";
     setCategoriaAEliminar: React.Dispatch<React.SetStateAction<{ id: string; tipo: "productos" | "distribuidores"; nombre: string } | null>>;
 }
 
-function CategoriaCard({ cat, eliminando, setCategoriaAEliminar }: CategoriaCardProps) {
+function CategoriaCard({ cat, eliminando, setCategoriaAEliminar,tipo }: CategoriaCardProps) {
     const [imgCargada, setImgCargada] = useState(false);
 
     return (
         <div key={cat.id} className="relative group border border-stone-100 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:border-[var(--color-primary-200)] transition-colors">
             <button
-                onClick={() => setCategoriaAEliminar({ id: cat.id, tipo: "productos", nombre: cat.nombre })}
-                className="absolute top-2 right-2 p-1.5 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                onClick={() => setCategoriaAEliminar({ id: cat.id, tipo: tipo, nombre: cat.nombre })}
+                className="absolute top-2 right-2 p-1.5 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                 title="Eliminar categoría"
                 disabled={eliminando}
             >
@@ -230,6 +231,7 @@ export default function CategoriasAdminPage() {
                                             cat={cat}
                                             eliminando={eliminando}
                                             setCategoriaAEliminar={setCategoriaAEliminar}
+                                            tipo="productos"
                                         />
                                     </Suspense>
                                 ))}
@@ -251,6 +253,7 @@ export default function CategoriasAdminPage() {
                                             cat={cat}
                                             eliminando={eliminando}
                                             setCategoriaAEliminar={setCategoriaAEliminar}
+                                            tipo="distribuidores"
                                         />
                                     </Suspense>
                                 ))}

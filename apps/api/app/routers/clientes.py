@@ -127,6 +127,33 @@ async def subir_direccion(
     service = ClienteService(db)
     return await service.crear_direccion(cliente.id,direccion)
 
+@router.patch(
+    "/me/direcciones/{direccion_id}",
+    response_model=DireccionResponse,
+    summary="Actualizar una dirección"
+)
+async def actualizar_direccion(
+    direccion_id: UUID,
+    data: DireccionClienteRequest,
+    cliente: Cliente = Depends(get_current_cliente),
+    db: DatabaseSession = Depends(get_db)
+):
+    service = ClienteService(db)
+    return await service.actualizar_direccion(cliente.id, direccion_id, data)
+
+@router.delete(
+    "/me/direcciones/{direccion_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Eliminar una dirección"
+)
+async def eliminar_direccion(
+    direccion_id: UUID,
+    cliente: Cliente = Depends(get_current_cliente),
+    db: DatabaseSession = Depends(get_db)
+):
+    service = ClienteService(db)
+    await service.eliminar_direccion(cliente.id, direccion_id)
+
 
 
 @router.get(

@@ -2,6 +2,7 @@
 
 import { useState, InputHTMLAttributes } from "react";
 import { Check, X, Edit2 } from "lucide-react";
+import { Parrafo, SubTitulo } from "../titles";
 
 interface CampoEditableProps {
   /** Etiqueta visible sobre el valor (ej. "CORREO ELECTRÓNICO"). Se muestra en mayúsculas. */
@@ -85,9 +86,9 @@ export function CampoEditable({
       } ${className}`}
     >
       <div className="flex-1 mr-4">
-        <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">
+        <SubTitulo className="text-md font-bold text-stone-500 uppercase tracking-wider mb-1">
           {label}
-        </p>
+        </SubTitulo>
         {isEditing ? (
           <input
             type={type}
@@ -97,7 +98,7 @@ export function CampoEditable({
             autoFocus
           />
         ) : (
-          <p className="text-sm text-stone-900">{value || placeholder}</p>
+          <Parrafo className="text-sm text-stone-900">{value || placeholder}</Parrafo>
         )}
       </div>
 

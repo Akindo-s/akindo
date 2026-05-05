@@ -6,7 +6,7 @@ import { TarjetaProductoCatalogo } from "@/components/mercado/TarjetaProductoCat
 import { StorefrontIcon } from "@/components/icons/NavigationIcons";
 
 export const metadata = {
-    title: "Mercado | Akindo",
+    title: "Mercado",
     description: "Explora categorías, distribuidores y productos en el mercado de Akindo.",
 };
 

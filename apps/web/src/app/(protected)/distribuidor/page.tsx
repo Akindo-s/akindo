@@ -3,6 +3,11 @@ import { redirect } from "next/navigation";
 import { obtenerPerfilDistribuidor } from "@/lib/api/usuario";
 import { Suspense } from "react";
 import PerfilDistribuidor from "@/components/perfil/PerfilDistribuidor";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Panel de Distribuidor",
+};
 
 async function DashboardContent() {
     const distribuidor = await obtenerPerfilDistribuidor();
