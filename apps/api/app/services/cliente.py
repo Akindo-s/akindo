@@ -2,6 +2,8 @@
 ClienteService — Perfil · direcciones · pedidos · carrito · imagen.
 """
 
+from app.schemas.carrito import CarritoResponse
+from app.schemas.carrito import CarritoItemResponse
 from uuid import UUID
 
 from app.core.exceptions import NotFoundException, ValidationException
@@ -16,8 +18,6 @@ from app.infrastructure.storage import StorageAdapter
 from app.repositories.cliente import ClienteRepo
 from app.repositories.usuario import UsuarioRepo
 from app.schemas.cliente import (
-    CarritoItemResponse,
-    CarritoResponse,
     ClientePerfilResponse,
     ClientePerfilUpdateRequest,
     DireccionResponse,
@@ -25,6 +25,7 @@ from app.schemas.cliente import (
     PedidoResumenResponse,
 )
 from app.services.usuario import UsuarioService
+
 
 
 class ClienteService:

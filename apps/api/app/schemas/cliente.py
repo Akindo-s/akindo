@@ -74,19 +74,3 @@ class PedidoResumenResponse(BaseModel):
     fecha_creacion: datetime | None
 
 
-# ── Carrito ────────────────────────────────────────────────────────
-
-
-class CarritoItemResponse(BaseModel):
-    """Un item dentro de un carrito."""
-    id: UUID
-    producto_id: UUID
-    cantidad: int
-
-
-class CarritoResponse(BaseModel):
-    """Carrito de un cliente con un distribuidor."""
-    id: UUID
-    distribuidor_id: UUID
-    fecha_actualizacion: datetime | None
-    items: list[CarritoItemResponse] = []

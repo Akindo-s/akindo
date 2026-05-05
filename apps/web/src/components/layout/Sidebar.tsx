@@ -3,13 +3,14 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon } from "../icons/NavigationIcons";
+import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon, ShoppingCartIcon } from "../icons/NavigationIcons";
 
 const links = [
-    { label: "Inicio", href: "/", Icon: HomeIcon },
-    { label: "Mercado", href: "/mercado", Icon: StorefrontIcon },
-    { label: "Pedidos", href: "/pedidos", Icon: AllInboxIcon },
-    { label: "Mi Perfil", href: "/perfil", Icon: AccountCircleIcon },
+    { label: "Inicio", href: "/", Icon: HomeIcon, condition: ({ }) => true },
+    { label: "Mercado", href: "/mercado", Icon: StorefrontIcon, condition: ({ }) => true },
+    { label: "Pedidos", href: "/pedidos", Icon: AllInboxIcon, condition: ({ }) => true },
+    { label: "Mi Perfil", href: "/perfil", Icon: AccountCircleIcon, condition: ({ }) => true },
+    { label: 'Mi carrito', href: '/carrito', Icon: ShoppingCartIcon, condition: ({ tipoUsuario }: { tipoUsuario: string }) => tipoUsuario == 'cliente' }
 ];
 
 interface SidebarProps {
@@ -28,7 +29,7 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
         <aside className="hidden md:flex flex-col w-56 lg:w-64 shrink-0 border-r border-stone-100 bg-white h-[calc(100vh-49px)] sticky top-[49px]">
             {/* Navegación principal */}
             <nav className="flex flex-col gap-1 p-3 flex-1">
-                {links.map(({ label, href, Icon }) => {
+                {links.map(({ label, href, Icon, condition }) => {
                     if (label === "Mi Perfil" && tipoUsuario === "admin") {
                         // Insertar Administración antes de Mi Perfil para administradores
                         const adminActive = isActive("/admin/categorias");
@@ -65,6 +66,9 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                         );
                     }
 
+                    if (!condition?.({ tipoUsuario: tipoUsuario ?? "" })) {
+                        return null;
+                    }
                     const active = isActive(href);
                     return (
                         <Link
