@@ -95,7 +95,7 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
     useEffect(() => {
         if (esEdicion && productoInicial) {
             setNombre(productoInicial.nombre);
-            setMedidaId(productoInicial.medida);
+            setMedidaId(productoInicial.medida.id);
             setExistencias(productoInicial.existencias);
             if (productoInicial.categorias){
                 setCategorias(productoInicial.categorias.map(cat=>cat.id))
