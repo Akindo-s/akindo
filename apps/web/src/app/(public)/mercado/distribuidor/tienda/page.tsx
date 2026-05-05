@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { MapPin, Star, Store, Package, ArrowLeft, Plus, Hourglass, Plane, BadgeCheck, ShoppingCart, ChevronRight, Camera, Settings, PlusCircle } from "lucide-react";
+import { MapPin, Star, Store, Package, ArrowLeft, Plus, Hourglass, Plane, BadgeCheck, ShoppingCart, ChevronRight, Camera, Settings, PlusCircle, Loader2, ArrowUpRight } from "lucide-react";
 import { esDistribuidorDueno, actualizarImagenPerfil, actualizarPerfilDistribuidor } from "@/lib/api/usuario";
 import {
     obtenerDistribuidor,
@@ -17,6 +17,8 @@ import { Parrafo, SubTitulo, Titulo } from "@/components/titles";
 import { Boton } from "@/components/ui/Boton";
 import { MONEDA } from "@/lib/api/constants";
 import { AllInboxIcon } from "@/components/icons/NavigationIcons";
+import { agregarProductoCliente } from "@/lib/client/carrito";
+import { VentanaEmergente } from "@/components/VentanaEmergente";
 
 
 // ── Skeleton ─────────────────────────────────────────────────────────────────
@@ -37,6 +39,9 @@ function SkeletonProductoList() {
 // ── Catálogo con scroll infinito (Vista de Lista) ────────────────────────────
 
 function CatalogoDistribuidor({ distribuidorId }: { distribuidorId: string }) {
+    const [agregandoProducto, setAgregandoProducto] = useState<string | null>(null);
+    const [agregados, setAgregados] = useState<Record<string, boolean>>({});
+    const [toast, setToast] = useState<string | null>(null);
     const fetchFn = useCallback(
         async (pagina: number) => {
             const data = await obtenerCatalogoDistribuidorPublico(distribuidorId, pagina, 12);
@@ -102,8 +107,33 @@ function CatalogoDistribuidor({ distribuidorId }: { distribuidorId: string }) {
                                         <span className="text-[10px] text-stone-500 font-normal">/{p.unidad}</span>
                                     </span>
                                     {p.disponible && (
-                                        <button className="bg-[#EAE1D1] p-1.5 rounded-full text-stone-700 hover:bg-[#DED2BF] transition-colors cursor-pointer" onClick={(e) => e.preventDefault()}>
-                                            <ShoppingCart size={14} />
+                                        <button
+                                            className="bg-[#EAE1D1] p-1.5 rounded-full text-stone-700 hover:bg-[#DED2BF] transition-colors cursor-pointer disabled:opacity-60"
+                                            onClick={async (e) => {
+                                                e.preventDefault();
+                                                if (agregandoProducto) return;
+                                                setAgregandoProducto(p.producto_id);
+                                                const result = await agregarProductoCliente({
+                                                    distribuidorId,
+                                                    productoId: p.producto_id,
+                                                    cantidad: 1,
+                                                });
+                                                setToast(result.ok ? (result.message ?? "Producto agregado") : (result.error ?? "No se pudo agregar"));
+                                                if (result.ok) {
+                                                    setAgregados((prev) => ({ ...prev, [p.producto_id]: true }));
+                                                }
+                                                setAgregandoProducto(null);
+                                            }}
+                                            disabled={agregandoProducto === p.producto_id}
+                                            aria-label={`Agregar ${p.nombre} al carrito`}
+                                        >
+                                            {agregandoProducto === p.producto_id ? (
+                                                <Loader2 size={14} className="animate-spin" />
+                                            ) : agregados[p.producto_id] ? (
+                                                <ArrowUpRight size={14} className="text-green-700" />
+                                            ) : (
+                                                <ShoppingCart size={14} />
+                                            )}
                                         </button>
                                     )}
                                 </div>
@@ -118,6 +148,7 @@ function CatalogoDistribuidor({ distribuidorId }: { distribuidorId: string }) {
                     <div className="w-6 h-6 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full animate-spin" />
                 )}
             </div>
+            {toast ? <VentanaEmergente mensaje={toast} onClose={() => setToast(null)} /> : null}
         </>
     );
 }
@@ -156,7 +187,6 @@ function TiendaContent() {
     }, [distribuidorId]);
 
     const handleSubirFondo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log("uwu")
         if (e.target.files && e.target.files[0] && distribuidorId) {
             const file = e.target.files[0];
             const ok = await actualizarImagenNegocio(distribuidorId, file);

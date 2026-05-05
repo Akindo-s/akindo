@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Package, Store, MapPin, ShoppingCart, Info, CheckCircle2, ShieldCheck, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Loader2, Package, Store, MapPin, ShoppingCart, Info, CheckCircle2, ShieldCheck, AlertCircle } from "lucide-react";
 import { obtenerProductoPublico, type ProductoResponse, type UnidadMedida } from "@/lib/api/productos";
 import { obtenerDistribuidor, type DistribuidorPublicoResponse } from "@/lib/api/distribuidor";
 import { StorefrontIcon } from "../icons/NavigationIcons";
 import { SubTitulo } from "../titles";
 import { CostosVolumen, type NivelPrecio } from "./CostosVolumen";
 import { MONEDA } from "@/lib/api/constants";
+import { agregarProductoCliente } from "@/lib/client/carrito";
+import { verificarProductoEnCarrito } from "@/lib/api/carrito";
+import { VentanaEmergente } from "../VentanaEmergente";
+import { Boton } from "../ui/Boton";
 
 
 export function ProductoDetalle({ productoId }: { productoId: string }) {
@@ -18,7 +22,11 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [unidadMedidaStr, setUnidadMedidaStr] = useState<string>("unidad");
-    const [selectedTier, setSelectedTier] = useState<number>(0);
+    const [cantidad, setCantidadSeleccionada] = useState<number>(0);
+    const [agregando, setAgregando] = useState(false);
+    const [agregado, setAgregado] = useState(false);
+    const [toastError, setToastError] = useState<string | null>(null);
+    const [toastOk, setToastOk] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchDatos = async () => {
@@ -31,8 +39,6 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
                     return;
                 }
                 setProducto(prod);
-
-                console.log(prod)
                 setUnidadMedidaStr(prod.medida.unidad);
 
                 // Obtener distribuidor
@@ -55,9 +61,20 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
         }
     }, [productoId]);
 
+    // Verificar si ya está en el carrito (una sola vez al renderizar)
     useEffect(() => {
-        console.log(producto)
-    }, [producto])
+        const checkCarrito = async () => {
+            const yaEsta = await verificarProductoEnCarrito(productoId);
+            if (yaEsta) setAgregado(true);
+        };
+        checkCarrito();
+    }, [productoId]);
+
+    useEffect(() => {
+        if (!toastOk) return;
+        const timer = setTimeout(() => setToastOk(null), 2400);
+        return () => clearTimeout(timer);
+    }, [toastOk]);
 
     if (cargando) {
         return (
@@ -92,6 +109,26 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
 
     const isAgotado = producto.existencias <= 0;
     const isNoDisponible = !producto.disponible;
+
+    const handleAgregar = async () => {
+        if (agregado) {
+            router.push('/carrito/')
+            return;
+        }
+        setAgregando(true);
+        const result = await agregarProductoCliente({
+            distribuidorId: producto.distribuidor_id,
+            productoId,
+            cantidad: cantidad,
+        });
+        if (result.ok) {
+            setAgregado(true);
+            setToastOk(result.message ?? "Producto agregado al carrito");
+        } else {
+            setToastError(result.error ?? "No se pudo agregar el producto");
+        }
+        setAgregando(false);
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-[#FAF5EE] pb-24">
@@ -213,25 +250,53 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
 
             {/* Atributos Extra */}
             {!!(producto.atributos_extra && producto.atributos_extra.niveles_precio) && (
-                <CostosVolumen 
+                <CostosVolumen
                     costoBase={producto.costo}
                     unidadMedida={unidadMedidaStr}
                     nivelesPrecio={producto.atributos_extra.niveles_precio as NivelPrecio[]}
+                    seleccionCantidad={(cantidad) => {
+                        if (!cantidad) return
+                        setCantidadSeleccionada(cantidad)
+                    }}
                 />
             )}
 
             {/* Fixed Bottom Action Bar */}
             <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-stone-200 p-4 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] z-40">
                 <div className="max-w-6xl mx-auto flex gap-3">
-                    <button
-                        className="flex-1 bg-[#2C3E50] hover:bg-[#1A252F] text-white py-3.5 rounded-xl font-bold shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        disabled={isNoDisponible || isAgotado}
-                    >
-                        <ShoppingCart size={20} />
-                        {isNoDisponible ? "No Disponible" : isAgotado ? "Agotado" : "Agregar al Carrito"}
-                    </button>
+                    
+
+                        <Boton
+                            className="flex-1 bg-[#2C3E50] hover:bg-[#1A252F] text-white py-3.5 rounded-xl font-bold shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            disabled={isNoDisponible || isAgotado || agregando}
+                            onClick={handleAgregar}
+                        >
+                            {agregando ? (
+                                <Loader2 size={20} className="animate-spin" />
+                            ) : agregado ? (
+                                <ArrowUpRight size={20} className="" />
+                            ) : (
+                                <ShoppingCart size={20} />
+                            )}
+                            {isNoDisponible
+                                ? "No Disponible"
+                                : isAgotado
+                                    ? "Agotado"
+                                    : agregando
+                                        ? "Agregando..."
+                                        : agregado
+                                            ? "En carrito"
+                                            : "Agregar al Carrito"}
+                        </Boton>
+                    
                 </div>
             </div>
+            {toastOk ? (
+                <div className="fixed top-4 left-4 right-4 z-50 rounded-xl border border-amber-700/20 bg-amber-500 px-4 py-3 text-sm font-semibold text-stone-900">
+                    {toastOk}
+                </div>
+            ) : null}
+            {toastError ? <VentanaEmergente mensaje={toastError} onClose={() => setToastError(null)} /> : null}
         </div>
     );
 }

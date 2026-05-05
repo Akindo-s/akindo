@@ -6,7 +6,7 @@ interface HeroCardProps {
 
 export function HeroCard({ imageSrc }: HeroCardProps) {
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden min-h-[280px] md:min-h-[360px] flex flex-col justify-end bg-[var(--color-neutral-700)]">
+    <div className="relative w-full rounded-2xl overflow-hidden min-h-[280px] md:min-h-[360px] h-fit flex flex-col justify-end bg-[var(--color-neutral-700)]">
       {/* Imagen de fondo */}
       {imageSrc && (
         <img
@@ -20,14 +20,14 @@ export function HeroCard({ imageSrc }: HeroCardProps) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
       {/* Badge */}
-      <div className="absolute top-4 left-4 z-10 flex flex-row gap-6 opacity-80">
-        <span className="text-[10px] font-bold uppercase tracking-widest bg-[var(--color-primary-500)] text-white px-3 py-1 rounded-md select-none">
+      <div className="relative p-4 z-10 flex flex-row gap-6 opacity-80 flex-wrap">
+        <span className="text-[10px] font-bold uppercase tracking-widest bg-[var(--color-primary-500)] text-white px-3 py-1 rounded-md select-none text-nowrap">
           Calidad Premium
         </span>
-        <span className="text-[10px] font-bold uppercase tracking-widest bg-[var(--color-primary-500)] text-white px-3 py-1 rounded-md select-none">
+        <span className="text-[10px] font-bold uppercase tracking-widest bg-[var(--color-primary-500)] text-white px-3 py-1 rounded-md select-none text-nowrap">
           Variedad de productos
         </span>
-        <span className="text-[10px] font-bold uppercase tracking-widest bg-[var(--color-primary-500)] text-white px-3 py-1 rounded-md select-none">
+        <span className="text-[10px] font-bold uppercase tracking-widest bg-[var(--color-primary-500)] text-white px-3 py-1 rounded-md select-none text-nowrap">
           Productos cachanillas
         </span>
       </div>

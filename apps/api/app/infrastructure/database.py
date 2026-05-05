@@ -56,7 +56,14 @@ class DatabaseSession(ABC):
 
 
     @abstractmethod
-    async def upsert(self, table: str, data: dict) -> dict:
+    async def upsert(
+        self,
+        table: str,
+        data: dict,
+        on_conflict: str | None = None,
+        ignore_duplicates: bool = False,
+        default_to_null: bool = False,
+    ) -> dict:
         """Inserta o actualiza el registro en la tabla"""
         ...
 
@@ -121,8 +128,20 @@ class SupabaseDb(DatabaseSession):
         response = await self._client.rpc(function_name, params or {}).execute()
         return response.data
     
-    async def upsert(self,table:str,data:dict) -> dict:
-        query = self._client.table(table).upsert(data)
+    async def upsert(
+        self,
+        table: str,
+        data: dict,
+        on_conflict: str | None = None,
+        ignore_duplicates: bool = False,
+        default_to_null: bool = False,
+    ) -> dict:
+        query = self._client.table(table).upsert(
+            data,
+            on_conflict=on_conflict,
+            ignore_duplicates=ignore_duplicates,
+            default_to_null=default_to_null,
+        )
         response = await query.execute()
         return response.data[0] if response.data else {}
 

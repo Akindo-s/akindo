@@ -135,6 +135,21 @@ class CarritoRepo(BaseRepository[Carrito]):
                 "producto_id": str(item.producto_id),
                 "cantidad": item.cantidad
             }
-            await self.db.upsert("carrito_item", item_dict)
+            await self.db.upsert(
+                "carrito_item",
+                item_dict,
+                on_conflict="carrito_id,producto_id"
+            )
 
         return aggregate
+
+    async def get_item_by_cliente_and_producto(self, cliente_id: uuid.UUID, producto_id: uuid.UUID) -> dict | None:
+        """Busca un ítem específico en cualquier carrito del cliente."""
+        # Se requiere un join entre carrito y carrito_item
+        # Usamos la sintaxis de PostgREST para joins con Supabase
+        results = await self.db.select(
+            "carrito_item",
+            "*, carrito!inner(cliente_id)",
+            {"producto_id": str(producto_id), "carrito.cliente_id": str(cliente_id)}
+        )
+        return results[0] if results else None

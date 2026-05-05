@@ -279,17 +279,19 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
 
     // ── Render ────────────────────────────────────────────────────────────────
     return (
-        <div className="flex flex-col w-full max-w-2xl mx-auto pb-24 bg-[#FAF7F2] min-h-screen">
+        <div className="flex flex-col w-full max-w-2xl mx-auto pb-24 bg-[#FAF7F2] min-h-screen xl:bg-transparent">
             {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />}
 
             <EncabezadoPagina
                 titulo={esEdicion ? "Editar producto" : "Registrar producto"}
                 href="/distribuidor"
-                className="mb-2"
-            />
+                className="mb-2 "
+            >
 
+
+            </EncabezadoPagina>
             {/* Subtítulo */}
-            <div className="px-4 mb-6">
+            <div className="px-4 mb-6 text-center">
                 <p className="text-sm text-stone-500">
                     {esEdicion ? "Modifica la información de tu producto." : "Agrega un nuevo producto a tu catálogo al mayoreo."}
                 </p>

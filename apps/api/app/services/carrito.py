@@ -123,3 +123,7 @@ class CarritoService:
         ))
 
         return carrito
+
+    async def get_item_del_carrito(self, cliente_id: uuid.UUID, producto_id: uuid.UUID) -> dict | None:
+        """Obtiene los detalles de un producto si está en el carrito del cliente."""
+        return await self.repo.get_item_by_cliente_and_producto(cliente_id, producto_id)

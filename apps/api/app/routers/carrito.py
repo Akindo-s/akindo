@@ -87,3 +87,19 @@ async def eliminar_carrito_item(
         distribuidor_id=distribuidor_id,
         producto_id=producto_id
     )
+
+@router.get(
+    "/items/{producto_id}",
+    summary="Obtener un item específico del carrito"
+)
+async def get_item_carrito(
+    producto_id: UUID,
+    cliente: Cliente = Depends(get_current_cliente),
+    db: DatabaseSession = Depends(get_db)
+):
+    """Verifica si un producto está en el carrito y retorna sus datos si existe."""
+    service = CarritoService(db)
+    item = await service.get_item_del_carrito(cliente.id, producto_id)
+    if not item:
+        return {"en_carrito": False}
+    return {"en_carrito": True, "item": item}

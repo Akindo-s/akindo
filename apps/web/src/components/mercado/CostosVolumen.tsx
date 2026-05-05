@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MONEDA } from "@/lib/api/constants";
 
 
@@ -13,9 +13,10 @@ interface CostosVolumenProps {
     costoBase: number;
     unidadMedida: string;
     nivelesPrecio?: NivelPrecio[];
+    seleccionCantidad:(cantidad:number)=>{};
 }
 
-export function CostosVolumen({ costoBase, unidadMedida, nivelesPrecio }: CostosVolumenProps) {
+export function CostosVolumen({ costoBase, unidadMedida, nivelesPrecio,seleccionCantidad}: CostosVolumenProps) {
     const [selectedTier, setSelectedTier] = useState<number>(0);
 
     const niveles = Array.isArray(nivelesPrecio) 
@@ -25,33 +26,74 @@ export function CostosVolumen({ costoBase, unidadMedida, nivelesPrecio }: Costos
     const ranges: {id: string, label: string, cost: number}[] = [];
 
     if (niveles.length > 0) {
+        // Generar rangos crudos basados en la lógica: 
+        // "si pide menos que niveles[i].cantidad_minima le cobro niveles[i].costo_por_medida"
+        const raw: {min: number, max: number | null, cost: number}[] = [];
+        
+        // Primer rango: desde 1 hasta justo antes del primer nivel
         if (niveles[0].cantidad_minima > 1) {
-            ranges.push({
-                id: 'base',
-                label: `1 - ${niveles[0].cantidad_minima - 1} ${unidadMedida}`,
-                cost: costoBase,
+            raw.push({
+                min: 1,
+                max: niveles[0].cantidad_minima - 1,
+                cost: niveles[0].costo_por_medida
             });
         }
+        
+        // Rangos intermedios: desde un nivel hasta justo antes del siguiente
+        for (let i = 0; i < niveles.length - 1; i++) {
+            raw.push({
+                min: niveles[i].cantidad_minima,
+                max: niveles[i+1].cantidad_minima - 1,
+                cost: niveles[i+1].costo_por_medida,
 
-        niveles.forEach((nivel, idx) => {
-            const nextNivel = niveles[idx + 1];
-            if (nextNivel) {
-                ranges.push({
-                    id: `tier-${idx}`,
-                    label: `${nivel.cantidad_minima} - ${nextNivel.cantidad_minima - 1} ${unidadMedida}`,
-                    cost: nivel.costo_por_medida,
-                });
+            });
+        }
+        
+        // Último rango: desde el último nivel en adelante
+        raw.push({
+            min: niveles[niveles.length - 1].cantidad_minima,
+            max: null,
+            cost: niveles[niveles.length - 1].costo_por_medida,
+
+        });
+
+        // Fusionar rangos adyacentes que tengan el mismo costo
+        const merged: {min: number, max: number | null, cost: number}[] = [];
+        for (const r of raw) {
+            const last = merged[merged.length - 1];
+            if (last && last.cost === r.cost) {
+                last.max = r.max;
             } else {
-                ranges.push({
-                    id: `tier-${idx}`,
-                    label: `${nivel.cantidad_minima}+ ${unidadMedida}`,
-                    cost: nivel.costo_por_medida,
-                });
+                merged.push({ ...r });
             }
+        }
+
+        // Convertir a formato de visualización
+        merged.forEach((r, idx) => {
+            let label = "";
+            if (r.max === null) {
+                label = `${r.min}+ ${unidadMedida}`;
+            } else if (r.min === r.max) {
+                label = `${r.min} ${unidadMedida}`;
+            } else {
+                label = `${r.min} - ${r.max} ${unidadMedida}`;
+            }
+            
+            ranges.push({
+                id: `tier-${idx}`,
+                label,
+                cost: r.cost,
+            });
         });
     }
 
     if (ranges.length === 0) return null;
+
+    useEffect(()=>{
+
+        console.log(nivelesPrecio[selectedTier-1]?.cantidad_minima??1)
+        seleccionCantidad(nivelesPrecio[selectedTier-1]?.cantidad_minima??1)
+    },[selectedTier])
 
     return (
         <div className="bg-white p-5 md:p-6 shadow-sm border-y border-stone-100 mx-0 lg:mx-4 lg:rounded-2xl lg:border lg:mb-4">

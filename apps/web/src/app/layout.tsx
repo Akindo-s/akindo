@@ -29,7 +29,7 @@ export default function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-title" content="MyWebSite" />
       </head>
-      <body suppressHydrationWarning className="min-h-screen w-screen flex flex-col gap-4  overflow-y-auto">
+      <body suppressHydrationWarning className=" min-h-screen w-full md:w-[calc(100lvw-1.68%)] flex flex-col   overflow-y-auto">
       {children}
     </body>
     </html>

@@ -71,7 +71,7 @@ export function EncabezadoPagina({
 
   return (
     <header
-      className={`flex items-center justify-between p-4 relative ${className}`}
+      className={`sticky top-0 z-50 flex items-center justify-between p-4 bg-[#FAF7F2] xl:bg-white  rounded-b-2xl ${className}`}
     >
       {botonRegreso}
       <h1 className="text-sm font-bold tracking-widest text-stone-900 uppercase absolute left-1/2 -translate-x-1/2">

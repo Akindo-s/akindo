@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon, ShoppingCartIcon } from "../icons/NavigationIcons";
+import { Parrafo } from "../titles";
 
 const links = [
     { label: "Inicio", href: "/", Icon: HomeIcon, condition: ({ }) => true },
@@ -12,7 +13,13 @@ const links = [
     { label: "Mi Perfil", href: "/perfil", Icon: AccountCircleIcon, condition: ({ }) => true },
     { label: 'Mi carrito', href: '/carrito', Icon: ShoppingCartIcon, condition: ({ tipoUsuario }: { tipoUsuario: string }) => tipoUsuario == 'cliente' }
 ];
-
+const akindoMiembros = [
+    "Morquecho",
+    "Medina",
+    "Beltran",
+    "Escamilla",
+    "Ontiveros"
+]
 interface SidebarProps {
     tipoUsuario?: string;
 }
@@ -26,9 +33,9 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
     };
 
     return (
-        <aside className="hidden md:flex flex-col w-56 lg:w-64 shrink-0 border-r border-stone-100 bg-white h-[calc(100vh-49px)] sticky top-[49px]">
+        <aside className="hidden md:flex flex-col w-54 lg:w-64 shrink-0 border-r border-stone-100 bg-white h-fit sticky top-0">
             {/* Navegación principal */}
-            <nav className="flex flex-col gap-1 p-3 flex-1">
+            <nav className="flex flex-col gap-1 p-3 flex-1 min-h-[calc(100lvh-71px)]">
                 {links.map(({ label, href, Icon, condition }) => {
                     if (label === "Mi Perfil" && tipoUsuario === "admin") {
                         // Insertar Administración antes de Mi Perfil para administradores
@@ -90,10 +97,16 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
             </nav>
 
             {/* Branding en el fondo */}
-            <div className="p-4 border-t border-stone-100">
+            <div className="p-4 border-t border-stone-100 flex flex-col gap-2">
                 <p className="text-[10px] text-stone-400 font-medium tracking-wider uppercase">
                     Akindo © {new Date().getFullYear()}
                 </p>
+                {akindoMiembros.map(a => ( //no hay necesidad, pudiste escribirlos birote, eh!
+
+                    <Parrafo key={`${a}${Math.random()}`} className="text-xs text-stone-400 font-normal tracking-wider uppercase">
+                        {a}
+                    </Parrafo>
+                ))}
             </div>
         </aside>
     );

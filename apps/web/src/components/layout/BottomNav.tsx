@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, StorefrontIcon, AllInboxIcon, MoreVertIcon, AccountCircleIcon } from "../icons/NavigationIcons";
-import { ReactNode } from "react";
+
 
 const tabs = [
   { label: "Inicio", href: "/", Icon: HomeIcon },
   { label: "Mercado", href: "/mercado", Icon: StorefrontIcon },
   { label: "Pedidos", href: "/pedidos", Icon: AllInboxIcon },
-  { label: "Perfil", href: "/perfil", Icon: MoreVertIcon },
+  { label: "Perfil", href: "/perfil", Icon: AccountCircleIcon },
 ];
 
 interface BottomNavProps {

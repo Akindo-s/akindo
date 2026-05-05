@@ -71,7 +71,7 @@ export function BarraBusquedaFiltros({
 
             {/* Chips de categoría */}
             {categorias.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-0.5 w-[60lvw] scroll-auto ">
+                <div className="flex gap-2 overflow-x-auto pb-0.5 w-full scroll-auto ">
                     {/* Chip "Todas" */}
                     <button
                         type="button"

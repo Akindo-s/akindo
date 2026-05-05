@@ -107,7 +107,7 @@ function ProductosContent() {
                         ? Array.from({ length: 8 }).map((_, i) => <SkeletonProducto key={i} />)
                         : items.map((p) => (
                               <TarjetaProductoCatalogo
-                                  key={p.producto_id}
+                                  key={`${p.producto_id}${Math.random()}`}
                                   productoId={p.producto_id}
                                   nombre={p.nombre}
                                   costo={p.costo}
