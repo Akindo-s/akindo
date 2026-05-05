@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import PerfilCliente from "@/components/perfil/PerfilCliente";
-import { obtenerInformacionPerfil } from "@/lib/api/usuario";
+import { obtenerInformacionPerfil, obtenerPerfilDistribuidor } from "@/lib/api/usuario";
 
 // Skeleton mientras se cargan los datos
 function PerfilSkeleton() {
@@ -45,7 +45,12 @@ function PerfilSkeleton() {
 // Componente async separado para que Suspense lo pueda envolver
 async function PerfilContent({ tipoUsuario }: { tipoUsuario: string | undefined }) {
     if (tipoUsuario === "distribuidor") {
-        redirect("/mercado/distribuidor");
+        const distribuidor = await obtenerPerfilDistribuidor();
+        if (distribuidor && distribuidor.id) {
+            redirect(`/mercado/distribuidor/tienda?d=${distribuidor.id}`);
+        } else {
+            redirect("/mercado/distribuidor");
+        }
     } else {
         const cliente = await obtenerInformacionPerfil();
         return <PerfilCliente cliente={cliente} />;

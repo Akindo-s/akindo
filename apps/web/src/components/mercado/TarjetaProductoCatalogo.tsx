@@ -1,4 +1,5 @@
 import { Package } from "lucide-react";
+import Link from "next/link";
 
 interface TarjetaProductoCatalogoProps {
     productoId: string;
@@ -14,6 +15,7 @@ interface TarjetaProductoCatalogoProps {
  * Solo lectura — sin controles de edición ni archivar.
  */
 export function TarjetaProductoCatalogo({
+    productoId,
     nombre,
     costo,
     unidad,
@@ -21,8 +23,9 @@ export function TarjetaProductoCatalogo({
     disponible,
 }: TarjetaProductoCatalogoProps) {
     return (
-        <div
-            className={`bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
+        <Link
+            href={`/mercado/productos/detalle?p=${productoId}`}
+            className={`block bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
                 !disponible ? "opacity-60" : ""
             }`}
         >
@@ -58,6 +61,6 @@ export function TarjetaProductoCatalogo({
                     <span className="text-xs font-normal text-stone-400 ml-0.5">/{unidad}</span>
                 </p>
             </div>
-        </div>
+        </Link>
     );
 }

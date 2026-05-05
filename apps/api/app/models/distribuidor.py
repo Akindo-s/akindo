@@ -49,6 +49,7 @@ class Distribuidor(Usuario):
     valoracion_promedio: float = 0.0
     total_valoraciones: int = 0
     categorias: list[CategoriaDistribuidor] = field(default_factory=list)
+    descripcion: str | None = None
 
     def check(self) -> None:
         """Verifica los invariantes específicos de Distribuidor, y los de Usuario."""
@@ -117,12 +118,15 @@ class Distribuidor(Usuario):
             "valoracion_promedio": self.valoracion_promedio,
             "total_valoraciones": self.total_valoraciones,
             "categorias": [c.to_dict() for c in self.categorias] if self.categorias else [],
+            "descripcion": self.descripcion,
         })
         return base_dict
 
-    def actualizar_informacion_negocio(self, rfc: str | None = None, nombre_negocio: str | None = None) -> None:
+    def actualizar_informacion_negocio(self, rfc: str | None = None, nombre_negocio: str | None = None, descripcion: str | None = None) -> None:
         if rfc is not None:
             self.rfc = rfc
         if nombre_negocio is not None:
             self.nombre_negocio = nombre_negocio
+        if descripcion is not None:
+            self.descripcion = descripcion
         self.check()

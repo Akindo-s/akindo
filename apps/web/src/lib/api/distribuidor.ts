@@ -53,6 +53,8 @@ export interface DistribuidorPublicoResponse {
         codigo_postal: string;
         es_predeterminada: boolean;
     }[];
+    es_verificado:boolean;
+    descripcion: string | null;
 }
 
 export interface ProductoCatalogoPublico {
@@ -92,6 +94,19 @@ export const obtenerResumenMensual = async (umbral_stock: number = 67): Promise<
         return await respuesta.json();
     }
     return null;
+}
+
+export async function actualizarImagenNegocio(distribuidorId: string, file: File): Promise<boolean> {
+    const token = await getToken();
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const respuesta = await fetchWithAuth(`/distribuidores/${distribuidorId}/imagen-negocio`, {
+        method: 'POST',
+        body: formData
+    }, token);
+
+    return respuesta.ok;
 }
 
 export interface AlertaExistencia {

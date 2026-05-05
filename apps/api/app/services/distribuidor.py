@@ -26,7 +26,7 @@ from app.services.usuario import UsuarioService
 class DistribuidorService:
     """Lógica de negocio para distribuidores."""
 
-    ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+    ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp",'image/jpg'}
     MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
 
     def __init__(self, db: DatabaseSession, storage: StorageAdapter | None = None):
@@ -64,6 +64,7 @@ class DistribuidorService:
     async def obtener_distribuidor(self, distribuidor_id: UUID) -> DistribuidorResponse:
         """Obtiene los detalles de un distribuidor específico."""
         distribuidor = await self.repo.get_by_id(distribuidor_id)
+        
         if not distribuidor:
             raise NotFoundException("Distribuidor no encontrado")
         return DistribuidorResponse.model_validate(distribuidor)
@@ -104,6 +105,7 @@ class DistribuidorService:
         # Usar lógica de dominio
         distribuidor.actualizar_informacion_negocio(
             nombre_negocio=campos.get("nombre_negocio"),
+            descripcion=campos.get("descripcion"),
             # RFC is technically allowed in our method, but our schema doesn't allow changing it
         )
         if "telefono" in campos:
@@ -119,20 +121,40 @@ class DistribuidorService:
         return DistribuidorResponse.model_validate(distribuidor)
 
     async def subir_imagen_negocio(self, distribuidor_id: UUID, file_data: bytes, content_type: str, filename: str) -> DistribuidorResponse:
-        """Sube la imagen de negocio del distribuidor delegando a UsuarioService."""
-        if not self.usuario_service:
+        """Sube la imagen de negocio (fondo) del distribuidor."""
+        if not self.storage:
             raise Exception("Storage provider not configured")
-        # Delegar la subida a UsuarioService
-        await self.usuario_service.subir_imagen_perfil(
-            usuario_id=distribuidor_id,
-            file_data=file_data,
-            content_type=content_type,
-            filename=filename,
-        )
-        # Retornar el distribuidor actualizado
+        
+        # Validar tipo y tamaño
+        if content_type not in self.ALLOWED_IMAGE_TYPES:
+            from app.core.exceptions import ValidationException
+            raise ValidationException(
+                f"Tipo de archivo no permitido: {content_type}. "
+                f"Permitidos: {', '.join(self.ALLOWED_IMAGE_TYPES)}"
+            )
+
+        if len(file_data) > self.MAX_IMAGE_SIZE:
+            from app.core.exceptions import ValidationException
+            raise ValidationException(
+                f"La imagen excede el tamaño máximo de {self.MAX_IMAGE_SIZE // (1024 * 1024)} MB"
+            )
+
         distribuidor = await self.repo.get_by_id(distribuidor_id)
         if not distribuidor:
             raise NotFoundException("Distribuidor no encontrado")
+
+        ext = content_type.split("/")[-1]
+        if ext == "jpeg":
+            ext = "jpg"
+        
+        bucket = "portada_negocios"
+        path = f"/{distribuidor_id}_fondo.{ext}"
+        
+        url: str = await self.storage.upload(bucket, path, file_data, content_type)
+        
+        distribuidor.imagen_fondo = url
+        await self.repo.save(distribuidor)
+        
         return DistribuidorResponse.model_validate(distribuidor)
 
     async def upsert_direccion(self, distribuidor_id: UUID, data: UpsertDireccionDistribuidorRequest) -> list[DireccionDistribuidorResponse]:

@@ -16,9 +16,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plus_jakarta_sans.className}`}
+      className={`${plus_jakarta_sans.className}  w-full`}
     >
-      <body suppressHydrationWarning className="min-h-screen w-screen flex flex-col gap-4 overflow-x-hidden overflow-y-auto">
+      <head>
+        <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+      </head>
+      <body suppressHydrationWarning className="min-h-screen w-screen flex flex-col gap-4  overflow-y-auto">
       {children}
     </body>
     </html>

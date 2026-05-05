@@ -64,7 +64,7 @@ export async function obtenerPerfilDistribuidor(): Promise<any> {
     return null;
 }
 
-export async function actualizarPerfilDistribuidor(distribuidorId: string, datos: { nombre_negocio?: string; telefono?: string }): Promise<boolean> {
+export async function actualizarPerfilDistribuidor(distribuidorId: string, datos: { nombre_negocio?: string; telefono?: string; descripcion?: string }): Promise<boolean> {
     const token = await getToken();
     const respuesta = await fetchWithAuth(`/distribuidores/${distribuidorId}`, {
         method: "PATCH",
@@ -72,4 +72,29 @@ export async function actualizarPerfilDistribuidor(distribuidorId: string, datos
     }, token);
 
     return respuesta.status === 200;
+}
+
+/**
+ * Verifica si el usuario actual es el dueño de un perfil de distribuidor, sin redirigir si no está autenticado.
+ */
+export async function esDistribuidorDueno(distribuidorId: string): Promise<boolean> {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+    const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
+
+    if (!token || tipoUsuario !== "distribuidor") {
+        return false;
+    }
+
+    try {
+        const respuesta = await fetchWithAuth('/distribuidores/me', { method: "GET" }, token);
+        if (respuesta.status === 200) {
+            const data = await respuesta.json();
+            return data.id === distribuidorId;
+        }
+    } catch (e) {
+        console.error("Error verificando dueño del distribuidor", e);
+    }
+    
+    return false;
 }

@@ -22,6 +22,8 @@ class DistribuidorResponse(BaseModel):
     total_valoraciones: int
     fecha_creacion: datetime | None
     categorias: list[CategoriaResponse] | None = None
+    es_verificado:bool|None = None
+    descripcion: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -31,6 +33,7 @@ class DistribuidorUpdateInfo(BaseModel):
     nombre_negocio: str | None = None
     telefono: str | None = None
     categorias: list[UUID] | None = None
+    descripcion: str | None = None
 
 # ── Direcciones ───────────────────────────────────────────────────
 

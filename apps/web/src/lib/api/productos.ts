@@ -47,7 +47,7 @@ export interface ProductoResponse {
     disponible: boolean;
     atributos_extra: Record<string, unknown> | null;
     imagen?: string | null;
-    categorias?:Record<string,string>[]
+    categorias?: { id: string; nombre: string }[];
 }
 
 export interface ProductoCatalogoResponse {
@@ -142,6 +142,21 @@ export async function listarProductosCatalogo(
     };
 }
 
+/**
+ * Obtiene los detalles completos de un producto por su ID. Público, sin autenticación.
+ * Llama a GET /productos/other/{producto_id}
+ */
+export async function obtenerProductoPublico(productoId: string): Promise<ProductoResponse | null> {
+    try {
+        const res = await fetch(`${API_URL}/productos/other/${productoId}`, {
+            cache: "no-store",
+        });
+        if (res.ok) return await res.json();
+    } catch (e) {
+        console.error("Error obteniendo detalle de producto:", e);
+    }
+    return null;
+}
 
 /**
  * Obtiene el catálogo de unidades de medida disponibles para productos.

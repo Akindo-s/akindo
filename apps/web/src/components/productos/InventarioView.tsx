@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Archive, Edit3, Plus } from "lucide-react";
+import { Archive, Edit3, Plus, Eye } from "lucide-react";
 import { EncabezadoPagina } from "@/components/ui/EncabezadoPagina";
 import { Buscador } from "@/components/ui/Buscador";
 import { Boton } from "@/components/ui/Boton";
@@ -41,6 +41,15 @@ function ProductoInventario({ producto, onArchivar }: { producto: ProductoInvent
                     onClick={() => router.push(`/distribuidor/productos/${producto.producto_id}/editar`)}
                     className="p-1.5 border-transparent text-stone-500 hover:text-[#DAA520] hover:bg-[#FDF2E3]"
                 />
+                {/* Vista de Cliente */}
+                <Boton
+                    variante="chip"
+                    Icono={Eye}
+                    iconoSize={14}
+                    onClick={() => window.open(`/mercado/productos/detalle?p=${producto.producto_id}`, '_blank')}
+                    className="p-1.5 border-transparent text-stone-500 hover:text-blue-500 hover:bg-blue-50"
+                    title="Ver vista de cliente"
+                />
                 {/* Archivar */}
                 <Boton
                     variante="chip"
@@ -48,6 +57,7 @@ function ProductoInventario({ producto, onArchivar }: { producto: ProductoInvent
                     iconoSize={14}
                     onClick={() => setIsArchiveModalOpen(true)}
                     className="p-1.5 border-transparent text-stone-400 hover:text-red-400 hover:bg-red-50"
+                    title={!producto.disponible ? "DesArchivar" : "Archivar"}
                 >
                     {!producto.disponible ? "DesArchivar" : ""}
                 </Boton>

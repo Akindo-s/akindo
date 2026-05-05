@@ -51,15 +51,15 @@ export default async function ResumenStats() {
 
             {/* Tarjetas pequeñas */}
             <div className="flex gap-3">
-                <Tarjeta variante="calido" className="flex-1 flex flex-col justify-between min-h-[100px]">
-                    <p className="text-[10px] font-bold text-stone-600 tracking-wider mb-2 leading-tight">ACTIVOS<br />PEDIDOS</p>
-                    <h3 className="text-2xl font-bold text-stone-900">{pedidos}</h3>
+                <Tarjeta variante="calido" className="flex-1 flex flex-col justify-between min-h-[100px] min-w-0">
+                    <p className="text-[10px] font-bold text-stone-600 tracking-wider mb-2 leading-tight break-words">ACTIVOS<br />PEDIDOS</p>
+                    <h3 className="text-2xl font-bold text-stone-900 truncate">{pedidos}</h3>
                 </Tarjeta>
-                <Tarjeta variante="calido" className="flex-1 flex flex-col justify-between min-h-[100px]">
-                    <p className="text-[10px] font-bold text-stone-600 tracking-wider mb-2 leading-tight">POCO<br />STOCK</p>
-                    <div>
-                        <h3 className="text-xl font-bold text-red-700">{pocoStock} artículos</h3>
-                        <p className="text-[8px] font-bold text-stone-500 uppercase tracking-widest mt-0.5">UMBRAL DEL 67</p>
+                <Tarjeta variante="calido" className="flex-1 flex flex-col justify-between min-h-[100px] min-w-0">
+                    <p className="text-[10px] font-bold text-stone-600 tracking-wider mb-2 leading-tight break-words">POCO<br />STOCK</p>
+                    <div className="min-w-0">
+                        <h3 className="text-xl font-bold text-red-700 truncate">{pocoStock} art.</h3>
+                        <p className="text-[8px] font-bold text-stone-500 uppercase tracking-widest mt-0.5 truncate">UMBRAL DEL 67</p>
                     </div>
                 </Tarjeta>
             </div>

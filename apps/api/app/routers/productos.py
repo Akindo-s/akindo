@@ -51,7 +51,20 @@ async def get_catalogo(
         
     return response
 
-# solo para distribuidores autenticados
+# ── Público ────────────────────────────────────────────────────────────────────
+
+@router.get("/other/{producto_id}", response_model=ProductoResponse)
+async def obtener_producto_publico(
+    producto_id: UUID,
+    db: DatabaseSession = Depends(get_db),
+    storage: StorageAdapter = Depends(get_storage)
+):
+    """Obtiene los detalles públicos de un producto disponible. No requiere autenticación."""
+    service = ProductoService(db, storage)
+    return await service.obtener_producto_publico(producto_id)
+
+
+# ── Solo para distribuidores autenticados ──────────────────────────────────────
 
 @router.post("/", response_model=ProductoResponse, status_code=status.HTTP_201_CREATED)
 async def crear_producto(

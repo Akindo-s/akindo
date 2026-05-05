@@ -62,6 +62,7 @@ class DistribuidorRepo(BaseRepository[Distribuidor]):
             valoracion_promedio=row.get("valoracion_promedio", 0.0),
             total_valoraciones=row.get("total_valoraciones", 0),
             categorias=categorias,
+            descripcion=row.get("descripcion"),
         )
 
     async def save(self, aggregate: Distribuidor) -> Distribuidor:
@@ -91,6 +92,7 @@ class DistribuidorRepo(BaseRepository[Distribuidor]):
             "imagen_fondo": aggregate.imagen_fondo,
             "valoracion_promedio": aggregate.valoracion_promedio,
             "total_valoraciones": aggregate.total_valoraciones,
+            "descripcion": aggregate.descripcion,
         }
 
         

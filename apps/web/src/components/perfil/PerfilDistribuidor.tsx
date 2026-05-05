@@ -36,7 +36,7 @@ export default function PerfilDistribuidor({ distribuidor }: Props) {
     if (!distribuidor) return <div className="p-4 text-center text-sm text-stone-500">Cargando dashboard...</div>;
 
     return (
-        <div className="flex flex-col w-full max-w-2xl lg:max-w-4xl mx-auto pb-10 bg-[#FAF7F2] md:bg-transparent min-h-screen">
+        <div className="flex flex-col w-full max-w-2xl lg:max-w-4xl mx-auto pb-10 bg-[#FAF7F2] md:bg-transparent min-h-screen overflow-x-hidden">
             {/* Header */}
             <header className="flex flex-col items-center justify-center p-4 mb-2">
                 <h1 className="text-xl font-semibold text-stone-900">Administracion</h1>

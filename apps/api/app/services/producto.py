@@ -190,4 +190,10 @@ class ProductoService:
         if not producto or producto.distribuidor_id != distribuidor_id:
             raise NotFoundException("Producto no encontrado")
         return producto
-    
+
+    async def obtener_producto_publico(self, producto_id: UUID) -> Producto:
+        """Obtiene un producto por ID sin verificar propietario. Solo para lectura pública."""
+        producto = await self.repo.get(producto_id)
+        if not producto or not producto.disponible:
+            raise NotFoundException("Producto no encontrado")
+        return producto
