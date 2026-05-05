@@ -36,9 +36,9 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
     const router = useRouter();
     const esEdicion = modo === "editar";
 
-    const { data, cerror } = useSWR('categorias', () => obtenerCategoriasDisponibles());
+    const { data, error: categoriasError } = useSWR('categorias', () => obtenerCategoriasDisponibles());
 
-    const [opcionesCategorias, setOpcionesCategorias] = useState([])
+    const [opcionesCategorias, setOpcionesCategorias] = useState<{ valor: string; etiqueta: string }[]>([])
 
     useEffect(() => {
         
@@ -184,7 +184,7 @@ export default function RegistrarProductoForm({ modo = "crear", productoInicial 
         costo: niveles[0]?.costo_por_medida ?? 0,
         existencias,
         descripcion: descripcion.trim() || undefined,
-        categoria: categorias.length > 0 ? categorias : undefined,
+        categorias: categorias.length > 0 ? categorias : undefined,
         niveles_precio: niveles,
     });
 

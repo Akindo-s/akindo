@@ -8,7 +8,8 @@ import {
     crearCategoriaProducto,
     crearCategoriaDistribuidor,
     eliminarCategoriaProducto,
-    eliminarCategoriaDistribuidor
+    eliminarCategoriaDistribuidor,
+    type CategoriaResponse
 } from "@/lib/api/categorias";
 import { Boton } from "@/components/ui/Boton";
 import { ModalConfirmacion } from "@/components/ui/ModalConfirmacion";
@@ -22,7 +23,13 @@ function FallBackCategoria() {
     )
 }
 
-function CategoriaCard({ cat, eliminando, setCategoriaAEliminar }) {
+interface CategoriaCardProps {
+    cat: CategoriaResponse;
+    eliminando: boolean;
+    setCategoriaAEliminar: React.Dispatch<React.SetStateAction<{ id: string; tipo: "productos" | "distribuidores"; nombre: string } | null>>;
+}
+
+function CategoriaCard({ cat, eliminando, setCategoriaAEliminar }: CategoriaCardProps) {
     const [imgCargada, setImgCargada] = useState(false);
 
     return (
@@ -64,8 +71,8 @@ function CategoriaCard({ cat, eliminando, setCategoriaAEliminar }) {
 export default function CategoriasAdminPage() {
     const router = useRouter();
     const [cargando, setCargando] = useState(false);
-    const [categoriasProductos, setCategoriasProductos] = useState<any[]>([]);
-    const [categoriasDistribuidores, setCategoriasDistribuidores] = useState<any[]>([]);
+    const [categoriasProductos, setCategoriasProductos] = useState<CategoriaResponse[]>([]);
+    const [categoriasDistribuidores, setCategoriasDistribuidores] = useState<CategoriaResponse[]>([]);
     const [tipoSeleccionado, setTipoSeleccionado] = useState<"productos" | "distribuidores">("productos");
     const [nombre, setNombre] = useState("");
     const [imagen, setImagen] = useState<File | null>(null);

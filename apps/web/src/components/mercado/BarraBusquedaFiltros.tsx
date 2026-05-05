@@ -2,7 +2,8 @@
 
 import { Buscador } from "@/components/ui/Buscador";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Package, Store } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
+import { StorefrontIcon } from "../icons/NavigationIcons";
 
 interface Categoria {
     id: string;
@@ -20,7 +21,7 @@ interface BarraBusquedaFiltrosProps {
     mostrarVolver?: boolean;
     valorBusqueda?: string;
     onChange?:(valor:string)=>void;
-    desactivarAutoBusqueda:boolean
+    desactivarAutoBusqueda?: boolean;
 }
 
 /**
@@ -101,7 +102,7 @@ export function BarraBusquedaFiltros({
                             }`}
                         >
                             {cat.tipo === "producto" && <Package size={12} />}
-                            {cat.tipo === "distribuidor" && <Store size={12} />}
+                            {cat.tipo === "distribuidor" && <StorefrontIcon size={12} />}
                             {cat.nombre}
                         </button>
                     ))}

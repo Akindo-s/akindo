@@ -16,7 +16,7 @@ interface BuscadorProps {
     debounceMs?: number;
     /** Clases Tailwind adicionales para el contenedor raíz. */
     className?: string;
-    desactivarAutoBusqueda:boolean
+    desactivarAutoBusqueda?: boolean;
 }
 
 /**

@@ -33,8 +33,7 @@ export interface DatosCrearProducto {
     costo: number;
     existencias: number;
     descripcion?: string;
-    /** TODO: Conectar con endpoint GET /categorias cuando el backend lo implemente */
-    categoria?: string;
+    categorias?: string[];
     niveles_precio?: NivelPrecio[];
 }
 
@@ -186,7 +185,7 @@ export async function crearProducto(datos: DatosCrearProducto,es_borrador:boolea
             ...(datos.descripcion ? { descripcion: datos.descripcion } : {}),
         },
         es_borrador:es_borrador,
-        categorias:datos.categoria
+        categorias: datos.categorias
     };
 
     const respuesta = await fetchWithAuth("/productos/", {

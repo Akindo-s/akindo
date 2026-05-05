@@ -8,9 +8,15 @@ async function getToken(): Promise<string | undefined> {
     return cookieStore.get("token")?.value;
 }
 
+export interface CategoriaResponse {
+    id: string;
+    nombre: string;
+    imagen: string | null;
+}
+
 // === OBTENER CATEGORÍAS ===
 
-export async function obtenerCategoriasProductos(): Promise<any[]> {
+export async function obtenerCategoriasProductos(): Promise<CategoriaResponse[]> {
     const token = await getToken();
     const respuesta = await fetchWithAuth('/categorias/productos', { method: "GET" }, token);
     
@@ -20,7 +26,7 @@ export async function obtenerCategoriasProductos(): Promise<any[]> {
     return [];
 }
 
-export async function obtenerCategoriasDistribuidores(): Promise<any[]> {
+export async function obtenerCategoriasDistribuidores(): Promise<CategoriaResponse[]> {
     const token = await getToken();
     const respuesta = await fetchWithAuth('/categorias/distribuidores', { method: "GET" }, token);
     

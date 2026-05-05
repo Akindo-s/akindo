@@ -26,6 +26,8 @@ interface TarjetaProductoProps {
     onToggleDisponible?: (productoId: string, nuevoEstado: boolean) => void;
     /** Clases Tailwind adicionales. */
     className?: string;
+    /** Componentes hijos (botones, etc). */
+    children?: React.ReactNode;
 }
 
 /**

@@ -45,7 +45,7 @@ function PerfilSkeleton() {
 // Componente async separado para que Suspense lo pueda envolver
 async function PerfilContent({ tipoUsuario }: { tipoUsuario: string | undefined }) {
     if (tipoUsuario === "distribuidor") {
-        redirect("/distribuidor");
+        redirect("/mercado/distribuidor");
     } else {
         const cliente = await obtenerInformacionPerfil();
         return <PerfilCliente cliente={cliente} />;

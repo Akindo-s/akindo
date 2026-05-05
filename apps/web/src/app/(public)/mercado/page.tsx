@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ChevronRight, Grid3X3, Store, Package } from "lucide-react";
+import { ChevronRight, Grid3X3, Package } from "lucide-react";
 import { MercadoBuscador } from "@/components/mercado/MercadoBuscador";
 import { listarProductosCatalogo } from "@/lib/api/productos";
 import { TarjetaProductoCatalogo } from "@/components/mercado/TarjetaProductoCatalogo";
+import { StorefrontIcon } from "@/components/icons/NavigationIcons";
 
 export const metadata = {
     title: "Mercado | Akindo",
@@ -22,7 +23,7 @@ const SECCIONES = [
         href: "/mercado/distribuidores",
         label: "Explorar distribuidores",
         descripcion: "Encuentra proveedores verificados para tu negocio",
-        Icon: Store,
+        Icon: StorefrontIcon,
         color: "from-stone-50 to-stone-100 border-stone-200",
         iconColor: "text-stone-600 bg-stone-100",
     },

@@ -29,7 +29,7 @@ function DistribuidoresContent() {
     const categoriaParam = searchParams.get("categoria");
 
     const [categorias, setCategorias] = useState<{ id: string; nombre: string }[]>([]);
-    const [busqueda, setBusqueda] = useState("");
+    const [busqueda, setBusqueda] = useState(searchParams.get("q") ?? "");
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string | null>(
         categoriaParam ?? null
     );
@@ -81,11 +81,22 @@ function DistribuidoresContent() {
     });
 
     // Filtrado local por búsqueda (el backend no filtra por nombre en este endpoint)
-    const distriburidoresMostrados = busqueda
+
+
+    const [distriburidoresMostrados,setDistribuidoresMostrados] = useState(busqueda
         ? items.filter((d) =>
               d.nombre_negocio.toLowerCase().includes(busqueda.toLowerCase())
           )
-        : items;
+        : items)
+
+    useEffect(()=>{
+        setDistribuidoresMostrados(busqueda
+        ? items.filter((d) =>
+              d.nombre_negocio.toLowerCase().includes(busqueda.toLowerCase())
+          )
+        : items)
+    },[busqueda, items])
+
 
     return (
         <div className="flex flex-col min-h-screen bg-white">
@@ -118,7 +129,7 @@ function DistribuidoresContent() {
                         ? Array.from({ length: 6 }).map((_, i) => <SkeletonDistribuidor key={i} />)
                         : distriburidoresMostrados.map((d) => (
                               <TarjetaDistribuidor
-                                  key={d.distribuidor_id}
+                                  key={`${d.distribuidor_id}${Math.random()}`}
                                   distribuidorId={d.distribuidor_id}
                                   nombreNegocio={d.nombre_negocio}
                                   imagenFondo={d.imagen_fondo}

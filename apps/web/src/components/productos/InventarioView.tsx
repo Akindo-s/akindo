@@ -23,7 +23,7 @@ interface InventarioViewProps {
 }
 
 
-function ProductoInventario({ producto, onArchivar }) {
+function ProductoInventario({ producto, onArchivar }: { producto: ProductoInventario; onArchivar: (id: string) => void }) {
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
     const router = useRouter();
     return (
