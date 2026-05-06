@@ -6,6 +6,7 @@ import uuid
 from app.infrastructure.database import DatabaseSession
 from app.repositories.orden_pedido import OrdenPedidoRepo
 from app.repositories.pedido import PedidoRepo
+from app.repositories.producto import ProductoRepo
 from app.models.orden_pedido import OrdenPedido, PaquetePedido, EstadoOrden
 from app.models.pedido import Pedido, EstadoPedido
 from app.schemas.orden_pedido import (
@@ -108,6 +109,7 @@ class OrdenPedidoService:
         self.db = db
         self.repo = OrdenPedidoRepo(db)
         self.pedido_repo = PedidoRepo(db)
+        self.producto_repo = ProductoRepo(db)
 
     async def get_preorden(
         self,
@@ -368,6 +370,16 @@ class OrdenPedidoService:
             total=orden.total,
         )
         await self.pedido_repo.save(pedido)
+
+        # Restar existencias de los productos
+        for paquete in orden.paquetes:
+            producto = await self.producto_repo.get(paquete.producto_id)
+            if producto:
+                if producto.existencias >= paquete.cantidad:
+                    producto.existencias -= paquete.cantidad
+                else:
+                    raise AggregateNoValido(f"No hay existencias suficientes para el producto {producto.nombre}")
+                await self.producto_repo.save(producto)
 
         # Registrar primera actualización en el timeline
         await self.pedido_repo.agregar_actualizacion(
