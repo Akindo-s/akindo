@@ -74,7 +74,7 @@ export default async function PedidosActivosList() {
                                         <h4 className="font-bold text-sm text-stone-900">{pedido.cliente_nombre}</h4>
                                         <div className="flex items-center gap-2 mt-0.5">
                                             <span className="text-[10px] text-stone-500 font-medium">#{pedido.orden_id.substring(0, 8).toUpperCase()}</span>
-                                            <Badge variante={esPendiente ? 'advertencia' : esEnEnvio ? 'info' : 'exito'} className="text-[9px] px-1.5 py-0.5 capitalize">
+                                            <Badge variante={esPendiente ? 'advertencia' : esEnEnvio ? 'neutro' : 'exito'} className="text-[9px] px-1.5 py-0.5 capitalize">
                                                 {pedido.estado === 'pendiente de envio' ? 'Pendiente' : pedido.estado}
                                             </Badge>
                                         </div>

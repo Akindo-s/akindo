@@ -1,9 +1,9 @@
 "use client";
 
-import type { PedidoActualizacionResponse } from "@/lib/types/pedidos";
+import type { PedidoActualizacion } from "@/lib/types/pedidos";
 
 interface HistorialActualizacionesPedidoProps {
-  actualizaciones: PedidoActualizacionResponse[];
+  actualizaciones: PedidoActualizacion[];
   titulo?: string;
 }
 

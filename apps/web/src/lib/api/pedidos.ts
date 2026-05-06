@@ -11,6 +11,7 @@ import type {
   PedidoListItem,
   PedidoActionResult,
   EstadoPedido,
+  ValoracionResponse,
 } from "@/lib/types/pedidos";
 
 // ── Auth helpers ──────────────────────────────────────────────────────────────

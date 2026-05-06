@@ -215,7 +215,7 @@ function OrdenCard({ orden }: { orden: OrdenPedidoListItem }) {
         mensaje="¿Estás seguro de que deseas cancelar esta orden de compra? Esta acción no se puede deshacer."
         textoConfirmar="Sí, cancelar orden"
         textoCancelar="No, mantener"
-        cargando={loading}
+        isConfirming={loading}
       />
 
       {/* Expanded: product list + status explanation */}
