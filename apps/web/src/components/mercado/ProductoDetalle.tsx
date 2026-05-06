@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, Loader2, Package, Store, MapPin, ShoppingCart, Info, CheckCircle2, ShieldCheck, AlertCircle } from "lucide-react";
+import { HeaderSticky } from "../ui/HeaderSticky";
 import { obtenerProductoPublico, type ProductoResponse, type UnidadMedida } from "@/lib/api/productos";
 import { obtenerDistribuidor, type DistribuidorPublicoResponse } from "@/lib/api/distribuidor";
 import { StorefrontIcon } from "../icons/NavigationIcons";
@@ -132,15 +133,7 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
 
     return (
         <div className="flex flex-col min-h-screen bg-[#FAF5EE] pb-24">
-            {/* Header Sticky */}
-            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md flex items-center px-4 h-14 border-b border-stone-200/50 shadow-sm">
-                <button onClick={() => router.back()} className="p-2 -ml-2 text-stone-700 hover:text-stone-900 transition-colors">
-                    <ArrowLeft size={20} />
-                </button>
-                <h1 className="text-sm font-semibold text-stone-900 mx-auto truncate px-4">
-                    {producto.nombre}
-                </h1>
-            </header>
+            <HeaderSticky titulo={producto.nombre} />
 
             {/* Imagen del Producto */}
             <div className="w-full bg-white relative aspect-square md:aspect-[16/9] lg:aspect-[2/1] overflow-hidden border-b border-stone-100 flex items-center justify-center">

@@ -8,7 +8,7 @@ import { HomeIcon, StorefrontIcon, AllInboxIcon, MoreVertIcon, AccountCircleIcon
 const tabs = [
   { label: "Inicio", href: "/", Icon: HomeIcon },
   { label: "Mercado", href: "/mercado", Icon: StorefrontIcon },
-  { label: "Pedidos", href: "/pedidos", Icon: AllInboxIcon },
+  { label: "Pedidos", href: "/pedidos", altHref: "/distribuidor/pedidos", Icon: AllInboxIcon },
   { label: "Perfil", href: "/perfil", Icon: AccountCircleIcon },
 ];
 
@@ -28,7 +28,9 @@ export function BottomNav({ tipoUsuario }: BottomNavProps) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-stone-100 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] select-none md:hidden">
       <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
-        {tabs.map(({ label, href, Icon }) => {
+        {tabs.map(({ label, href, altHref, Icon }) => {
+          const resolvedHref = (altHref && tipoUsuario === "distribuidor") ? altHref : href;
+
           if (label === "Más" && tipoUsuario === "admin") {
             const adminActive = isActive("/admin/categorias");
             return (
@@ -49,7 +51,7 @@ export function BottomNav({ tipoUsuario }: BottomNavProps) {
             );
           }
 
-          const active = isActive(href);
+          const active = isActive(resolvedHref);
           const content = (
             <div className="flex flex-col items-center gap-0.5 cursor-pointer transition-colors">
               <Icon
@@ -65,12 +67,12 @@ export function BottomNav({ tipoUsuario }: BottomNavProps) {
             </div>
           );
 
-          if (href === "#") {
+          if (resolvedHref === "#") {
             return <button key={label} type="button" className="outline-none">{content}</button>;
           }
 
           return (
-            <Link key={label} href={href}>
+            <Link key={label} href={resolvedHref}>
               {content}
             </Link>
           );

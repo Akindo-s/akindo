@@ -1,10 +1,13 @@
-import { PlusCircle, FileText, Users } from "lucide-react";
+import { PlusCircle, FileText, Users, ShoppingBag, ShoppingBasket, MessageSquare } from "lucide-react";
 import { Suspense } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { AllInboxIcon } from "../icons/NavigationIcons";
 import ResumenStats, { ResumenStatsSkeleton } from "./dashboard/ResumenStats";
 import AlertasExistenciasList, { AlertasExistenciasSkeleton } from "./dashboard/AlertasExistenciasList";
 import PedidosActivosList, { PedidosActivosSkeleton } from "./dashboard/PedidosActivosList";
+import OrdenesPendientesList, { OrdenesPendientesSkeleton } from "./dashboard/OrdenesPendientesList";
+import { ShoppingBagIcon } from "../icons/GeneralIcons";
+import { HeaderSticky } from "@/components/ui/HeaderSticky";
 
 interface Direccion {
     id: string;
@@ -36,14 +39,14 @@ export default function PerfilDistribuidor({ distribuidor }: Props) {
     if (!distribuidor) return <div className="p-4 text-center text-sm text-stone-500">Cargando dashboard...</div>;
 
     return (
-        <div className="flex flex-col w-full max-w-2xl lg:max-w-4xl mx-auto pb-10 bg-[#FAF7F2] md:bg-transparent min-h-screen overflow-x-hidden">
-            {/* Header */}
-            <header className="flex flex-col items-center justify-center p-4 mb-2">
-                <h1 className="text-xl font-semibold text-stone-900">Administracion</h1>
-                <h2 className="font-extralight">
-                    gestiona tu negocio desde un <b className="font-bold text-[var(--color-primary-500)] tracking-wider">unico</b> lugar
+        <div className="flex flex-col w-full max-w-2xl lg:max-w-4xl mx-auto pb-10 bg-[#FAF7F2] md:bg-transparent min-h-screen">
+            <HeaderSticky  titulo="Administración" mostrarBack={true} />
+            
+            <div className="px-4 pt-4 mb-2">
+                <h2 className="text-sm font-extralight text-stone-500">
+                    gestiona tu negocio desde un <b className="font-bold text-[var(--color-primary-500)] tracking-wider">único</b> lugar
                 </h2>
-            </header>
+            </div>
 
             {/* Resumen */}
             
@@ -61,7 +64,15 @@ export default function PerfilDistribuidor({ distribuidor }: Props) {
             {/* Acciones rápidas */}
             <section className="px-4 mb-8">
                 <div className="flex gap-3 overflow-x-auto no-scrollbar p-2">
-                    <Boton variante="chip" href="/distribuidor/productos/" className="m-0  px-5">
+                    <Boton variante="chip" href="/distribuidor/pedidos">
+                        <ShoppingBasket size={16} className="flex-shrink-0" />
+                        Pedidos
+                    </Boton>
+                    <Boton variante="chip" href="/distribuidor/ordenes">
+                        <ShoppingBag size={16} className="flex-shrink-0" />
+                        Órdenes de Compra
+                    </Boton>
+                    <Boton variante="chip" href="/distribuidor/productos/" className="m-0 px-5">
                         <AllInboxIcon size={16} className="flex-shrink-0" />
                         Inventario
                     </Boton>
@@ -69,16 +80,17 @@ export default function PerfilDistribuidor({ distribuidor }: Props) {
                         <PlusCircle size={16} className="flex-shrink-0" />
                         Nuevo producto
                     </Boton>
-                    <Boton variante="chip">
-                        <FileText size={16} className="flex-shrink-0" />
-                        Borrador de factura
-                    </Boton>
-                    <Boton variante="chip">
-                        <Users size={16} className="flex-shrink-0" />
-                        Clientes
+                    <Boton variante="chip" href="/distribuidor/valoraciones">
+                        <MessageSquare size={16} className="flex-shrink-0" />
+                        Valoraciones
                     </Boton>
                 </div>
             </section>
+
+            {/* Órdenes de compra pendientes */}
+            <Suspense fallback={<OrdenesPendientesSkeleton />}>
+                <OrdenesPendientesList />
+            </Suspense>
 
             {/* Pedidos Activos con Suspense */}
             <Suspense fallback={<PedidosActivosSkeleton />}>

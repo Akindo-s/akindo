@@ -416,6 +416,7 @@ export default function CarritoView({
             variante="primario"
             className="!w-full"
             disabled={!hasItems || disabledGlobal}
+            href={hasItems ? `/carrito/preorden?distribuidor_id=${viewData.grupos[0].distribuidorId}` : undefined}
           >
             Continuar con el pago
           </Boton>

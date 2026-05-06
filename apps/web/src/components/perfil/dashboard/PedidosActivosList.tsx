@@ -2,6 +2,7 @@ import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Badge } from "@/components/ui/Badge";
 import { Clock, CheckCircle2, ChevronRight } from "lucide-react";
 import { obtenerPedidosActivos } from "@/lib/api/distribuidor";
+import Link from "next/link";
 
 export function PedidosActivosSkeleton() {
     return (
@@ -19,7 +20,10 @@ export function PedidosActivosSkeleton() {
 }
 
 export default async function PedidosActivosList() {
-    const pedidos = await obtenerPedidosActivos();
+    const todosLosPedidos = await obtenerPedidosActivos();
+
+    // Filtramos para asegurar que SOLO se muestren los que NO están finalizados
+    const pedidos = todosLosPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'cancelado');
 
     if (!pedidos || pedidos.length === 0) {
         return (
@@ -51,35 +55,43 @@ export default async function PedidosActivosList() {
 
             <div className="flex flex-col gap-3">
                 {/* Lista de pedidos */}
-                {pedidos.slice(0, 3).map((pedido) => (
-                    <Tarjeta key={pedido.pedido_id} variante="calido" conPadding={false} className="p-3 flex items-center justify-between cursor-pointer hover:bg-[#FDF2E3] transition">
-                        <div className="flex gap-3 items-center">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                pedido.estado === 'pendiente' ? 'bg-orange-100 text-orange-600' : 
-                                'bg-blue-100 text-blue-600'
-                            }`}>
-                                {pedido.estado === 'pendiente' ? <Clock size={20} /> : <CheckCircle2 size={20} />}
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-sm text-stone-900">{pedido.cliente_nombre}</h4>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-[10px] text-stone-500 font-medium">#{pedido.orden_id.substring(0, 8).toUpperCase()}</span>
-                                    <Badge variante={pedido.estado === 'pendiente' ? 'advertencia' : 'exito'} className="text-[9px] px-1.5 py-0.5 capitalize">
-                                        {pedido.estado}
-                                    </Badge>
+                {pedidos.slice(0, 3).map((pedido) => {
+                    const esPendiente = pedido.estado === 'pendiente de envio' || pedido.estado === 'pendiente';
+                    const esEnEnvio = pedido.estado === 'en envio';
+                    
+                    return (
+                        <Link key={pedido.pedido_id} href={`/pedidos/${pedido.pedido_id}`}>
+                            <Tarjeta variante="calido" conPadding={false} className="p-3 flex items-center justify-between cursor-pointer hover:bg-[#FDF2E3] transition">
+                                <div className="flex gap-3 items-center">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                        esPendiente ? 'bg-orange-100 text-orange-600' : 
+                                        esEnEnvio ? 'bg-blue-100 text-blue-600' :
+                                        'bg-stone-100 text-stone-600'
+                                    }`}>
+                                        {esPendiente ? <Clock size={20} /> : <CheckCircle2 size={20} />}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-sm text-stone-900">{pedido.cliente_nombre}</h4>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[10px] text-stone-500 font-medium">#{pedido.orden_id.substring(0, 8).toUpperCase()}</span>
+                                            <Badge variante={esPendiente ? 'advertencia' : esEnEnvio ? 'info' : 'exito'} className="text-[9px] px-1.5 py-0.5 capitalize">
+                                                {pedido.estado === 'pendiente de envio' ? 'Pendiente' : pedido.estado}
+                                            </Badge>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <div className="text-right">
-                                <p className="text-sm font-bold text-stone-900">
-                                    ${pedido.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
-                                </p>
-                            </div>
-                            <ChevronRight size={16} className="text-stone-400" />
-                        </div>
-                    </Tarjeta>
-                ))}
+                                <div className="flex items-center gap-3">
+                                    <div className="text-right">
+                                        <p className="text-sm font-bold text-stone-900">
+                                            ${pedido.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                                        </p>
+                                    </div>
+                                    <ChevronRight size={16} className="text-stone-400" />
+                                </div>
+                            </Tarjeta>
+                        </Link>
+                    );
+                })}
             </div>
         </section>
     );

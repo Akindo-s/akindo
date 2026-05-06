@@ -4,14 +4,16 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon, ShoppingCartIcon } from "../icons/NavigationIcons";
+import { MessageSquare } from "lucide-react";
 import { Parrafo } from "../titles";
 
 const links = [
-    { label: "Inicio", href: "/", Icon: HomeIcon, condition: ({ }) => true },
-    { label: "Mercado", href: "/mercado", Icon: StorefrontIcon, condition: ({ }) => true },
-    { label: "Pedidos", href: "/pedidos", Icon: AllInboxIcon, condition: ({ }) => true },
-    { label: "Mi Perfil", href: "/perfil", Icon: AccountCircleIcon, condition: ({ }) => true },
-    { label: 'Mi carrito', href: '/carrito', Icon: ShoppingCartIcon, condition: ({ tipoUsuario }: { tipoUsuario: string }) => tipoUsuario == 'cliente' }
+    { label: "Inicio", href: "/", Icon: HomeIcon, condition: () => true },
+    { label: "Mercado", href: "/mercado", Icon: StorefrontIcon, condition: () => true },
+    { label: "Pedidos", href: "/pedidos", altHref: "/distribuidor/ordenes", Icon: AllInboxIcon, condition: () => true },
+    { label: "Mi Perfil", href: "/perfil", Icon: AccountCircleIcon, condition: () => true },
+    { label: 'Mi carrito', href: '/carrito', Icon: ShoppingCartIcon, condition: ({ tipoUsuario }: { tipoUsuario?: string }) => tipoUsuario === 'cliente' },
+    { label: "Valoraciones", href: "/distribuidor/valoraciones", Icon: MessageSquare, condition: ({ tipoUsuario }: { tipoUsuario?: string }) => tipoUsuario === 'distribuidor' }
 ];
 const akindoMiembros = [
     "Morquecho",
@@ -36,7 +38,9 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
         <aside className="hidden md:flex flex-col w-54 lg:w-64 shrink-0 border-r border-stone-100 bg-white h-fit sticky top-0">
             {/* Navegación principal */}
             <nav className="flex flex-col gap-1 p-3 flex-1 min-h-[calc(100lvh-71px)]">
-                {links.map(({ label, href, Icon, condition }) => {
+                {links.map(({ label, href, altHref, Icon, condition }) => {
+                    // Resolve dynamic href for distribuidor
+                    const resolvedHref = (altHref && tipoUsuario === "distribuidor") ? altHref : href;
                     if (label === "Mi Perfil" && tipoUsuario === "admin") {
                         // Insertar Administración antes de Mi Perfil para administradores
                         const adminActive = isActive("/admin/categorias");
@@ -76,11 +80,11 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                     if (!condition?.({ tipoUsuario: tipoUsuario ?? "" })) {
                         return null;
                     }
-                    const active = isActive(href);
+                    const active = isActive(resolvedHref);
                     return (
                         <Link
                             key={label}
-                            href={href}
+                            href={resolvedHref}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${active
                                 ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
                                 : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"

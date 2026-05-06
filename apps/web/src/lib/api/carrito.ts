@@ -64,7 +64,8 @@ async function getToken(): Promise<string> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
   const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
-  if (!token || tipoUsuario !== "cliente") {
+  
+  if (!token || (tipoUsuario !== "cliente" && tipoUsuario !== "distribuidor" && tipoUsuario !== "admin")) {
     redirect("/login");
   }
   return token;

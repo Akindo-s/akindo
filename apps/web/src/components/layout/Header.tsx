@@ -13,12 +13,25 @@ interface HeaderProps {
   tipoUsuario?: string;
 }
 
+function CarritoLink(){
+    const idsCarrito = useIdsCarrito();
+    return (
+      <Link href="/carrito" className="relative text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
+                  <ShoppingCartIcon size={22} />
+                  {idsCarrito.size > 0 ? (
+                    <span className="absolute -right-2.5 -top-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-primary-500)] px-1 text-[10px] font-bold leading-none text-white">
+                      {idsCarrito.size > 99 ? "99+" : idsCarrito.size}
+                    </span>
+                  ) : null}
+                </Link>
+    )
+}
+
 export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
   
   const router = useRouter();
-  
-  const idsCarrito = useIdsCarrito();
   const isAdminOrDistributor = tipoUsuario === "distribuidor" || tipoUsuario === "admin";
+  
 
   
 
@@ -60,15 +73,8 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
               </Boton>
             )}
             {
-              !isAdminOrDistributor && (<>
-                <Link href="/carrito" className="relative text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
-                  <ShoppingCartIcon size={22} />
-                  {idsCarrito.size > 0 ? (
-                    <span className="absolute -right-2.5 -top-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-primary-500)] px-1 text-[10px] font-bold leading-none text-white">
-                      {idsCarrito.size > 99 ? "99+" : idsCarrito.size}
-                    </span>
-                  ) : null}
-                </Link>
+              !isAdminOrDistributor && tipoUsuario==='cliente'&& (<>
+                <CarritoLink/>
                 <Link href="/perfil" className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition">
                   <AccountCircleIcon size={22} />
                 </Link>

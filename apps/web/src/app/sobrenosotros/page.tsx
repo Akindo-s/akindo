@@ -191,7 +191,9 @@ export default async function SobreNosotrosPage() {
                 <Revelar delay={400}>
                     <Parrafo className="text-sm leading-relaxed max-w-xl">{CONTENT.mision.descripcion}</Parrafo>
                 </Revelar>
-                <Revelar delay={600} className="w-16 h-1 rounded-full bg-[#DAA520] mt-2" />
+                <Revelar delay={600} className="w-16 h-1 rounded-full bg-[#DAA520] mt-2">
+                  <span className="hidden">.</span>
+                </Revelar>
             </section>
 
             {/* Valores */}

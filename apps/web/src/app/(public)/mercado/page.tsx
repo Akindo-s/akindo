@@ -48,7 +48,7 @@ export default async function MercadoPage() {
             {/* Título */}
             <h1 className="text-lg font-bold text-[var(--color-neutral-900)]">
                 El{" "}
-                <span className="text-[var(--color-primary-500)]">Mercadorito lico</span>
+                <span className="text-[var(--color-primary-500)]">Mercado</span>
             </h1>
 
             {/* Buscador */}

@@ -23,6 +23,14 @@ from app.events.cliente_perfil import (
 )
 from app.events.distribuidor_registrado import EventoEnviarMensajeBienvenidaDistribuidor
 from app.events.usuario_imagen import UsuarioImagenSubidaSuscriptor
+from app.events.pedido_suscriptores import (
+    RegistrarOrdenCreada,
+    NotificarOrdenAceptada,
+    NotificarOrdenRechazada,
+    RegistrarPedidoCreado,
+    RegistrarActualizacionPedido,
+    SolicitarValoracionPedido,
+)
 from app.infrastructure.database import DatabaseSession, get_db
 from app.routers import auth, clientes, distribuidores, pedidos, productos, usuarios, categorias, carrito
 import logging
@@ -77,6 +85,14 @@ event_bus.subscribe("cliente.perfil_actualizado", NotificarCambioPerfilCliente()
 event_bus.subscribe("cliente.imagen_perfil_subida", RegistrarCambioImagenPerfil())
 event_bus.subscribe("distribuidor.registrado", EventoEnviarMensajeBienvenidaDistribuidor())
 event_bus.subscribe("usuario.imagen_subida", UsuarioImagenSubidaSuscriptor())
+
+# Órdenes y pedidos
+event_bus.subscribe("orden_pedido.creada", RegistrarOrdenCreada())
+event_bus.subscribe("orden_pedido.aceptada", NotificarOrdenAceptada())
+event_bus.subscribe("orden_pedido.rechazada", NotificarOrdenRechazada())
+event_bus.subscribe("pedido.creado", RegistrarPedidoCreado())
+event_bus.subscribe("pedido.actualizado", RegistrarActualizacionPedido())
+event_bus.subscribe("pedido.finalizado", SolicitarValoracionPedido())
 
 # ── Health check ───────────────────────────────────────────────────
 @app.get("/health")
