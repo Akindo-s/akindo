@@ -94,7 +94,7 @@ export default function DetalleOrdenCompraDistView({
                   <Badge 
                     variante={
                       orden.estado === "pendiente" ? "advertencia" : 
-                      orden.estado === "aceptada" ? "exito" : "peligro"
+                      orden.estado === "aceptada" ? "exito" : "error"
                     }
                     className="capitalize text-xs font-bold px-3 py-1"
                   >
