@@ -50,8 +50,8 @@ export function BarraBusquedaFiltros({
         } else {
             // Modo autónomo: navega directamente
             if (!id || !tipo) return;
-            if (tipo === "producto") router.push(`/mercado/${tipo??"producto"}?categoria=${id}`);
-            else router.push(`/mercado/${tipo??"producto"}?categoria=${id}`);
+            if (tipo === "producto") router.push(`/mercado/${tipo??"productos"}?categoria=${id}`);
+            else router.push(`/mercado/${tipo??"productos"}?categoria=${id}`);
         }
     };
 
