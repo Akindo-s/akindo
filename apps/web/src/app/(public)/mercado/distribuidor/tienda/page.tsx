@@ -82,7 +82,7 @@ function CatalogoDistribuidor({ distribuidorId }: { distribuidorId: string }) {
             <div className="flex flex-row gap-3 flex-wrap">
                 {items.map((p, index) => {
                     return (
-                        <Link href={`/mercado/productos/detalle?p=${p.producto_id}`} key={`${p.producto_id}-${index}`} className="w-xl flex gap-3 bg-white p-3 rounded-2xl border border-stone-200 shadow-sm transition-shadow hover:shadow-md cursor-pointer block">
+                        <Link href={`/mercado/productos/detalle?p=${p.producto_id}`} key={`${p.producto_id}-${index}`} className="w-sm flex gap-3 bg-white p-3 rounded-2xl border border-stone-200 shadow-sm transition-shadow hover:shadow-md cursor-pointer ">
                             {/* Imagen */}
                             <div className="w-24 h-24 flex-shrink-0 bg-stone-100 rounded-xl overflow-hidden relative">
                                 {p.imagen ? (
@@ -417,9 +417,12 @@ function TiendaContent() {
                     <Boton className="max-w-fit px-6" Icono={PlusCircle} href="/distribuidor/productos/crear">
                         
                     </Boton>
-                    <Boton variante="secundario" className="max-w-fit px-6 " Icono={AllInboxIcon} href="/distribuidor/productos">
+                    {esDueno&&(
+
+                        <Boton variante="secundario" className="max-w-fit px-6 " Icono={AllInboxIcon} href="/distribuidor/productos">
                         gestionar inventario
                     </Boton>
+                    )}
                     </div>
 
                 </div>
