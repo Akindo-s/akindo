@@ -25,7 +25,7 @@ const CONTENT = {
         titulo: "{inserte título principal}",
         descripcion: "{lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.}",
         ctaPrincipal: "explora el mercado",
-        ctaSecundario: "registrate como vendedor"
+        ctaSecundario: "regístrate como vendedor"
     },
     stats: [
         { valor: "{000+}", etiqueta: "{inserte etiqueta}" },
@@ -35,12 +35,12 @@ const CONTENT = {
     ],
     mision: {
         badge: "{inserte badge}",
-        titulo: "Mision de Akindo",
+        titulo: "Misión de Akindo",
         descripcion: "{lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.}"
     },
     valores: {
         badge: "(si tenemos lo juro)",
-        titulo: "Los Akindo valores",
+        titulo: "Los valores de Akindo",
         items: [
             {
                 Icono: ShieldCheck,
@@ -66,7 +66,7 @@ const CONTENT = {
     },
     proceso: {
         badge: "{inserte badge}",
-        titulo: "Como se usa Akindo",
+        titulo: "Cómo se usa Akindo",
         pasos: [
             {
                 numero: "01",
@@ -121,7 +121,7 @@ const CONTENT = {
         titulo: "{inserte título final}",
         descripcion: "{lorem ipsum dolor sit amet, consectetur adipiscing elit.}",
         ctaPrincipal: "explora el mercado",
-        ctaSecundario: "registrate"
+        ctaSecundario: "regístrate"
     }
 };
 

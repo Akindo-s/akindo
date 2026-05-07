@@ -327,15 +327,15 @@ function TiendaContent() {
 
                             <section className="w-full max-w-xl p-4 flex flex-col gap-2 bg-[#F8EED9] rounded-2xl mt-4">
                                 <Titulo className="text-red-600">
-                                    Tu negocio no esta verificado !
+                                    Tu negocio no está verificado !
                                 </Titulo>
                                 <hr />
                                 <Parrafo className="text-lg font-normal">
-                                    La verificacion ayuda a generar confianza con tus potenciales clientes.
-                                    <b>Ayudanos llenando un formulario</b>  para poderte verificar y empezar tu camino al exito.
+                                    La verificación ayuda a generar confianza con tus potenciales clientes.
+                                    <b>Ayúdanos llenando un formulario</b> para poderte verificar y empezar tu camino al éxito.
                                 </Parrafo>
                                 <Boton variante="primario" className="capitalize" href="https://www.youtube.com/watch?v=a40r8AhnPm8&t=2s">
-                                    aqui el formulario
+                                    aquí el formulario
                                 </Boton>
                             </section>
                         )

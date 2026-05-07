@@ -90,7 +90,7 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
                 title="Cerrar sesión"
               >
                 <LogOutIcon size={20} />
-                <span className="text-nowrap">cerrar sesion</span>
+                <span className="text-nowrap">Cerrar sesión</span>
               </Boton>
             )}
             <Boton variante="secundario" className=" bg-transparent text-[var(--color-neutral-700)] hover:text-[var(--color-primary-500)] transition cursor-pointer">

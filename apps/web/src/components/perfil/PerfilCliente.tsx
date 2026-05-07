@@ -181,7 +181,7 @@ export default function PerfilCliente({ cliente }: Props) {
                     <div className="flex flex-col gap-4">
                         <div>
 
-                        <SubTitulo className=" text-md font-bold text-stone-500 uppercase tracking-wider mb-1">Correo electronico</SubTitulo>
+                        <SubTitulo className=" text-md font-bold text-stone-500 uppercase tracking-wider mb-1">Correo electrónico</SubTitulo>
                         <Parrafo className="text-md text-stone-900" >{email}</Parrafo>
                         </div>
                         <CampoEditable

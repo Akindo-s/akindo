@@ -3,6 +3,11 @@ import Link from "next/link";
 interface HeroCardProps {
   imageSrc?: string;
 }
+const badges = [
+  "Calidad Premium",
+  "Variedad de productos",
+  "Productos cachanillas"
+]
 
 export function HeroCard({ imageSrc }: HeroCardProps) {
   return (

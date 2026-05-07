@@ -42,7 +42,7 @@ function formatMoney(value: number): string {
   });
 }
 
-function isRetryableResult(result: CarritoActionResult): boolean {
+function isRetryableResult(result: CarritoActionResult): boolean { // TODO : hay que modularizar este patron
   if (typeof result.retryable === "boolean") return result.retryable;
   if (result.status === undefined) return true;
   if ([408, 429].includes(result.status)) return true;
@@ -158,10 +158,10 @@ export default function CarritoView({
   const resumen = useMemo(
     () => [
       { label: `Subtotal (${viewData.totalArticulos})`, value: `$${formatMoney(viewData.subtotal)} ${MONEDA}` },
-      { label: "Gastos de envio estimados", value: viewData.envio === 0 ? "Gratis" : `$${formatMoney(viewData.envio)} ${MONEDA}` },
+      { label: "Gastos de envío estimados", value: viewData.envio === 0 ? "Gratis" : `$${formatMoney(viewData.envio)} ${MONEDA}` },
       {
         label: "Impuestos",
-        value: viewData.impuestos === 0 ? "Se calculara en el siguiente paso" : `$${formatMoney(viewData.impuestos)} ${MONEDA}`,
+        value: viewData.impuestos === 0 ? "Se calculará en el siguiente paso" : `$${formatMoney(viewData.impuestos)} ${MONEDA}`,
       },
     ],
     [viewData.envio, viewData.impuestos, viewData.subtotal, viewData.totalArticulos]
@@ -169,7 +169,7 @@ export default function CarritoView({
 
   const aplicarResultadoGlobal = async (result: CarritoActionResult) => {
     if (!result.ok) {
-      setError(result.error ?? "No se pudo completar la accion");
+      setError(result.error ?? "No se pudo completar la acción");
       return;
     }
 
@@ -385,7 +385,7 @@ export default function CarritoView({
           </>
         ) : (
           <Tarjeta className="text-center">
-            <p className="text-sm text-stone-500">Tu carrito esta vacio.</p>
+            <p className="text-sm text-stone-500">Tu carrito está vacío.</p>
             <Boton href="/mercado" variante="secundario" className="mt-3 !w-full">
               Explorar productos
             </Boton>

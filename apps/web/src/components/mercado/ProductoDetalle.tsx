@@ -227,7 +227,7 @@ export function ProductoDetalle({ productoId }: { productoId: string }) {
                             </div>
                         )}
                     </div>
-                    <SubTitulo className="mx-2 my-4 font-bold text-red-500">este distribuidor no esta verificado, no recomendamos comprar sin percinarse antes</SubTitulo>
+                    <SubTitulo className="mx-2 my-4 font-bold text-red-500">este distribuidor no está verificado, no recomendamos comprar sin cerciorarse antes</SubTitulo>
                 </div>
             )}
 

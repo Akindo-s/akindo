@@ -197,7 +197,7 @@ export default function DetallePedidoView({
         {/* Valoración del cliente */}
         {pedido.valoracion && (
           <div>
-            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">Valoracion del pedido</p>
+            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">Valoración del pedido</p>
             <Tarjeta className="!bg-stone-50 border-stone-200">
               <div className="flex items-center gap-1 mb-2">
                 {[1, 2, 3, 4, 5].map((s) => (

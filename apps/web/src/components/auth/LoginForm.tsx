@@ -81,7 +81,7 @@ export default function LoginForm() {
           </div>
           <div className="text-center text-xs text-stone-500 select-none">
             ¿Quieres vender con nosotros?{" "}
-            <Link href="/registro/distribuidor" className="text-[#DAA520] font-medium hover:underline transition">Unetenos!</Link>
+            <Link href="/registro/distribuidor" className="text-[#DAA520] font-medium hover:underline transition">¡Únetenos!</Link>
           </div>
         </section>
       </form>

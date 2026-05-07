@@ -66,17 +66,17 @@ const handleChange = useCallback(
         if (desactivarAutoBusqueda) return;
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
-            onBuscarRef.current?.(nuevoValor); // ← siempre lee la versión actual
+            onBuscarRef.current?.(nuevoValor);
         }, debounceMs);
     },
-    [valor, onChange, debounceMs, desactivarAutoBusqueda] // ← onBuscar ya no es dependencia
+    [valor, onChange, debounceMs, desactivarAutoBusqueda]
 );
 
     const handleLimpiar = useCallback(() => {
         handleChange("");
     }, [handleChange]);
 
-    // Limpiar timeout al desmontar
+    
     useEffect(() => {
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current);
