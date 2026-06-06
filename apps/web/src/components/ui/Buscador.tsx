@@ -93,8 +93,9 @@ const handleChange = useCallback(
                 placeholder={placeholder}
                 onKeyDown={(e) => {
                     if (e.key === "Enter") {
+                        console.log(e.key)
                         if (timerRef.current) clearTimeout(timerRef.current);
-                        onBuscar?.(valorActivo);
+                        onBuscarRef.current?.(valorActivo);
                     }
                 }}
                 className="flex-1 bg-transparent text-sm text-stone-800 placeholder-stone-400 outline-none"

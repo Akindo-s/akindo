@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Package } from "lucide-react";
 import { StorefrontIcon } from "../icons/NavigationIcons";
 import { useCategorias } from "@/lib/categorias-context";
+import { useCallback } from "react";
 
 interface Categoria {
     id: string;
@@ -56,9 +57,15 @@ export function BarraBusquedaFiltros({
         }
     };
 
+    const handleBuscar = useCallback((q:string)=>{
+        if (onBuscar) onBuscar(q);
+        router.push(`/mercado/productos?q=${q}`)
+    },[onBuscar])
+
     return (
-        <div className={`w-full sticky top-0 z-20 bg-white border-b border-stone-100 shadow-sm px-4 pt-3 pb-3 flex flex-col gap-2.5 ${className}`}>
-            <div className="flex items-center gap-3">
+        <div className={`w-full sticky top-0 z-20 bg-white border-b border-stone-100 shadow-sm  flex flex-col gap-1 ${className}`}>
+            
+            <div className="flex items-center gap-3 px-4 pt-3 pb-3">
                 {mostrarVolver && (
                     <button
                         onClick={() => router.back()}
@@ -70,7 +77,7 @@ export function BarraBusquedaFiltros({
                 <Buscador
                     placeholder={placeholder}
                     valor={valorBusqueda}         
-                    onBuscar={onBuscar}
+                    onBuscar={handleBuscar}
                     debounceMs={350}
                     onChange={onChange}
                     className="flex-1"
@@ -79,7 +86,7 @@ export function BarraBusquedaFiltros({
             </div>
 
             {categorias && categorias.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-0.5 w-full scroll-auto">
+                <div className="flex gap-2 overflow-x-auto pb-0.5 w-full scroll-auto pl-4 mb-3">
                     <button
                         type="button"
                         onClick={() => handleCategoria(null, undefined)}

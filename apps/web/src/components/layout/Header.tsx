@@ -7,6 +7,7 @@ import { ShoppingCartIcon, NotificationsIcon, AccountCircleIcon } from "../icons
 import { LogInIcon, LogOutIcon } from "../icons/AuthIcons";
 import { Boton } from "@/components/ui/Boton";
 import { useIdsCarrito } from "@/lib/carrito-context";
+import Image from "next/image";
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -48,8 +49,8 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
   return (
     <header className="relative top-0 z-30 bg-white w-full flex items-center justify-between px-4 md:px-8 lg:px-16 py-3 border-b border-stone-100">
       <div className="flex items-center gap-8">
-        <Link href="/" className="text-xl md:text-2xl font-bold text-[var(--color-neutral-900)] select-none">
-          Akindo
+        <Link href="/" className="text-xl md:text-2xl font-bold text-[var(--color-neutral-900)] select-none flex items-center gap-2">
+           Akindo
         </Link>
       </div>
 
