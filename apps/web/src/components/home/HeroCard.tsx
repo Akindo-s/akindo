@@ -90,7 +90,7 @@ export function HeroCard({ imageSrc }: HeroCardProps) {
 
           
           <Link
-            href="/sobrenosotros"
+            href="https://akindolandingpage.vercel.app"
             className="flex flex-row items-center gap-2 self-start bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white text-xs font-medium px-5 py-2.5 rounded-xl transition shadow-md hover:shadow-lg select-none"
           >
             <UsersIcon className="w-fit h-4"/>
