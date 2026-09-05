@@ -245,28 +245,50 @@ class OrdenPedidoService:
             # Obtener producto real para snapshot
             prod_rows = await self.db.select(
                 "producto",
-                "id, costo, medida, disponible, existencias",
+                "id, costo, medida, disponible, existencias,nombre,atributos_extra",
                 {"id": str(req_paquete.producto_id)},
             )
             if not prod_rows:
                 raise NotFoundException(f"Producto {req_paquete.producto_id} no encontrado")
-            prod = prod_rows[0]
-            if not prod.get("disponible") or prod.get("existencias", 0) < req_paquete.cantidad:
+            prod_data = prod_rows[0]
+            # Obtener medida para snapshot
+            medida_rows = await self.db.select(
+                "unidad_medida_producto", "*", {"id": str(prod_data["medida"])}
+            ) if prod_data.get("medida") else []
+            medida_snap = medida_rows[0] if medida_rows else {}
+
+            producto = Producto(
+                id=uuid.UUID(prod_data["id"]) if isinstance(prod_data["id"], str) else prod_data["id"],
+                costo=float(prod_data["costo"]),
+                medida=Medida(id=uuid.UUID(prod_data["medida"]) if isinstance(prod_data["medida"], str) else prod_data["medida"], nombre=medida_snap.get("nombre", ""), unidad=medida_snap.get("unidad", "")),
+                disponible=bool(prod_data["disponible"]),
+                existencias=int(prod_data["existencias"]),
+                nombre=prod_data["nombre"],
+                distribuidor_id=data.distribuidor_id,
+                atributos_extra=prod_data.get("atributos_extra")
+            )
+            if not producto.disponible or producto.existencias < req_paquete.cantidad:
                 raise AggregateNoValido(
                     f"Producto {req_paquete.producto_id} no tiene stock suficiente"
                 )
 
-            # Obtener medida para snapshot
-            medida_rows = await self.db.select(
-                "unidad_medida_producto", "*", {"id": str(prod["medida"])}
-            ) if prod.get("medida") else []
-            medida_snap = medida_rows[0] if medida_rows else {}
+            # analizar si hay niveles de precio en el producto y aplicar descuento según cantidad
+            if producto.atributos_extra and isinstance(producto.atributos_extra, dict):
+                niveles_precio = producto.atributos_extra.get("niveles_precio")
+                if niveles_precio and isinstance(niveles_precio, list):
+                    niveles_precio = sorted(niveles_precio, key=lambda x: x.get("cantidad_minima", 0),reverse=False)
+                    for nivel in niveles_precio:
+                        if req_paquete.cantidad < nivel.get("cantidad_minima", 0):
+                            producto.costo = float(nivel.get("costo_por_medida", producto.costo))
+                            break
+                    else:
+                        producto.costo = niveles_precio[-1].get('costo_por_medida')
 
             paquetes.append(PaquetePedido(
                 producto_id=req_paquete.producto_id,
                 cantidad=req_paquete.cantidad,
-                costo_unitario=float(prod["costo"]),
-                medida_snapshot={"unidad": medida_snap.get("unidad", ""), "nombre": medida_snap.get("nombre", "")},
+                costo_unitario=producto.costo,
+                medida_snapshot={"unidad": producto.medida.unidad, "nombre": producto.medida.nombre},
             ))
 
         orden = OrdenPedido.crear(
