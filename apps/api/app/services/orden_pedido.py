@@ -3,7 +3,10 @@ OrdenPedidoService — Lógica de negocio para órdenes de compra.
 """
 
 import uuid
+
+from rich.json import JSON
 from app.infrastructure.database import DatabaseSession
+from app.models.producto import Medida, Producto
 from app.repositories.orden_pedido import OrdenPedidoRepo
 from app.repositories.pedido import PedidoRepo
 from app.repositories.producto import ProductoRepo
@@ -123,7 +126,7 @@ class OrdenPedidoService:
         # Obtener carrito
         carritos = await self.db.select(
             "carrito",
-            "*, carrito_item(*, producto(nombre, costo, disponible, existencias, imagen, unidad_medida_producto(unidad, nombre)))",
+            "*, carrito_item(*, producto(nombre, costo, disponible, existencias, imagen, unidad_medida_producto(unidad, nombre),atributos_extra))",
             {"cliente_id": str(cliente_id), "distribuidor_id": str(distribuidor_id)},
         )
         if not carritos:
@@ -150,9 +153,40 @@ class OrdenPedidoService:
         subtotal = 0.0
         for item in items:
             prod = item.get("producto") or {}
-            costo = float(prod.get("costo", 0))
-            cantidad = int(item.get("cantidad", 1))
-            item_subtotal = costo * cantidad
+            
+            if item.get('producto_id') is None:
+                raise NotFoundException(f"Producto {item.get('producto_id')} no encontrado")
+            
+            producto = Producto(
+                id=uuid.UUID(item.get("producto_id") if isinstance(item.get("producto_id"), str) else item.get("producto_id")),
+                costo=float(prod.get("costo", 0)),
+                medida=Medida(id=uuid.uuid4(), nombre='medida', unidad=prod.get("unidad_medida_producto", "pz")),
+                disponible=bool(prod.get("disponible", False)),
+                existencias=int(prod.get("existencias", 0)),
+                nombre=prod.get("nombre", "Producto"),
+                distribuidor_id=distribuidor_id,
+                atributos_extra=prod.get("atributos_extra"),
+                imagen=prod.get("imagen"),
+            )
+            
+
+
+
+            
+            cantidad = float(item.get("cantidad", 0))
+            # analizar si hay niveles de precio en el producto y aplicar descuento según cantidad
+            if producto.atributos_extra and isinstance(producto.atributos_extra, dict):
+                niveles_precio = producto.atributos_extra.get("niveles_precio")
+                if niveles_precio and isinstance(niveles_precio, list):
+                    niveles_precio = sorted(niveles_precio, key=lambda x: x.get("cantidad_minima", 0),reverse=False)
+                    for nivel in niveles_precio:
+                        if cantidad < nivel.get("cantidad_minima", 0):
+                            producto.costo = float(nivel.get("costo_por_medida", producto.costo))
+                            break
+                    else:
+                        producto.costo = niveles_precio[-1].get('costo_por_medida')
+
+            item_subtotal = producto.costo * cantidad
             subtotal += item_subtotal
 
             # Extraer unidad de medida del join
@@ -167,7 +201,7 @@ class OrdenPedidoService:
                 sku=None,
                 imagen=prod.get("imagen"),
                 cantidad=cantidad,
-                costo_unitario=costo,
+                costo_unitario=producto.costo,
                 subtotal=item_subtotal,
                 unidad=unidad,
             ))

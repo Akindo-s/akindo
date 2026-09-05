@@ -5,6 +5,7 @@ Maneja: órdenes de compra (cliente crea, distribuidor gestiona) y pedidos activ
 
 from uuid import UUID
 from typing import Optional
+import logging
 
 from fastapi import APIRouter, Depends, Query, status
 
@@ -30,6 +31,8 @@ from app.schemas.pedido import (
 from app.services.orden_pedido import OrdenPedidoService
 from app.services.pedido import PedidoService
 
+
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
 
 
@@ -50,7 +53,9 @@ async def get_preorden(
     de pre-orden (confirmación). No crea ningún registro.
     """
     service = OrdenPedidoService(db)
-    return await service.get_preorden(cliente.id, distribuidor_id)
+    pre_orden = await service.get_preorden(cliente.id, distribuidor_id)
+    logger.info(f"Pre-orden generada para cliente {cliente.id} y distribuidor {distribuidor_id}\n {pre_orden.json()}")
+    return pre_orden
 
 
 # ── Órdenes de compra — cliente ───────────────────────────────────

@@ -84,7 +84,7 @@ class PreOrdenProducto(BaseModel):
     nombre: str
     sku: str | None
     imagen: str | None
-    cantidad: int
+    cantidad: int | float
     costo_unitario: float
     subtotal: float
     unidad: str
