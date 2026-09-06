@@ -1,4 +1,5 @@
-import { CategoriasProvider } from "@/lib/categorias-context";
+import { CategoriasProvider } from "@akindo/shared/categorias-context";
+import { cargarCategorias } from "@/lib/providers-data";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function ProductosLayout({ children }: { children: React.ReactNode }) {
-    return <CategoriasProvider>{children}</CategoriasProvider>;
+    return <CategoriasProvider cargarCategorias={cargarCategorias}>{children}</CategoriasProvider>;
 }

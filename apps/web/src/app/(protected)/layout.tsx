@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { CarritoProvider } from "@/lib/carrito-context";
+import { CarritoProvider } from "@akindo/shared/carrito-context";
+import { cargarIdsCarrito } from "@/lib/providers-data";
 
 export default async function ProtectedLayout({
   children,
@@ -18,7 +19,7 @@ export default async function ProtectedLayout({
     <>
     
 
-        <CarritoProvider>
+        <CarritoProvider cargarIds={cargarIdsCarrito}>
       <Header isLoggedIn={isLoggedIn} tipoUsuario={tipoUsuario}/>
       <div className="flex flex-1">
         <Sidebar tipoUsuario={tipoUsuario} />

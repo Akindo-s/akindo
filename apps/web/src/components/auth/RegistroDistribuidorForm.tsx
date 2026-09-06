@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { registrarDistribuidor } from "@/lib/api/auth";
+import { registrarDistribuidor } from "@akindo/shared/auth";
 import { Titulo } from "@/components/titles";
 import { Boton } from "@/components/ui/Boton";
 import { ArrowBackIcon } from "@/components/icons/NavigationIcons";

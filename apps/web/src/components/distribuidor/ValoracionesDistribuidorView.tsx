@@ -3,7 +3,7 @@
 import { Star, MessageSquare, Calendar, User, Package, ArrowUpRight, ExternalLink } from "lucide-react";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import Link from "next/link";
-import type { ValoracionResponse } from "@/lib/types/pedidos";
+import type { ValoracionResponse } from "@akindo/shared/types/pedidos";
 import { HeaderSticky } from "@/components/ui/HeaderSticky";
 
 

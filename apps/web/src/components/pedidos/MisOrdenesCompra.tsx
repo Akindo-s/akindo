@@ -17,7 +17,7 @@ import { Tarjeta } from "@/components/ui/Tarjeta";
 import { ModalConfirmacion } from "@/components/ui/ModalConfirmacion";
 import { cancelarOrden } from "@/lib/api/pedidos";
 import { useRouter } from "next/navigation";
-import type { EstadoOrden, OrdenPedidoListItem } from "@/lib/types/pedidos";
+import type { EstadoOrden, OrdenPedidoListItem } from "@akindo/shared/types/pedidos";
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
 

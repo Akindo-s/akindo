@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { registrarCliente } from "@/lib/api/auth";
+// import { registrarCliente } from "@akindo/shared/auth";
+import {registrarCliente} from "@akindo/shared/auth";
 import "@/components/auth/registroCliente.css";
 import { Parrafo, SubTitulo, Titulo } from "@/components/titles";
 import { Boton } from "@/components/ui/Boton";

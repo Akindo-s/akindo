@@ -6,7 +6,7 @@ import { Star, MessageCircle, MapPin, Package2, CheckCircle2, BadgeCheck, Messag
 import { EncabezadoPagina } from "@/components/ui/EncabezadoPagina";
 import { Boton } from "@/components/ui/Boton";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-import { PedidoResponse, PedidoActionResult } from "@/lib/types/pedidos";
+import { PedidoResponse, PedidoActionResult } from "@akindo/shared/types/pedidos";
 import Link from "next/link";
 import { ResumenFinancieroPedido } from "./ResumenFinancieroPedido";
 import { ListaProductosPedido } from "./ListaProductosPedido";

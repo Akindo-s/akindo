@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerPedidosDistribuidor, enviarActualizacionPedido } from "@/lib/api/pedidos";
-import { EstadoPedido } from "@/lib/types/pedidos";
+import { EstadoPedido } from "@akindo/shared/types/pedidos";
 import { Suspense } from "react";
 import PedidosDistribuidorView from "@/components/distribuidor/PedidosDistribuidorView";
 

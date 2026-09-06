@@ -2,7 +2,7 @@
 
 import { Package2 } from "lucide-react";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-import type { PedidoItemResponse } from "@/lib/types/pedidos";
+import type { PedidoItemResponse } from "@akindo/shared/types/pedidos";
 import Link from "next/link";
 
 interface ListaProductosPedidoProps {

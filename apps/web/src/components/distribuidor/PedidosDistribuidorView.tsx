@@ -6,7 +6,7 @@ import { Truck, CheckCircle2, Clock, MapPin, XCircle, ChevronDown } from "lucide
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Boton } from "@/components/ui/Boton";
 import { VentanaEmergente } from "@/components/VentanaEmergente";
-import type { PedidoListItem, EstadoPedido, PedidoResponse, PedidoActionResult } from "@/lib/types/pedidos";
+import type { PedidoListItem, EstadoPedido, PedidoResponse, PedidoActionResult } from "@akindo/shared/types/pedidos";
 import { HeaderSticky } from "@/components/ui/HeaderSticky";
 
 const MONEDA = "MXN";

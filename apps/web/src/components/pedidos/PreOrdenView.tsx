@@ -7,7 +7,7 @@ import { ShieldCheck, Truck, MapPin, CreditCard, Lock, AlertCircle, CheckCircle2
 import { EncabezadoPagina } from "@/components/ui/EncabezadoPagina";
 import { Boton } from "@/components/ui/Boton";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-import type { PreOrdenResponse, DireccionCliente, OrdenPedidoResponse, PedidoActionResult } from "@/lib/types/pedidos";
+import type { PreOrdenResponse, DireccionCliente, OrdenPedidoResponse, PedidoActionResult } from "@akindo/shared/types/pedidos";
 import FooterFijo from "../layout/FooterFijo";
 import { Parrafo } from "../titles";
 import { ModalConfirmacion } from "../ui/ModalConfirmacion";

@@ -1,133 +1,51 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { fetchWithAuth } from "./fetch";
+import * as core from "@akindo/shared/api/categorias";
+import { conSesion, tokenOpcional } from "@/lib/sesion";
 
-async function getToken(): Promise<string | undefined> {
-    const cookieStore = await cookies();
-    return cookieStore.get("token")?.value;
-}
-
-export interface CategoriaResponse {
-    id: string;
-    nombre: string;
-    imagen: string | null;
-}
-
-export interface CategoriaDestacada {
-    categoria_id: string;
-    nombre: string;
-    imagen: string | null;
-    total_compras: number;
-}
+export type {
+    CategoriaResponse,
+    CategoriaDestacada,
+    ResultadoCategoria,
+} from "@akindo/shared/api/categorias";
 
 // === OBTENER CATEGORÍAS ===
 
-export async function obtenerCategoriasDestacadas(clienteId?: string, limite: number = 10): Promise<CategoriaDestacada[]> {
-    const token = await getToken();
-    let url = `/categorias/productos/destacadas?limite=${limite}`;
-    if (clienteId) url += `&cliente_id=${clienteId}`;
-    
-    const respuesta = await fetchWithAuth(url, { method: "GET" }, token);
-    
-    if (respuesta.status === 200) {
-        return await respuesta.json();
-    }
-    return [];
+export async function obtenerCategoriasDestacadas(clienteId?: string, limite: number = 10) {
+    const token = await tokenOpcional();
+    return conSesion(() => core.obtenerCategoriasDestacadas(token, clienteId, limite));
 }
 
-export async function obtenerCategoriasProductos(): Promise<CategoriaResponse[]> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth('/categorias/productos', { method: "GET" }, token,60);
-    
-    if (respuesta.status === 200) {
-        return await respuesta.json();
-    }
-    return [];
+export async function obtenerCategoriasProductos() {
+    const token = await tokenOpcional();
+    return conSesion(() => core.obtenerCategoriasProductos(token));
 }
 
-export async function obtenerCategoriasDistribuidores(): Promise<CategoriaResponse[]> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth('/categorias/distribuidores', { method: "GET" }, token);
-    
-    if (respuesta.status === 200) {
-        return await respuesta.json();
-    }
-    return [];
+export async function obtenerCategoriasDistribuidores() {
+    const token = await tokenOpcional();
+    return conSesion(() => core.obtenerCategoriasDistribuidores(token));
 }
 
 // === CREAR CATEGORÍAS ===
 
-export async function crearCategoriaProducto(formData: FormData): Promise<{ success: boolean; data?: any; error?: string }> {
-    const token = await getToken();
-    
-    // formData debe contener 'nombre' y opcionalmente 'imagen' (archivo)
-    const respuesta = await fetchWithAuth('/categorias/productos', {
-        method: "POST",
-        body: formData,
-        // No enviamos Content-Type para que fetch lo calcule automáticamente con los boundaries del FormData
-    }, token);
-
-    if (respuesta.status === 201) {
-        return { success: true, data: await respuesta.json() };
-    }
-    
-    let errorMsg = "Error al crear la categoría de producto";
-    try {
-        const errorData = await respuesta.json();
-        if (errorData.detail) {
-            errorMsg = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
-        }
-    } catch (e) {
-        // Fallback si no es JSON
-    }
-    
-    return { success: false, error: errorMsg };
+export async function crearCategoriaProducto(formData: FormData) {
+    const token = await tokenOpcional();
+    return conSesion(() => core.crearCategoriaProducto(formData, token));
 }
 
-export async function crearCategoriaDistribuidor(formData: FormData): Promise<{ success: boolean; data?: any; error?: string }> {
-    const token = await getToken();
-    
-    const respuesta = await fetchWithAuth('/categorias/distribuidores', {
-        method: "POST",
-        body: formData,
-    }, token);
-
-    if (respuesta.status === 201) {
-        return { success: true, data: await respuesta.json() };
-    }
-    
-    let errorMsg = "Error al crear la categoría de distribuidor";
-    try {
-        const errorData = await respuesta.json();
-        if (errorData.detail) {
-            errorMsg = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
-        }
-    } catch (e) {
-        // Fallback si no es JSON
-    }
-    
-    return { success: false, error: errorMsg };
+export async function crearCategoriaDistribuidor(formData: FormData) {
+    const token = await tokenOpcional();
+    return conSesion(() => core.crearCategoriaDistribuidor(formData, token));
 }
 
 // === ELIMINAR CATEGORÍAS ===
 
-export async function eliminarCategoriaProducto(id: string): Promise<{ success: boolean; error?: string }> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth(`/categorias/productos/${id}`, { method: "DELETE" }, token);
-    
-    if (respuesta.status === 204) {
-        return { success: true };
-    }
-    return { success: false, error: "Error al eliminar la categoría de producto" };
+export async function eliminarCategoriaProducto(id: string) {
+    const token = await tokenOpcional();
+    return conSesion(() => core.eliminarCategoriaProducto(id, token));
 }
 
-export async function eliminarCategoriaDistribuidor(id: string): Promise<{ success: boolean; error?: string }> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth(`/categorias/distribuidores/${id}`, { method: "DELETE" }, token);
-    
-    if (respuesta.status === 204) {
-        return { success: true };
-    }
-    return { success: false, error: "Error al eliminar la categoría de distribuidor" };
+export async function eliminarCategoriaDistribuidor(id: string) {
+    const token = await tokenOpcional();
+    return conSesion(() => core.eliminarCategoriaDistribuidor(id, token));
 }
