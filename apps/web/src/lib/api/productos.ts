@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { fetchWithAuth } from "./fetch";
-import { API_URL } from "./constants";
+import { API_URL } from "@akindo/shared/constants";
 
 // === Token helper ===
 async function getToken(): Promise<string | undefined> {

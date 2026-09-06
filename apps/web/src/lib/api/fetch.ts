@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { API_URL } from "./constants";
+import { API_URL } from "@akindo/shared/constants";
 
 /**
  * Wrapper centralizado para hacer peticiones a la API desde el servidor.

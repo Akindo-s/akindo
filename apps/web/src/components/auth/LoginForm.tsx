@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { login } from "@/lib/api/auth";
+// import { login } from "@akindo/shared/auth";
+import { login } from "@akindo/shared/auth";
 import { Titulo } from "@/components/titles";
 import { EmailIcon, PasswordIcon } from "@/components/icons/AuthIcons";
 import { Input } from "@/components/inputs";

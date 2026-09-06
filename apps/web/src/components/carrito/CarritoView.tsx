@@ -13,7 +13,7 @@ import {
   CarritoUiData,
   CarritoUiItem,
 } from "@/lib/types/carrito";
-import { MONEDA } from "@/lib/api/constants";
+import { MONEDA } from "@akindo/shared/constants";
 import { Trash2 } from "lucide-react";
 
 interface CarritoViewProps {

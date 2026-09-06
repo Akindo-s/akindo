@@ -9,7 +9,7 @@ import { obtenerDistribuidor, type DistribuidorPublicoResponse } from "@/lib/api
 import { StorefrontIcon } from "../icons/NavigationIcons";
 import { SubTitulo } from "../titles";
 import { CostosVolumen, type NivelPrecio } from "./CostosVolumen";
-import { MONEDA } from "@/lib/api/constants";
+import { MONEDA } from "@akindo/shared/constants";
 import { agregarProductoCliente } from "@/lib/client/carrito";
 import { verificarProductoEnCarrito } from "@/lib/api/carrito";
 import { VentanaEmergente } from "../VentanaEmergente";

@@ -15,7 +15,7 @@ import {
 import { useScrollInfinito } from "@/components/hooks/useScrollInfinito";
 import { Parrafo, SubTitulo, Titulo } from "@/components/titles";
 import { Boton } from "@/components/ui/Boton";
-import { MONEDA } from "@/lib/api/constants";
+import { MONEDA } from "@akindo/shared/constants";
 import { AllInboxIcon } from "@/components/icons/NavigationIcons";
 import { agregarProductoCliente } from "@/lib/client/carrito";
 import { VentanaEmergente } from "@/components/VentanaEmergente";

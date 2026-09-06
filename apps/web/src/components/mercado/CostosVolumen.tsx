@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MONEDA } from "@/lib/api/constants";
+import { MONEDA } from "@akindo/shared/constants";
 
 
 export interface NivelPrecio {

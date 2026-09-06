@@ -1,6 +1,6 @@
 "use client";
 
-import { MONEDA } from "@/lib/api/constants";
+import { MONEDA } from "@akindo/shared/constants";
 import QuantityStepper from "./QuantityStepper";
 import { CarritoUiItem } from "@/lib/types/carrito";
 import { Parrafo } from "../titles";

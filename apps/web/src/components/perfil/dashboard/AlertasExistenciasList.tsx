@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Image as ImageIcon } from "lucide-react";
 import { obtenerProductosPocasExistencias } from "@/lib/api/distribuidor";
 import ProductActionsMenu from "./ProductActionsMenu";
-import { MONEDA } from "@/lib/api/constants";
+import { MONEDA } from "@akindo/shared/constants";
 
 
 export function AlertasExistenciasSkeleton() {

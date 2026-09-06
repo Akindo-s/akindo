@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Boton } from "@/components/ui/Boton";
 import { useEffect, useState } from "react";
 import { ModalConfirmacion } from "@/components/ui/ModalConfirmacion";
-import { MONEDA } from "@/lib/api/constants";
+import { MONEDA } from "@akindo/shared/constants";
 
 
 export interface ProductoInventario {

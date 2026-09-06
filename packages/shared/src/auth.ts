@@ -1,4 +1,5 @@
-import {API_URL} from "@/lib/api/constants"
+// import {API_URL} from "@akindo/shared/constants"
+import { API_URL } from "@akindo/shared/constants";
 
 export async function registrarCliente(datos) {
   const response = await fetch(`${API_URL}/clientes`, {
