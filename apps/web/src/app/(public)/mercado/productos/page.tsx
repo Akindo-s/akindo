@@ -7,7 +7,7 @@ import { obtenerCategoriasDisponibles, type CategoriaProductos } from "@/lib/api
 import { TarjetaProductoCatalogo } from "@/components/mercado/TarjetaProductoCatalogo";
 import { BarraBusquedaFiltros } from "@/components/mercado/BarraBusquedaFiltros";
 import { useScrollInfinito } from "@/components/hooks/useScrollInfinito";
-import { useCategorias } from "@/lib/categorias-context";
+import { useCategorias } from "@akindo/shared/categorias-context";
 
 function SkeletonProducto() {
     return (

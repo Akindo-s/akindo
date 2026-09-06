@@ -4,7 +4,7 @@ import { Buscador } from "@/components/ui/Buscador";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Package } from "lucide-react";
 import { StorefrontIcon } from "../icons/NavigationIcons";
-import { useCategorias } from "@/lib/categorias-context";
+import { useCategorias } from "@akindo/shared/categorias-context";
 import { useCallback } from "react";
 
 interface Categoria {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Package2, Clock, CheckCircle2, XCircle, ShoppingBag } from "lucide-react";
 import { Tarjeta } from "@/components/ui/Tarjeta";
-import type { PedidoListItem, EstadoPedido, OrdenPedidoListItem } from "@/lib/types/pedidos";
+import type { PedidoListItem, EstadoPedido, OrdenPedidoListItem } from "@akindo/shared/types/pedidos";
 
 const MONEDA = "MXN";
 

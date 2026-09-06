@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { ShoppingCartIcon, NotificationsIcon, AccountCircleIcon } from "../icons/NavigationIcons";
 import { LogInIcon, LogOutIcon } from "../icons/AuthIcons";
 import { Boton } from "@/components/ui/Boton";
-import { useIdsCarrito } from "@/lib/carrito-context";
+import { useIdsCarrito } from "@akindo/shared/carrito-context";
 import Image from "next/image";
 
 interface HeaderProps {

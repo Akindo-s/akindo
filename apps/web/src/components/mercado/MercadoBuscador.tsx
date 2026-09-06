@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { BarraBusquedaFiltros } from "./BarraBusquedaFiltros";
-import { CategoriasProvider } from "@/lib/categorias-context";
+import { CategoriasProvider } from "@akindo/shared/categorias-context";
+import { cargarCategorias } from "@/lib/providers-data";
 
 
 
@@ -11,7 +12,7 @@ export function MercadoBuscador() {
     const [valor,setValor] = useState("");
 
     return (
-        <CategoriasProvider>
+        <CategoriasProvider cargarCategorias={cargarCategorias}>
 
             <BarraBusquedaFiltros
                 placeholder="Buscar productos, distribuidores..."

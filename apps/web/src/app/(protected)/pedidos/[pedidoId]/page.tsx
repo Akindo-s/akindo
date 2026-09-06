@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { obtenerDetallePedido, crearValoracion, enviarActualizacionPedido } from "@/lib/api/pedidos";
 import DetallePedidoView from "@/components/pedidos/DetallePedidoView";
 import DetallePedidoDistView from "@/components/distribuidor/DetallePedidoDistView";
-import { EstadoPedido } from "@/lib/types/pedidos";
+import { EstadoPedido } from "@akindo/shared/types/pedidos";
 import { XCircle } from "lucide-react";
 import Link from "next/link";
 import { Boton } from "@/components/ui/Boton";

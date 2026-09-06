@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { ProductoDetalle } from "@/components/mercado/ProductoDetalle";
-import { CategoriasProvider } from "@/lib/categorias-context";
 
 export default async function ProductoDetallePage({
     searchParams,
