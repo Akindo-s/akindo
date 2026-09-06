@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/Badge";
 import { ListaProductosPedido } from "@/components/pedidos/ListaProductosPedido";
 import { ResumenFinancieroPedido } from "@/components/pedidos/ResumenFinancieroPedido";
 import { VentanaEmergente } from "@/components/VentanaEmergente";
-import type { OrdenPedidoResponse, PedidoActionResult } from "@/lib/types/pedidos";
+import type { OrdenPedidoResponse, PedidoActionResult } from "@akindo/shared/types/pedidos";
 import { useRouter } from "next/navigation";
 
 interface DetalleOrdenCompraDistViewProps {

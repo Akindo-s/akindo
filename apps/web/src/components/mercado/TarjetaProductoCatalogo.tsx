@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { ArrowUpRight, Loader2, Package, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { MONEDA } from "@akindo/shared/constants";
-import { agregarProductoCliente } from "@/lib/client/carrito";
+import { agregarProductoCliente } from "@akindo/shared/client/carrito";
 import { verificarProductoEnCarrito } from "@/lib/api/carrito";
 import { VentanaEmergente } from "../VentanaEmergente";
-import { useIdsCarrito } from "@/lib/carrito-context";
+import { useIdsCarrito } from "@akindo/shared/carrito-context";
 
 interface TarjetaProductoCatalogoProps {
     productoId: string;

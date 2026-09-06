@@ -17,7 +17,7 @@ import { Parrafo, SubTitulo, Titulo } from "@/components/titles";
 import { Boton } from "@/components/ui/Boton";
 import { MONEDA } from "@akindo/shared/constants";
 import { AllInboxIcon } from "@/components/icons/NavigationIcons";
-import { agregarProductoCliente } from "@/lib/client/carrito";
+import { agregarProductoCliente } from "@akindo/shared/client/carrito";
 import { VentanaEmergente } from "@/components/VentanaEmergente";
 
 

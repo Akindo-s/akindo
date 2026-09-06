@@ -1,4 +1,4 @@
-import { API_URL } from "@akindo/shared/constants";
+import { API_URL } from "./constants";
 
 export interface RegistrarClienteDatos {
   nombre: string;

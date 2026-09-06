@@ -10,7 +10,7 @@ import { StorefrontIcon } from "../icons/NavigationIcons";
 import { SubTitulo } from "../titles";
 import { CostosVolumen, type NivelPrecio } from "./CostosVolumen";
 import { MONEDA } from "@akindo/shared/constants";
-import { agregarProductoCliente } from "@/lib/client/carrito";
+import { agregarProductoCliente } from "@akindo/shared/client/carrito";
 import { verificarProductoEnCarrito } from "@/lib/api/carrito";
 import { VentanaEmergente } from "../VentanaEmergente";
 import { Boton } from "../ui/Boton";

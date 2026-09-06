@@ -1,6 +1,6 @@
 "use client";
 
-import type { PedidoActualizacion } from "@/lib/types/pedidos";
+import type { PedidoActualizacion } from "@akindo/shared/types/pedidos";
 
 interface HistorialActualizacionesPedidoProps {
   actualizaciones: PedidoActualizacion[];

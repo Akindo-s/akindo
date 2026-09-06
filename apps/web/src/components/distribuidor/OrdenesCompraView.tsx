@@ -5,7 +5,7 @@ import { Check, X, Inbox, AlertCircle, FileText } from "lucide-react";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Boton } from "@/components/ui/Boton";
 import { VentanaEmergente } from "@/components/VentanaEmergente";
-import type { OrdenPedidoListItem, PedidoActionResult, OrdenPedidoResponse } from "@/lib/types/pedidos";
+import type { OrdenPedidoListItem, PedidoActionResult, OrdenPedidoResponse } from "@akindo/shared/types/pedidos";
 import { HeaderSticky } from "@/components/ui/HeaderSticky";
 import Link from "next/link";
 

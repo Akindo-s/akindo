@@ -20,7 +20,7 @@ import { Boton } from "@/components/ui/Boton";
 import { ResumenFinancieroPedido } from "@/components/pedidos/ResumenFinancieroPedido";
 import { ListaProductosPedido } from "@/components/pedidos/ListaProductosPedido";
 import { HistorialActualizacionesPedido } from "@/components/pedidos/HistorialActualizacionesPedido";
-import type { PedidoResponse, EstadoPedido, PedidoActionResult } from "@/lib/types/pedidos";
+import type { PedidoResponse, EstadoPedido, PedidoActionResult } from "@akindo/shared/types/pedidos";
 import { Tarjeta } from "../ui/Tarjeta";
 
 const MONEDA = "MXN";

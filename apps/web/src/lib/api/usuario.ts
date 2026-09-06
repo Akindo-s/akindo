@@ -1,16 +1,14 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { fetchWithAuth } from "./fetch";
+import * as core from "@akindo/shared/api/usuario";
+import { conSesion, sesionOpcional, tokenRequerido } from "@/lib/sesion";
 
-// === Función interna para obtener el token una sola vez ===
-async function getToken(): Promise<string | undefined> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    if (!token) redirect("/login");
-    return token;
-}
+export type {
+    DatosPerfilCliente,
+    DatosPerfilDistribuidor,
+    DatosDireccion,
+    DatosDireccionParcial,
+} from "@akindo/shared/api/usuario";
 
 // === IMAGEN DE PERFIL ===
 
@@ -18,97 +16,52 @@ async function getToken(): Promise<string | undefined> {
  * Actualiza la imagen de perfil del usuario autenticado (cliente o distribuidor).
  */
 export async function actualizarImagenPerfil(file: File): Promise<boolean> {
-    const token = await getToken();
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const respuesta = await fetchWithAuth('/usuarios/me/imagen-perfil', {
-        method: 'PUT',
-        body: formData
-    }, token);
-
-    return respuesta.status === 200;
+    const token = await tokenRequerido();
+    return conSesion(() => core.actualizarImagenPerfil(file, token));
 }
 
 // === CLIENTES ===
 
 export async function obtenerInformacionPerfil(): Promise<any> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth('/clientes/me', { method: "GET" }, token);
-
-    if (respuesta.status === 200) {
-        return await respuesta.json();
-    }
-    return null;
+    const token = await tokenRequerido();
+    return conSesion(() => core.obtenerInformacionPerfil(token));
 }
 
-export async function actualizarPerfilCliente(datos: { nombre?: string; telefono?: string; email?: string }): Promise<boolean> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth('/clientes/me', {
-        method: "PATCH",
-        body: JSON.stringify(datos)
-    }, token);
-
-    return respuesta.status === 200;
+export async function actualizarPerfilCliente(
+    datos: { nombre?: string; telefono?: string; email?: string }
+): Promise<boolean> {
+    const token = await tokenRequerido();
+    return conSesion(() => core.actualizarPerfilCliente(datos, token));
 }
 
 // === DISTRIBUIDORES ===
 
 export async function obtenerPerfilDistribuidor(): Promise<any> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth('/distribuidores/me', { method: "GET" }, token);
-
-    if (respuesta.status === 200) {
-        return await respuesta.json();
-    }
-    return null;
+    const token = await tokenRequerido();
+    return conSesion(() => core.obtenerPerfilDistribuidor(token));
 }
 
-export async function actualizarPerfilDistribuidor(distribuidorId: string, datos: { nombre_negocio?: string; telefono?: string; descripcion?: string }): Promise<boolean> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth(`/distribuidores/${distribuidorId}`, {
-        method: "PATCH",
-        body: JSON.stringify(datos)
-    }, token);
-
-    return respuesta.status === 200;
+export async function actualizarPerfilDistribuidor(
+    distribuidorId: string,
+    datos: { nombre_negocio?: string; telefono?: string; descripcion?: string }
+): Promise<boolean> {
+    const token = await tokenRequerido();
+    return conSesion(() => core.actualizarPerfilDistribuidor(distribuidorId, datos, token));
 }
 
 /**
  * Verifica si el usuario actual es el dueño de un perfil de distribuidor, sin redirigir si no está autenticado.
  */
 export async function esDistribuidorDueno(distribuidorId: string): Promise<boolean> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
-
-    if (!token || tipoUsuario !== "distribuidor") {
-        return false;
-    }
-
-    try {
-        const respuesta = await fetchWithAuth('/distribuidores/me', { method: "GET" }, token);
-        if (respuesta.status === 200) {
-            const data = await respuesta.json();
-            return data.id === distribuidorId;
-        }
-    } catch (e) {
-        console.error("Error verificando dueño del distribuidor", e);
-    }
-    
-    return false;
+    const { token, tipo } = await sesionOpcional();
+    return core.esDistribuidorDueno(distribuidorId, token, tipo);
 }
 
 // === DIRECCIONES ===
 
 export async function obtenerMisDirecciones(): Promise<any[]> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth('/clientes/me/direcciones', { method: "GET" }, token);
-
-    if (respuesta.status === 200) {
-        return await respuesta.json();
-    }
-    return [];
+    const token = await tokenRequerido();
+    return conSesion(() => core.obtenerMisDirecciones(token));
 }
 
 export async function crearDireccion(datos: {
@@ -118,13 +71,8 @@ export async function crearDireccion(datos: {
     codigo_postal: string;
     es_predeterminada?: boolean;
 }): Promise<boolean> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth('/clientes/me/direcciones', {
-        method: "POST",
-        body: JSON.stringify(datos)
-    }, token);
-
-    return respuesta.status === 200 || respuesta.status === 201;
+    const token = await tokenRequerido();
+    return conSesion(() => core.crearDireccion(datos, token));
 }
 
 export async function actualizarDireccion(direccionId: string, datos: {
@@ -134,20 +82,11 @@ export async function actualizarDireccion(direccionId: string, datos: {
     codigo_postal?: string;
     es_predeterminada?: boolean;
 }): Promise<boolean> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth(`/clientes/me/direcciones/${direccionId}`, {
-        method: "PATCH",
-        body: JSON.stringify(datos)
-    }, token);
-
-    return respuesta.status === 200;
+    const token = await tokenRequerido();
+    return conSesion(() => core.actualizarDireccion(direccionId, datos, token));
 }
 
 export async function eliminarDireccion(direccionId: string): Promise<boolean> {
-    const token = await getToken();
-    const respuesta = await fetchWithAuth(`/clientes/me/direcciones/${direccionId}`, {
-        method: "DELETE"
-    }, token);
-
-    return respuesta.status === 204;
+    const token = await tokenRequerido();
+    return conSesion(() => core.eliminarDireccion(direccionId, token));
 }
