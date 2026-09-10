@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { ShoppingCartIcon, NotificationsIcon, AccountCircleIcon } from "../icons/NavigationIcons";
 import { LogInIcon, LogOutIcon } from "../icons/AuthIcons";
 import { Boton } from "@/components/ui/Boton";
+import { _logout } from "@/lib/auth";
 import { useIdsCarrito } from "@akindo/shared/carrito-context";
 import Image from "next/image";
 
@@ -38,7 +39,7 @@ export function Header({ isLoggedIn, tipoUsuario }: HeaderProps) {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await _logout();
       router.push("/");
       router.refresh();
     } catch (error) {

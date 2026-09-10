@@ -1,4 +1,5 @@
 import { API_URL } from "./constants";
+import type { TipoUsuario } from "./sesion";
 
 export interface RegistrarClienteDatos {
   nombre: string;
@@ -27,6 +28,13 @@ export interface RegistrarDistribuidorDatos {
 export interface LoginDatos {
   email: string;
   password: string;
+}
+
+/** Lo que devuelve `POST /auth/token`. Quien persiste el token es el glue de cada plataforma. */
+export interface LoginRespuesta {
+  access_token: string;
+  token_type: string;
+  tipo_usuario: TipoUsuario;
 }
 
 interface ApiErrorBody {
@@ -77,8 +85,8 @@ export async function registrarDistribuidor(datos: RegistrarDistribuidorDatos): 
   return response.json();
 }
 
-export async function login(datos: LoginDatos): Promise<unknown> {
-  const response = await fetch(`/api/auth/login`, {
+export async function login(datos: LoginDatos): Promise<LoginRespuesta> {
+  const response = await fetch(`${API_URL}/auth/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

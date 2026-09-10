@@ -24,6 +24,11 @@
   },
   "include": [
     "next-env.d.ts",
+    // Los tipos de nativewind se cargan desde packages/ui a proposito: augmentan
+    // el modulo "react-native", y TypeScript solo fusiona la augmentacion si la
+    // resuelve al mismo modulo que importan los archivos augmentados. Anclarla
+    // aca (en apps/web) la resolveria a otra instancia y no aplicaria.
+    "../../packages/ui/nativewind-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",

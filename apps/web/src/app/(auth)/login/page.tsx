@@ -1,4 +1,5 @@
-import LoginForm from "@/components/auth/LoginForm";
+import { _login } from "@/lib/auth";
+import LoginForm from "@akindo/ui/screens/login";
 
 export const metadata = {
   title: "Iniciar Sesión",
@@ -6,5 +7,5 @@ export const metadata = {
 };
 
 export default function LoginPage() {
-  return <LoginForm />;
+  return <LoginForm login={_login} />;
 }

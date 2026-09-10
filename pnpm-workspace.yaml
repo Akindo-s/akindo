@@ -5,3 +5,14 @@ packages:
 allowBuilds:
   sharp: false
   unrs-resolver: false
+patchedDependencies:
+  react-native-css-interop: patches/react-native-css-interop.patch
+
+# packages/ui peerea `react` con un rango amplio y lo consumen las dos apps.
+# Si cada app trae una version distinta, pnpm resuelve los peers por separado y
+# duplica todo lo que peerea React (react-native, nativewind,
+# react-native-css-interop). Fijar una sola version mantiene una unica copia.
+# La version la manda Expo: es la que pinea el SDK (ver `npx expo install --check`).
+overrides:
+  react: 19.2.3
+  react-dom: 19.2.3

@@ -11,6 +11,7 @@ import { ItemMenu } from "@/components/ui/ItemMenu";
 import { Badge } from "@/components/ui/Badge";
 import { Boton } from "@/components/ui/Boton";
 import { actualizarPerfilCliente, obtenerMisDirecciones, crearDireccion, actualizarDireccion, eliminarDireccion } from "@/lib/api/usuario";
+import { _logout } from "@/lib/auth";
 import { Parrafo, SubTitulo } from "../titles";
 import useSWR from "swr";
 import { Trash2, Edit3 } from "lucide-react";
@@ -82,7 +83,7 @@ export default function PerfilCliente({ cliente }: Props) {
     if (!cliente) return <div className="p-4 text-center text-sm text-stone-500">Cargando perfil...</div>;
 
     const handleLogout = async () => {
-        await fetch("/api/auth/logout", { method: "POST" });
+        await _logout();
         router.push("/");
         router.refresh();
     };

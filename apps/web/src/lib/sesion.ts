@@ -13,6 +13,31 @@ import { esErrorDeSesion, type Sesion, type TipoUsuario } from "@akindo/shared/s
 
 const TIPOS_VALIDOS: TipoUsuario[] = ["cliente", "distribuidor", "admin"];
 
+/**
+ * Opciones heredadas de la route handler `/api/auth/login`, que era quien
+ * seteaba estas cookies antes de que el login pasara a ser Server Action.
+ * `httpOnly` es lo que impide que el token se lea desde JS del cliente.
+ */
+const COOKIE_SESION = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: 60 * 60 * 24, // 24 h
+};
+
+export async function createSesion(token:string,tipoUsuario:TipoUsuario){
+  const cookieStore = await cookies();
+  cookieStore.set('token',token,COOKIE_SESION);
+  cookieStore.set('tipo_usuario',tipoUsuario,COOKIE_SESION);
+}
+
+export async function destroySesion(){
+  const cookieStore = await cookies();
+  cookieStore.delete('token');
+  cookieStore.delete('tipo_usuario');
+}
+
 /** Lee la sesion de las cookies sin redirigir. */
 export async function sesionOpcional(): Promise<Partial<Sesion>> {
   const cookieStore = await cookies();
