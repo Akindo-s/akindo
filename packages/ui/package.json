@@ -7,9 +7,9 @@
         "./nativewind-init": "./nativewind-classname.ts",
         "./components": "./components/index.ts",
         "./icons/*": "./icons/*.tsx",
-        "./html":"./components/html-elements.tsx",
-        "./*":"./*.ts",
-        "./screens/*":"./screens/*.tsx"
+        "./html": "./components/html-elements.tsx",
+        "./*": "./*.ts",
+        "./screens/*": "./screens/*.tsx"
     },
     "peerDependencies": {
         "react": ">=18",
@@ -23,6 +23,7 @@
         "@expo/html-elements": "^57.0.0",
         "expo-router": "~57.0.19",
         "nativewind": "^4.2.6",
-        "react-native-svg": "^15.15.5"
+        "react-native-svg": "^15.15.5",
+        "tailwind-merge": "^3.5.0"
     }
 }
