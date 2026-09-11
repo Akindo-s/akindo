@@ -1,11 +1,19 @@
 /** @jsxImportSource nativewind */
 
-import { 
+// Registra el cssInterop de los primitivos antes de usarlos. Tiene que ir aca y
+// no solo en el layout.tsx de web: ese layout es Server Component, y un modulo
+// "use client" importado solo por efecto desde ahi nunca se evalua en el
+// navegador. Sin el registro, el className de H1/H2/P/Header/Section se
+// descartaba en web sin avisar.
+import '../nativewind-classname';
+
+import {
     H1 as RawH1, 
     H2 as RawH2, 
     H3 as RawH3,
     P as RawP,
     A as RawA,
+    Span as RawSpan,
     Section as RawSection,
     Header as RawHeader,
     Footer as RawFooter
@@ -19,6 +27,7 @@ import {
 } from "react-native-svg"
 import React from 'react';
 import type { ComponentProps } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { fuente, type PesoFuente } from '../fonts';
 
 type WithClassName<T> = T & { className?: string };
@@ -36,10 +45,16 @@ type ConFuente = { peso?: PesoFuente; style?: any };
  *
  * El `style` que llegue por props va al final, asi una instancia puede pisar
  * la fuente si lo necesita.
+ *
+ * Tambien arranca con `my-0`, que es lo que hacia el preflight de Tailwind en
+ * la app web original: ahi `h1`..`p` no traen margen propio, mientras que los
+ * de @expo/html-elements traen `marginVertical` de 0.67em a 1em en las dos
+ * plataformas. Va por className y no por `style` a proposito: el `style` gana
+ * sobre el className, y un `mt-1` de la instancia dejaria de aplicar.
  */
 function conTipografia<P extends object>(Componente: React.ComponentType<P>) {
-  const Envuelto = ({ peso = 'normal', style, ...props }: P & ConFuente) => (
-    <Componente {...(props as P)} style={[fuente(peso), style]} />
+  const Envuelto = ({ peso = 'normal', style, className, ...props }: P & ConFuente & { className?: string }) => (
+    <Componente {...(props as P)} className={twMerge('my-0', className)} style={[fuente(peso), style]} />
   );
   Envuelto.displayName = `conTipografia(${Componente.displayName ?? Componente.name ?? 'Componente'})`;
   return Envuelto as React.ComponentType<WithClassName<P> & ConFuente>;
@@ -51,6 +66,7 @@ export const H2 = conTipografia(RawH2 as React.ComponentType<ComponentProps<type
 export const H3 = conTipografia(RawH3 as React.ComponentType<ComponentProps<typeof RawH3>>);
 export const P = conTipografia(RawP as React.ComponentType<ComponentProps<typeof RawP>>);
 export const A = conTipografia(RawA as React.ComponentType<ComponentProps<typeof RawA>>);
+export const Span = conTipografia(RawSpan as React.ComponentType<ComponentProps<typeof RawSpan>>);
 export const Svg = RawSvg as React.ComponentType<WithClassName<ComponentProps<typeof RawSvg>>>;
 export const Path = RawPath as React.ComponentType<WithClassName<ComponentProps<typeof RawPath>>>;
 export const Circle = RawCircle as React.ComponentType<WithClassName<ComponentProps<typeof RawCircle>>>;

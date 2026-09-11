@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/inputs.tsx ; referenciado en otros componentes de web.
 import { useState, InputHTMLAttributes } from "react";
 import { EyeIcon } from "./icons/AuthIcons";
 

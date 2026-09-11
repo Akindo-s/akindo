@@ -23,4 +23,7 @@ config.resolver.nodeModulesPaths = [
 // be allowed to walk up from the importing file to find them.
 
 
-module.exports = withNativeWind(config, { input: './global.css' })
+// inlineRem 16 = el rem de web (el default del navegador). nativewind usa 14 en
+// nativo si no se le dice nada, y todo lo que es rem (p-4, text-xs, max-w-md,
+// ...) salia ~12% mas chico que en web.
+module.exports = withNativeWind(config, { input: './global.css', inlineRem: 16 })

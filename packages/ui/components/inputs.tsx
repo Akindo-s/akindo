@@ -12,7 +12,7 @@ import {View,Text, Pressable,TextInput} from 'react-native';
  */
 interface InputProps {
   placeholder?: string;
-  Icono?: React.ComponentType<{ className?: string }> | null;
+  Icono?: React.ComponentType<{ className?: string; size?: number; color?: string }> | null;
   label?: string;
   type?:
     | 'none'
@@ -96,6 +96,15 @@ export function Input({
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
+  // Lo que el <input type="email"> original hacia solo: teclado de correo y
+  // sin mayuscula automatica (en iOS "Tu@..." rompia el login). En web,
+  // react-native-web traduce este keyboardType de vuelta a type="email".
+  const isEmail = type === "emailAddress";
+  // `focus-within:` y `hover:` son CSS: en nativo no existen. Con estado el
+  // borde dorado al enfocar y el ojo mas oscuro al pasar el mouse se ven igual
+  // en las dos plataformas (el hover solo se dispara donde hay mouse).
+  const [enfocado, setEnfocado] = useState(false);
+  const [ojoEnHover, setOjoEnHover] = useState(false);
 
 
   return (
@@ -105,17 +114,24 @@ export function Input({
           {label}
         </Text>
       )}
-      <View className="flex flex-row items-center bg-[#FCF8F4] border border-[#E8DEC1]/60 rounded-xl px-3 h-fit focus-within:border-[#DAA520] transition-colors gap-3 w-full">
+      <View className={`flex flex-row items-center bg-[#FCF8F4] border ${enfocado ? "border-[#DAA520]" : "border-[#E8DEC1]/60"} rounded-xl px-3 h-fit transition-colors gap-3 w-full`}>
+        {/* Tamaño y color por props: el className de un Svg no llega al DOM
+            en web (su cssInterop es `target: false`). 20px = el w-5 h-5 del
+            original, #44403C = text-stone-700. */}
         {Icono && (
-          <Icono className="text-stone-700 w-5 h-5 flex-shrink-0" />
+          <Icono size={20} color="#44403C" className="flex-shrink-0" />
         )}
         <TextInput
           style={fuente()}
+          onFocus={() => setEnfocado(true)}
+          onBlur={() => setEnfocado(false)}
+          placeholderTextColor="#A8A29E"
           // Ocultar solo si es campo de password Y el ojo no lo revelo.
           // Estaba como `secureTextEntry={showPassword}`, invertido: el valor
           // inicial `false` mostraba la contrasena en claro.
           secureTextEntry={isPassword && !showPassword}
-          autoCapitalize={autoCapitalize}
+          keyboardType={isEmail ? "email-address" : "default"}
+          autoCapitalize={autoCapitalize ?? (isEmail ? "none" : undefined)}
           textContentType={isPassword ? 'password' : type}
           placeholder={placeholder}
           onChangeText={onChangeText}
@@ -125,11 +141,13 @@ export function Input({
         />
         {isPassword && (
           <Pressable
-          
             onPress={() => setShowPassword(!showPassword)}
-            className="text-stone-500 hover:text-stone-700 flex-shrink-0 outline-none cursor-pointer"
+            onHoverIn={() => setOjoEnHover(true)}
+            onHoverOut={() => setOjoEnHover(false)}
+            className="flex-shrink-0 outline-none cursor-pointer"
           >
-            <EyeIcon className="w-5 h-5" />
+            {/* text-stone-500, y text-stone-700 en hover, como el original. */}
+            <EyeIcon size={20} color={ojoEnHover ? "#44403C" : "#78716C"} />
           </Pressable>
         )}
       </View>

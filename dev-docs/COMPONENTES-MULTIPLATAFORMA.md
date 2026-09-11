@@ -128,7 +128,9 @@ Los primitivos de `@akindo/ui/html` (`H1`, `H2`, `H3`, `P`, `A`) ya la inyectan 
 
 ### Por qué no se puede por `className`
 
-Los componentes de texto tienen `cssInterop` registrado, así que nativewind **convierte su `className` en estilos de react-native-web y descarta la familia** — la clase nunca llega al DOM. Se puede comprobar: un `View` sí muestra sus clases de Tailwind en el DOM, un `H2` no, solo tiene clases `r-*` generadas por RNW.
+En nativo cada peso es una familia distinta: `font-medium` en el `className` solo cambia `fontWeight`, que React Native ignora en fuentes custom, y el peso se pierde. En web, además, el `style` que inyecta `fuente()` gana sobre cualquier clase `font-*`.
+
+> Antes este apartado decía que en web el `className` de un `H2` "nunca llega al DOM". Eso no era por la fuente: el `cssInterop` de los primitivos no se estaba registrando en el navegador (ver "Ojo con esto"). Ya está corregido y sus clases sí llegan.
 
 Tampoco alcanza con ponerla en el `<html>`: ni `Text` de react-native-web ni el de React Native **heredan `fontFamily`** del contenedor. Por eso todo texto necesita la fuente explícita.
 
@@ -333,6 +335,8 @@ Qué mirar:
 ## Ojo con esto
 
 - **El pragma faltante no da error, da un componente sin estilos.** Es el modo de falla silencioso más probable de esta arquitectura.
+- **Todo primitivo de `@expo/html-elements` tiene que estar registrado en [`nativewind-classname.ts`](../packages/ui/nativewind-classname.ts)**, que se importa desde `components/html-elements.tsx`. Importarlo solo desde el `layout.tsx` de web no alcanza: es Server Component, y un módulo `"use client"` importado por efecto desde ahí nunca se evalúa en el navegador. Síntoma: el `className` de `H1`/`P`/`Section` se descarta sin error.
+- **Un `Text` no hereda color, tamaño ni alineación de su `View`**, ni en nativo ni en react-native-web. `text-white`, `text-sm` o `text-center` van en el texto mismo, no en el contenedor (ver `Boton`).
 - **Web perdona el texto suelto en `View`; nativo no.** Si desarrollás mirando solo web, ese bug llega a producción móvil.
 - **Ojo al portar props booleanas de web.** `secureTextEntry` en `Input` estaba como `secureTextEntry={showPassword}`, invertido: mostraba la contraseña en claro por defecto. Lo correcto es `isPassword && !showPassword`. Cuando muevas un componente de web, revisá el sentido de cada booleana, no solo que compile.
 - **Dos versiones de React duplican medio árbol de dependencias.** Si el typecheck empieza a decir que `className` no existe, revisá `pnpm-workspace.yaml` → `overrides` antes de tocar los tipos.

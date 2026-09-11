@@ -25,7 +25,7 @@ import { fuente } from "@akindo/ui/fonts";
 <TextInput style={fuente()} />
 ```
 
-**No uses `className` para la fuente** (`font-bold`, `font-sans`, …). En los componentes de texto nativewind convierte el `className` en estilos y descarta la familia: la clase no llega nunca. El peso por `className` tampoco viaja a nativo.
+**No uses `className` para la fuente** (`font-bold`, `font-sans`, …). En nativo el peso por `className` no cambia de familia y se pierde, y en web el `style` de `fuente()` le gana a la clase igual.
 
 ## Pesos
 

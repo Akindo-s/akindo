@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/titles.tsx ; referenciado en otros componentes de web.
 import { twMerge } from 'tailwind-merge';
 
 interface TextProps {

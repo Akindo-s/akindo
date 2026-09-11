@@ -5,16 +5,9 @@ import { useState } from "react";
 import useRouter from "@akindo/ui/router";
 import { View } from "react-native";
 
-
-
-
-
-import { Titulo, Link } from "@akindo/ui/components";
-import { Footer, H2, Header, P, Section } from "@akindo/ui/html";
+import { Titulo, Link, Input, Boton, VentanaEmergente } from "@akindo/ui/components";
+import { H2, Header, P, Section, Span } from "@akindo/ui/html";
 import { EmailIcon, PasswordIcon } from "@akindo/ui/icons/AuthIcons";
-import { Input } from "@akindo/ui/components";
-// import { VentanaEmergente } from "@/components/VentanaEmergente"; TODO : falta convertirla
-import { Boton } from "@akindo/ui/components";
 
 type LoginFormProps = {
   login: (email: string, password: string) => Promise<void>;
@@ -48,28 +41,32 @@ export default function LoginForm({ login }: LoginFormProps) {
 
   return (
     <>
-      {/* {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />} */}
+      {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />}
 
       <View
-        className="flex flex-col items-center rounded-3xl p-6 w-full max-w-md mx-auto shadow-sm select-none bg-white"
+        className="flex flex-col items-center bg-white rounded-3xl p-8 w-full max-w-md mx-auto shadow-sm select-none"
       >
         <Header className="w-full flex justify-center items-center mb-6">
-          <Titulo className="text-center">Akindo</Titulo>
+          <Titulo>Akindo</Titulo>
         </Header>
 
         <Section className="flex flex-col w-full gap-6">
-          <View className="text-center mb-2 items-center">
-            <H2 peso="semibold" className="text-base text-stone-800">Iniciar Sesión</H2>
-            <P className="text-xs text-stone-400 mt-1">Bienvenido de vuelta a la plataforma mayorista.</P>
+          {/* En RN el text-align no se hereda del View: va en cada texto. */}
+          <View className="mb-2">
+            <H2 peso="semibold" className="text-base text-stone-800 text-center">Iniciar Sesión</H2>
+            <P className="text-xs text-stone-400 mt-1 text-center">Bienvenido de vuelta a la plataforma mayorista.</P>
           </View>
 
           <View className="flex flex-col gap-4 w-full">
-            <Input label="Correo Electrónico" name="email" type="emailAddress" placeholder="tu@correo.com" Icono={EmailIcon} required value={email} onChangeText={(text) => setEmail(text)} />
-            <Input label="Contraseña" name="password" type="password" placeholder="tu contrasena" Icono={PasswordIcon} required value={password} onChangeText={(text) => setPassword(text)} />
+            <Input label="Correo Electrónico" name="email" type="emailAddress" placeholder="tu@empresa.com" Icono={EmailIcon} required value={email} onChangeText={(text) => setEmail(text)} />
+            <Input label="Contraseña" name="password" type="password" placeholder="***" Icono={PasswordIcon} required value={password} onChangeText={(text) => setPassword(text)} />
           </View>
 
-          <View className="text-right">
-            <P className="text-xs text-[#DAA520] hover:underline cursor-pointer font-medium">¿Olvidaste tu contraseña?</P>
+          {/* items-end en vez de text-right: deja el texto del ancho de su
+              contenido, como el <span> inline del original. h-6 es la altura
+              de linea que ese <div> heredaba del body (16px * 1.5). */}
+          <View className="items-end justify-center h-6">
+            <Span peso="medium" className="text-xs text-[#DAA520] hover:underline cursor-pointer">¿Olvidaste tu contraseña?</Span>
           </View>
 
           <Boton
@@ -80,17 +77,15 @@ export default function LoginForm({ login }: LoginFormProps) {
           >
             Iniciar Sesión
           </Boton>
-          <View className="w-full bg-blue-200 gap-0 h-fit">
 
-            <P className="text-center text-xs text-stone-500 select-none my-0">
-              ¿No tienes una cuenta?{" "}
-              <Link href="/registro/cliente" className="text-[#DAA520] font-medium hover:underline transition">Regístrate</Link>
-            </P>
-            <P className="text-center text-xs text-stone-500 select-none my-0">
-              ¿Quieres vender con nosotros?{" "}
-              <Link href="/registro/distribuidor" className="text-[#DAA520] font-medium hover:underline transition">¡Únetenos!</Link>
-            </P>
-          </View>
+          <P className="text-center text-xs text-stone-500 select-none">
+            ¿No tienes una cuenta?{" "}
+            <Link href="/registro/cliente" peso="medium" className="text-[#DAA520] hover:underline transition">Regístrate</Link>
+          </P>
+          <P className="text-center text-xs text-stone-500 select-none">
+            ¿Quieres vender con nosotros?{" "}
+            <Link href="/registro/distribuidor" peso="medium" className="text-[#DAA520] hover:underline transition">¡Únetenos!</Link>
+          </P>
         </Section>
       </View>
     </>

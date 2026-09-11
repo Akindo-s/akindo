@@ -59,14 +59,38 @@ interface BotonProps {
   accessibilityLabel?: string;
 }
 
-const variantes: Record<NonNullable<BotonProps["variante"]>, string> = {
-  primario:
-    " bg-[#DAA520] hover:bg-[var(--color-primary-600)] text-white w-full py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition cursor-pointer uppercase text-sm tracking-wide disabled:opacity-75",
-  secundario:
-    "bg-transparent hover:bg-[#FCEAD2] text-[#4F4634] rounded-xl font-medium transition border-none py-3 shadow-none cursor-pointer",
-  peligro:
-    "text-red-600 font-medium text-sm px-6 py-2 border border-red-200 rounded-full hover:bg-red-50 transition cursor-pointer",
-  chip: "flex items-center gap-2 bg-transparent border border-[#E8DEC1] text-stone-800 px-4 py-2.5 rounded-full font-medium text-xs whitespace-nowrap hover:bg-stone-50 transition cursor-pointer",
+/**
+ * Clases por variante, partidas en contenedor y texto.
+ *
+ * En web el `<button>` original le pasaba color, tamaño y mayúsculas al texto
+ * por herencia de CSS. En React Native (y en react-native-web) un `Text` no
+ * hereda nada de su `View` padre, así que las clases de texto tienen que ir en
+ * el `Text` mismo. El color se deja también en el contenedor porque en web es
+ * lo que toman como `currentColor` los íconos.
+ *
+ * El peso (`font-medium` en el original) va por `fuente("medium")`, no acá.
+ */
+const variantes: Record<NonNullable<BotonProps["variante"]>, { contenedor: string; texto: string }> = {
+  primario: {
+    contenedor:
+      "bg-[#DAA520] hover:bg-[#C1901D] text-white w-full py-3 rounded-xl shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-75",
+    texto: "text-white uppercase text-sm tracking-wide",
+  },
+  secundario: {
+    contenedor:
+      "bg-transparent hover:bg-[#FCEAD2] text-[#4F4634] rounded-xl transition border-none py-3 shadow-none cursor-pointer",
+    texto: "text-[#4F4634]",
+  },
+  peligro: {
+    contenedor:
+      "text-red-600 px-6 py-2 border border-red-200 rounded-full hover:bg-red-50 transition cursor-pointer",
+    texto: "text-red-600 text-sm",
+  },
+  chip: {
+    contenedor:
+      "flex items-center gap-2 bg-transparent border border-[#E8DEC1] text-stone-800 px-4 py-2.5 rounded-full hover:bg-stone-50 transition cursor-pointer",
+    texto: "text-stone-800 text-xs whitespace-nowrap",
+  },
 };
 
 /**
@@ -117,15 +141,19 @@ export function Boton({
     variante === "chip" ? 16 : variante === "secundario" ? 18 : 20;
   const size = iconoSize ?? defaultIconSize;
 
-  const baseClasses = `${variantes[variante]} flex flex-row items-center justify-center gap-2 h-fit w-fit px-2 ${className}`;
+  const baseClasses = `${variantes[variante].contenedor} flex flex-row items-center justify-center gap-2 h-fit w-fit px-2 ${className}`;
+  const texto = loading ? loadingText : children;
 
   const content = (
     <>
       {Icono && <Icono className="flex-shrink-0" size={size} />}
-      <Text style={fuente("medium")}>
-
-      {loading ? loadingText : children}
-      </Text>
+      {/* Sin texto no se renderiza el Text: vacío igual ocupaba lugar y el
+          `gap-2` descentraba los botones de solo ícono. */}
+      {texto != null && texto !== false && (
+        <Text style={fuente("medium")} className={variantes[variante].texto}>
+          {texto}
+        </Text>
+      )}
     </>
   );
 

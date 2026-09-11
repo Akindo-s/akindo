@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/VentanaEmergente.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useEffect, useState } from "react";

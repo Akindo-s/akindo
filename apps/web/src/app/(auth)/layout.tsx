@@ -1,3 +1,4 @@
+// estilos replicados en apps/mobile/app/(auth)/_layout.tsx ; si cambian aca, actualizar alla.
 import "@/app/(auth)/registro/global.css";
 
 export default function AuthLayout({
