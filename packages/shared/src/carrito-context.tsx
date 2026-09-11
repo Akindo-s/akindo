@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { agregarProductoCliente, type AddToCartInput, type AddToCartResult } from "./client/carrito";
 
 const CarritoContext = createContext<Set<string>>(new Set());
 
@@ -9,6 +10,17 @@ const CarritoContext = createContext<Set<string>>(new Set());
  * cookie de sesion; en Expo, una llamada directa a la API con el token guardado.
  */
 export type CargarIdsCarrito = () => Promise<string[]>;
+
+/**
+ * Agrega un producto al carrito. Por defecto es la de web (`fetch` a la route
+ * handler `/api/carrito`, que lee la cookie); Expo inyecta la suya, que llama a
+ * la API con el token guardado.
+ */
+export type AgregarAlCarrito = (input: AddToCartInput) => Promise<AddToCartResult>;
+
+const agregarWeb: AgregarAlCarrito = (input) => agregarProductoCliente(input);
+
+const AgregarContext = createContext<AgregarAlCarrito>(agregarWeb);
 
 let _promise: Promise<Set<string>> | null = null;
 let _cache: Set<string> | null = null;
@@ -27,9 +39,11 @@ function fetchIdsCarrito(cargarIds: CargarIdsCarrito) {
 export function CarritoProvider({
   children,
   cargarIds,
+  agregar = agregarWeb,
 }: {
   children: ReactNode;
   cargarIds: CargarIdsCarrito;
+  agregar?: AgregarAlCarrito;
 }) {
   const [ids, setIds] = useState<Set<string>>(_cache ?? new Set());
 
@@ -39,9 +53,17 @@ export function CarritoProvider({
       .catch(() => setIds(new Set()));
   }, [cargarIds]);
 
-  return <CarritoContext.Provider value={ids}>{children}</CarritoContext.Provider>;
+  return (
+    <CarritoContext.Provider value={ids}>
+      <AgregarContext.Provider value={agregar}>{children}</AgregarContext.Provider>
+    </CarritoContext.Provider>
+  );
 }
 
 export function useIdsCarrito() {
   return useContext(CarritoContext);
+}
+
+export function useAgregarAlCarrito() {
+  return useContext(AgregarContext);
 }

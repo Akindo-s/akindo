@@ -1,4 +1,4 @@
-// archivo movido a packages/ui/components/mercado/MercadoBuscador.tsx ; referenciado en otros componentes de web.
+// archivo movido a packages/ui/components/mercado/MercadoBuscador.tsx ; ya no lo usa ninguna ruta de web (se puede borrar al final de la migracion).
 "use client";
 
 import { useState } from "react";

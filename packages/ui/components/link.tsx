@@ -1,9 +1,15 @@
 /** @jsxImportSource nativewind */
 // mobile version
 import { Link as ExpoLink } from 'expo-router';
+import { cssInterop } from 'nativewind';
 import type { ReactNode } from 'react';
 import { fuente, type PesoFuente } from '../fonts';
 import { Pressable } from './html-elements';
+
+// Sin registrar, nativewind no convierte el className de ExpoLink y en nativo
+// el link salia sin color ni tamano (negro, 14px). El `style` de `peso` se
+// combina con el que sale del className.
+cssInterop(ExpoLink, { className: 'style' });
 
 export interface LinkProps {
   href: string;

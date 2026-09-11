@@ -7,10 +7,11 @@ import type { LinkProps } from './link';
 
 // Misma firma que link.tsx: ver ahi por que `peso` va por style.
 export function Link({ href, children, className, peso, bloque, onHoverChange }: LinkProps) {
-  // `bloque`: en nativo es un Pressable, que ya es flex en columna. Un <a>
-  // inline le daria a sus Span la altura de linea del body (24px) y el link
-  // quedaria mas alto que el original.
-  const clases = bloque ? twMerge('flex flex-col', className) : className;
+  // `bloque`: en nativo es un Pressable, que ya es flex en columna y
+  // posicionado, como todo View. En web el <a> tiene que imitarlo: inline, sus
+  // Span tomaban la altura de linea del body (24px); sin `relative`, un hijo
+  // `absolute inset-0` (un Degradado) se media contra otro ancestro.
+  const clases = bloque ? twMerge('relative flex flex-col', className) : className;
   return (
     <NextLink
       href={href}

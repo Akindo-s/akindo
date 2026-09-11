@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/mercado/TarjetaProductoCatalogo.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useEffect, useState } from "react";

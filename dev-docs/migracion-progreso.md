@@ -9,7 +9,8 @@ Contexto mínimo para retomar. Reglas del proceso: [`migracion-ui-reglas.md`](./
 | `(auth)/login` | ✅ terminada | `packages/ui/screens/login.tsx` | `app/(auth)/login/index.tsx` |
 | `(auth)/registro/cliente` | ✅ terminada | `packages/ui/components/auth/RegistroClienteForm.tsx` | `app/(auth)/registro/cliente/index.tsx` |
 | `(auth)/registro/distribuidor` | ✅ terminada | `packages/ui/components/auth/RegistroDistribuidorForm.tsx` | `app/(auth)/registro/distribuidor/index.tsx` |
-| `(public)/` (home) | ✅ terminada (falta prueba en dispositivo) | `packages/ui/screens/home.tsx` + `components/{home,layout,mercado}/` | `app/(public)/index.tsx` |
+| `(public)/` (home) | ✅ terminada | `packages/ui/screens/home.tsx` + `components/{home,layout,mercado}/` | `app/(public)/index.tsx` |
+| `(public)/mercado` | ✅ terminada (falta probar "agregar al carrito" con sesión) | `packages/ui/screens/mercado.tsx` + `components/mercado/TarjetaProductoCatalogo.tsx` | `app/(public)/mercado/index.tsx` (segunda tab) |
 | resto | pendiente | — | — |
 
 **Ubicación:** desde registro se sigue la regla de `migracion-ui-reglas.md`: si el `page.tsx` solo envuelve a un componente, ese componente va a `packages/ui/components/` con la misma ruta que en web, y se importa directo como `@akindo/ui/components/auth/X` (subpath `./components/*` del exports map). No se importa desde el barrel `@akindo/ui/components`, porque la página de Next es Server Component y necesita apuntar a un módulo con `"use client"`. Login es la excepción: quedó en `screens/login.tsx`.
@@ -41,11 +42,17 @@ Se borraron `apps/mobile/app/index.tsx` (redirigía a login o a `(app)/home`) y 
 | `layout/Header.tsx` (lo sigue usando `(protected)/layout.tsx`) | `components/layout/Header.tsx` (recibe `onLogout`) |
 | `layout/BottomNav.tsx` (lo sigue usando `(protected)/layout.tsx`) | `components/layout/BottomNav.tsx` |
 | `home/InfoBanner.tsx`, `home/HeroCard.tsx`, `home/FeaturedCategories.tsx` (ya no los usa ninguna ruta) | `components/home/` (`HeroCard` recibe `imagen`, `FeaturedCategories` recibe `destacadas`) |
-| `mercado/MercadoBuscador.tsx`, `mercado/BarraBusquedaFiltros.tsx` (los usan las páginas de mercado) | `components/mercado/` (`MercadoBuscador` recibe `cargarCategorias`) |
+| `mercado/MercadoBuscador.tsx` (ya no lo usa ninguna ruta), `mercado/BarraBusquedaFiltros.tsx` (lo usan mercado/productos y mercado/distribuidores) | `components/mercado/` (`MercadoBuscador` recibe `cargarCategorias`) |
+| `mercado/TarjetaProductoCatalogo.tsx` (lo usa mercado/productos) | `components/mercado/TarjetaProductoCatalogo.tsx` (agrega con `useAgregarAlCarrito()` y avisa con `useAviso()`) |
 | `ui/Buscador.tsx` (lo usan mercado/categorias e `InventarioView`) | `components/ui/Buscador.tsx` |
 | `icons/CategoriesIcons.tsx` (ya no lo usa ninguna ruta) | `icons/CategoriesIcons.tsx` |
 
-Nuevo en `packages/ui` sin equivalente en web: `components/ui/Degradado.tsx` (capa `absolute inset-0` con `LinearGradient` de SVG, direcciones `to-t` y `to-br`).
+Nuevo en `packages/ui` sin equivalente en web:
+- `components/ui/Degradado.tsx`: capa `absolute inset-0` con `LinearGradient` de SVG, direcciones `to-t` y `to-br`.
+- `components/ui/ContenedorPantalla.tsx`: raíz de una pantalla con un hijo fijo arriba (`View` en web, `ScrollView` con `stickyHeaderIndices` en nativo). La usan home y mercado.
+- `components/ui/Avisos.tsx`: `AvisosProvider` + `useAviso()`. Pinta una sola `VentanaEmergente` desde el layout. Un componente dentro de una lista (tarjeta) no puede pintar la suya: en nativo `absolute` es relativo al padre y quedaba encerrada en la celda. Está en los dos layouts `(public)`.
+
+Acciones del carrito: `CarritoProvider` (`packages/shared/src/carrito-context.tsx`) recibe `agregar` además de `cargarIds`, y se lee con `useAgregarAlCarrito()`. Por defecto es la de web (`agregarProductoCliente` → route handler `/api/carrito`); mobile inyecta `agregarAlCarrito` de `apps/mobile/utils/providers-data.ts`, que hace lo mismo que esa route handler (busca el distribuidor, llama a la API con el token, emite `carrito:updated`). Sin sesión, las dos devuelven `MENSAJE_CARRITO_SIN_SESION` ("Inicia sesión para agregar productos al carrito"). Antes web mostraba "NEXT_REDIRECT": la route handler atrapaba el `redirect("/login")` de `sesionRequerida`; ahora responde 401 con el mensaje (decisión del usuario: aviso, no redirigir).
 
 Dependencias de plataforma ya abstraídas (patrón `x.ts` / `x.web.ts` + alias en `apps/web/next.config.ts`): `router` (default `useRouter` + `usePathname`), `image-picker` (`elegirImagen()`: `expo-image-picker` en nativo, `<input type="file">` en web).
 
@@ -84,6 +91,11 @@ Dependencias de plataforma ya abstraídas (patrón `x.ts` / `x.web.ts` + alias e
 29. **expo-router navega distinto que Next**: `Link` sin opciones hace *navigate* (no duplica pantallas y en Tabs salta a la tab); `router.push` siempre apila, así que desde la misma ruta deja un duplicado. Tras cerrar sesión el Header usa `router.replace("/")`. En web, una server action que toca cookies ya hace que Next vuelva a pintar el layout: no hace falta `router.refresh()` (que tampoco existe en expo-router).
 30. **Datos que un Server Component cargaba solo** (`FeaturedCategories` era `async`): la pieza compartida los recibe por prop. Web los carga en el `page.tsx` (sigue en el servidor, sin parpadeo); mobile, en la pantalla con un `useEffect`.
 31. `Degradado` usa `useId()` para el id del `LinearGradient`: con varias tarjetas en la misma página, ids repetidos harían que todas tomen el primero.
+32. **`ExpoLink` registrado en nativewind** (`cssInterop` en `components/link.tsx`). Sin eso, en nativo el `className` de un `Link` en línea se ignoraba: salía negro y en 14px. Pasaba desde login/registro ("Inicia Sesión" en gris) y en el logo del Header.
+33. **`Link bloque` en web es `relative flex flex-col`**, como un View de react-native-web. Sin `relative`, un `Degradado` (`absolute inset-0`) adentro del link se medía contra otro ancestro y tapaba toda la sección.
+34. **Botón dentro de un `Link`** (el carrito de la tarjeta): `Pressable` con `onPress={(e) => { e.preventDefault(); … }}`. En web el evento es el click del DOM y así el `<a>` no navega; en nativo el Pressable de adentro se queda con el toque solo.
+35. **Tabs de mobile**: agregar `app/(public)/<ruta>/index.tsx` basta para que aparezca su tab en el `BottomNav` (el href sale del nombre de la ruta).
+36. `animate-spin` → `Animated.loop` de 1s lineal sobre `rotate` (`Girando` en `TarjetaProductoCatalogo`).
 
 ## Cómo verificar una ruta
 
@@ -94,13 +106,13 @@ Dependencias de plataforma ya abstraídas (patrón `x.ts` / `x.web.ts` + alias e
 - Selector de archivos: sobrescribir `HTMLInputElement.prototype.click` para los `type="file"`, cargarles un `File` con `DataTransfer` y disparar `change`.
 - Si Next se reinicia (por ejemplo al tocar `next.config.ts`), la consola se llena de errores del WebSocket de HMR. No son de la app.
 - Con el pane del navegador oculto, `requestAnimationFrame`, `ResizeObserver` y los timers quedan pausados o frenados: ahí no se pueden verificar animaciones.
-- **Mobile**: `npx tsc --noEmit -p apps/mobile/tsconfig.json` y `cd apps/mobile && npx expo export --platform ios --output-dir <tmp>` (compila el bundle sin dispositivo). Ningún simulador tiene Expo Go instalado.
+- **Mobile**: `npx tsc --noEmit -p apps/mobile/tsconfig.json` y `cd apps/mobile && npx expo export --platform ios --output-dir <tmp>` (compila el bundle sin dispositivo). Con el Metro del usuario corriendo (puerto 8081) y el iPhone 17 Pro del simulador conectado, se abre una ruta con el deep link `exp://127.0.0.1:8081/--/<ruta>` y se puede capturar, tocar y scrollear. Ojo: el simulador puede tener una sesión real guardada; no hacer acciones que escriban en la base (carrito, pedidos) sin preguntar.
 
 ## Siguiente ruta
 
-Candidata natural: `(public)/mercado` (`app/(public)/mercado/page.tsx`), porque ya reusa `MercadoBuscador`/`BarraBusquedaFiltros`/`Buscador` migrados y es la segunda tab. Al migrarla: agregar `app/(public)/mercado/index.tsx` en mobile (la tab aparece sola en el `BottomNav`) y cambiar el import de la página web al componente compartido. Confirmar con el usuario antes de empezar.
+Confirmar con el usuario. Candidatas dentro de mercado, que ya reusan `BarraBusquedaFiltros`/`TarjetaProductoCatalogo`: `mercado/productos` (listado con filtros; linkeado desde las tarjetas de "Explorar" y "Ver todos") o `mercado/productos/detalle` (a donde lleva cada tarjeta). En mobile, las subrutas de mercado van a necesitar un `app/(public)/mercado/_layout.tsx` con `Stack` para poder volver atrás dentro de la tab.
 
-Verificación del home hecha en web (1280 y 375, comparando contra una copia de la página vieja y los 4 estados del Header: sin sesión, cliente, distribuidor, admin): medidas iguales al píxel, buscador (Enter, limpiar), chips, cerrar sesión con cookie de prueba. Mobile: typecheck y `expo export --platform ios` sin errores ni warnings. **Falta probarlo en el simulador/dispositivo**: Tabs + BottomNav, Header con y sin sesión (login → home, cerrar sesión), buscador fijo al scrollear (con categorías destacadas visibles), badge animado del hero, link "Conocenos" (externo).
+Verificación de mercado: en web, a 375 y 1280px contra una copia de la página vieja, todos los textos, links, íconos, imágenes y botones coinciden al píxel; carrito sin sesión (aviso, sin navegar), carrito con cookie de prueba (pasa por la route handler; la API rechaza el token falso), tarjeta → detalle. En el simulador de iOS: pantalla, degradados, buscador fijo al scrollear, cambio de tab Inicio/Mercado. **Falta**: agregar al carrito con una sesión real (en el simulador había una sesión de cliente de verdad y no se tocó para no modificar su carrito).
 
 ## Pendientes conocidos (no bloquean)
 

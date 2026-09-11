@@ -1,5 +1,6 @@
 import { Header } from "@akindo/ui/components/layout/Header";
 import { BottomNav } from "@akindo/ui/components/layout/BottomNav";
+import { AvisosProvider } from "@akindo/ui/components/ui/Avisos";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { CarritoProvider } from "@akindo/shared/carrito-context";
 import { estadoLayoutPublico } from "@akindo/shared/layoutsBehaviors/public";
@@ -17,6 +18,7 @@ export default async function PublicLayout({
   const { isLoggedIn, tipoUsuario } = estadoLayoutPublico(await sesionOpcional());
   return (
     <CarritoProvider cargarIds={cargarIdsCarrito}>
+      <AvisosProvider>
       <Header isLoggedIn={isLoggedIn} tipoUsuario={tipoUsuario} onLogout={_logout} />
       <div className="flex flex-1 min-h-0">
         <Sidebar tipoUsuario={tipoUsuario} />
@@ -31,6 +33,7 @@ export default async function PublicLayout({
       <div className="md:hidden">
         <BottomNav tipoUsuario={tipoUsuario} />
       </div>
+      </AvisosProvider>
     </CarritoProvider>
   );
 }
