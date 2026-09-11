@@ -3,6 +3,7 @@ import { useState } from "react";
 import { EyeIcon } from "../icons/AuthIcons";
 import { fuente } from "../fonts";
 import {View,Text, Pressable,TextInput} from 'react-native';
+import { Path, Svg } from "./html-elements";
 
 
 /**
@@ -100,6 +101,9 @@ export function Input({
   // sin mayuscula automatica (en iOS "Tu@..." rompia el login). En web,
   // react-native-web traduce este keyboardType de vuelta a type="email".
   const isEmail = type === "emailAddress";
+  // Idem `<input type="tel">`: teclado telefonico (react-native-web lo
+  // vuelve a pintar como type="tel").
+  const isTel = type === "telephoneNumber";
   // `focus-within:` y `hover:` son CSS: en nativo no existen. Con estado el
   // borde dorado al enfocar y el ojo mas oscuro al pasar el mouse se ven igual
   // en las dos plataformas (el hover solo se dispara donde hay mouse).
@@ -130,7 +134,7 @@ export function Input({
           // Estaba como `secureTextEntry={showPassword}`, invertido: el valor
           // inicial `false` mostraba la contrasena en claro.
           secureTextEntry={isPassword && !showPassword}
-          keyboardType={isEmail ? "email-address" : "default"}
+          keyboardType={isEmail ? "email-address" : isTel ? "phone-pad" : "default"}
           autoCapitalize={autoCapitalize ?? (isEmail ? "none" : undefined)}
           textContentType={isPassword ? 'password' : type}
           placeholder={placeholder}
@@ -152,5 +156,47 @@ export function Input({
         )}
       </View>
     </View>
+  );
+}
+
+interface CheckboxProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  /** Etiqueta. Tocarla tambien tilda, como un `<label htmlFor>`. Si es texto largo, pasale `shrink` para que haga salto de linea. */
+  children?: React.ReactNode;
+  /** Clases Tailwind extra para la fila (caja + etiqueta). */
+  className?: string;
+}
+
+/**
+ * Casilla de verificacion. React Native no trae checkbox propio, asi que se
+ * dibuja imitando el `<input type="checkbox" className="accent-[#DAA520]">`
+ * que pintaba Chrome en la web original: 13px, borde gris de 1px y esquinas de
+ * 2px sin tildar; relleno dorado con el check negro tildada (Chrome elige un
+ * check oscuro porque el dorado es un acento claro).
+ *
+ * Toda la fila es un solo `Pressable` con `role="checkbox"`: un solo foco para
+ * teclado y lector de pantalla, y la etiqueta queda como su nombre accesible.
+ */
+export function Checkbox({ checked, onChange, children, className = "" }: CheckboxProps) {
+  return (
+    <Pressable
+      role="checkbox"
+      aria-checked={checked}
+      onPress={() => onChange(!checked)}
+      className={`flex flex-row items-start gap-2 shrink cursor-pointer ${className}`}
+    >
+      {/* mt-1: el mismo desfase que tenia el input respecto de su etiqueta. */}
+      <View
+        className={`mt-1 w-[13px] h-[13px] rounded-sm border items-center justify-center ${checked ? "bg-[#DAA520] border-[#DAA520]" : "bg-white border-[#767676]"}`}
+      >
+        {checked && (
+          <Svg width={9} height={9} viewBox="0 0 12 12" fill="none">
+            <Path d="M2 6.5L4.8 9.2L10 3.2" stroke="#000000" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          </Svg>
+        )}
+      </View>
+      {children}
+    </Pressable>
   );
 }

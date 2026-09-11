@@ -48,7 +48,11 @@ export function fuente(peso: PesoFuente = "normal"): EstiloFuente {
 
   if (Platform.OS === "web") {
     return {
-      fontFamily: tokens.FAMILIA_WEB[0],
+      // La pila completa, igual que la que pone next/font en el <html>: con
+      // solo la primera familia, los glifos que no trae el subset latino de
+      // Jakarta (una flecha "→", por ejemplo) caian a la fuente por defecto
+      // del navegador en vez de a "Plus Jakarta Sans Fallback".
+      fontFamily: tokens.FAMILIA_WEB.map((familia) => `"${familia}"`).join(", "),
       fontWeight: pesoNumerico as TextStyle["fontWeight"],
     };
   }

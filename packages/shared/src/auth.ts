@@ -54,7 +54,7 @@ async function extraerMensajeError(response: Response, fallback: string): Promis
 }
 
 export async function registrarCliente(datos: RegistrarClienteDatos): Promise<unknown> {
-  const response = await fetch(`${API_URL}/clientes`, {
+  const response = await fetch(`${API_URL}/clientes/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -70,7 +70,7 @@ export async function registrarCliente(datos: RegistrarClienteDatos): Promise<un
 }
 
 export async function registrarDistribuidor(datos: RegistrarDistribuidorDatos): Promise<unknown> {
-  const response = await fetch(`${API_URL}/distribuidores`, {
+  const response = await fetch(`${API_URL}/distribuidores/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/ui/ProgressBar.tsx ; solo lo usa components/auth/RegistroDistribuidorForm.tsx de web, que tambien ya se movio.
 "use client";
 
 interface ProgressBarProps {

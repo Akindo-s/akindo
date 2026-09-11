@@ -6,6 +6,7 @@
     "exports": {
         "./nativewind-init": "./nativewind-classname.ts",
         "./components": "./components/index.ts",
+        "./components/*": "./components/*.tsx",
         "./icons/*": "./icons/*.tsx",
         "./html": "./components/html-elements.tsx",
         "./*": "./*.ts",
@@ -20,7 +21,9 @@
         "typescript": "^5"
     },
     "dependencies": {
+        "@akindo/shared": "workspace:*",
         "@expo/html-elements": "^57.0.0",
+        "expo-image-picker": "~57.0.16",
         "expo-router": "~57.0.19",
         "nativewind": "^4.2.6",
         "react-native-svg": "^15.15.5",

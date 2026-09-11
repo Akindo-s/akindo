@@ -23,7 +23,11 @@ import { Pressable as RawPressable } from 'react-native';
 import {
     Svg as RawSvg,
     Path as RawPath,
-    Circle as RawCircle
+    Circle as RawCircle,
+    Rect as RawRect,
+    Defs as RawDefs,
+    LinearGradient as RawLinearGradient,
+    Stop as RawStop
 } from "react-native-svg"
 import React from 'react';
 import type { ComponentProps } from 'react';
@@ -70,6 +74,11 @@ export const Span = conTipografia(RawSpan as React.ComponentType<ComponentProps<
 export const Svg = RawSvg as React.ComponentType<WithClassName<ComponentProps<typeof RawSvg>>>;
 export const Path = RawPath as React.ComponentType<WithClassName<ComponentProps<typeof RawPath>>>;
 export const Circle = RawCircle as React.ComponentType<WithClassName<ComponentProps<typeof RawCircle>>>;
+// Para degradados: React Native no tiene `linear-gradient` en CSS, se dibujan con SVG.
+export const Rect = RawRect as React.ComponentType<ComponentProps<typeof RawRect>>;
+export const Defs = RawDefs as React.ComponentType<ComponentProps<typeof RawDefs>>;
+export const LinearGradient = RawLinearGradient as React.ComponentType<ComponentProps<typeof RawLinearGradient>>;
+export const Stop = RawStop as React.ComponentType<ComponentProps<typeof RawStop>>;
 export const Header = RawHeader as React.ComponentType<WithClassName<ComponentProps<typeof RawHeader>>>;
 export const Section = RawSection as React.ComponentType<WithClassName<ComponentProps<typeof RawSection>>>;
 export const Pressable = RawPressable as React.ComponentType<WithClassName<ComponentProps<typeof RawPressable>>>;
