@@ -16,7 +16,8 @@ import {
     Span as RawSpan,
     Section as RawSection,
     Header as RawHeader,
-    Footer as RawFooter
+    Footer as RawFooter,
+    Nav as RawNav
     } from '@expo/html-elements';
 
 import { Pressable as RawPressable } from 'react-native';
@@ -83,4 +84,5 @@ export const Header = RawHeader as React.ComponentType<WithClassName<ComponentPr
 export const Section = RawSection as React.ComponentType<WithClassName<ComponentProps<typeof RawSection>>>;
 export const Pressable = RawPressable as React.ComponentType<WithClassName<ComponentProps<typeof RawPressable>>>;
 export const Footer = RawFooter as React.ComponentType<WithClassName<ComponentProps<typeof RawFooter>>>;
+export const Nav = RawNav as React.ComponentType<WithClassName<ComponentProps<typeof RawNav>>>;
 

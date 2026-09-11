@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/layout/Header.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import Link from "next/link";

@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/home/HeroCard.tsx ; ya no lo usa ninguna ruta de web (se puede borrar al final de la migracion).
 'use client'
 import { UsersIcon } from "lucide-react";
 import Link from "next/link";

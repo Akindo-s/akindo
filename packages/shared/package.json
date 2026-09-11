@@ -20,7 +20,8 @@
     "./api/usuario": "./src/api/usuario.ts",
     "./client/carrito": "./src/client/carrito.ts",
     "./types/carrito": "./src/types/carrito.ts",
-    "./types/pedidos": "./src/types/pedidos.ts"
+    "./types/pedidos": "./src/types/pedidos.ts",
+    "./layoutsBehaviors/*": "./src/layoutsBehaviors/*.ts"
   },
   "peerDependencies": {
     "react": ">=18"

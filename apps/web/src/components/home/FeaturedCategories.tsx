@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/home/FeaturedCategories.tsx ; ya no lo usa ninguna ruta de web (se puede borrar al final de la migracion).
 import Link from "next/link";
 import { MachineryIcon, PackagingIcon, ArtsAndCraftsIcon } from "../icons/CategoriesIcons";
 import { obtenerCategoriasDestacadas } from "@/lib/api/categorias";

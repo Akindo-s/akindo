@@ -40,7 +40,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaView style={{ flex: 1}}>
-      <Stack screenOptions={{ headerShown: false ,contentStyle:{backgroundColor:'red'}}}/>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#FFFFFF" } }}/>
     </SafeAreaView>
   );
 }

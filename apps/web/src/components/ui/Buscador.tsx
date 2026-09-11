@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/ui/Buscador.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";

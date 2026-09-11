@@ -35,9 +35,11 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
     };
 
     return (
-        <aside className="hidden md:flex flex-col w-54 lg:w-64 shrink-0 border-r border-stone-100 bg-white h-fit sticky top-0">
+        // Ocupa el alto de la fila del layout (el body ya no scrollea); si no
+        // le alcanza, scrollea por su cuenta.
+        <aside className="hidden md:flex flex-col w-54 lg:w-64 shrink-0 border-r border-stone-100 bg-white overflow-y-auto">
             {/* Navegación principal */}
-            <nav className="flex flex-col gap-1 p-3 flex-1 min-h-[calc(100lvh-71px)]">
+            <nav className="flex flex-col gap-1 p-3 flex-1">
                 {links.map(({ label, href, altHref, Icon, condition }) => {
                     // Resolve dynamic href for distribuidor
                     const resolvedHref = (altHref && tipoUsuario === "distribuidor") ? altHref : href;

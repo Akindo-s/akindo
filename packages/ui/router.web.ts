@@ -1,3 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
+export { usePathname };
 export default useRouter;

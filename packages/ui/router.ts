@@ -1,3 +1,4 @@
-import {useRouter} from "expo-router"
+import {useRouter, usePathname} from "expo-router"
 
+export {usePathname};
 export default useRouter;

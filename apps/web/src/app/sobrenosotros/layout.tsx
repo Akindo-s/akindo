@@ -1,3 +1,4 @@
+
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,5 +11,6 @@ export default function SobreNosotrosLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return <>{children}</>;
+    // El body ya no scrollea: el scroll de la página va en este <main>.
+    return <main className="flex-1 min-h-0 overflow-y-auto">{children}</main>;
 }

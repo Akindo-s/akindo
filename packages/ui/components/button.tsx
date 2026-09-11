@@ -1,5 +1,6 @@
 /** @jsxImportSource nativewind */
 import { Text } from "react-native";
+import { twMerge } from "tailwind-merge";
 import { fuente } from "../fonts";
 import { Pressable } from "./html-elements";
 import {Link} from "./link";
@@ -57,6 +58,13 @@ interface BotonProps {
 
   /** Etiqueta para lectores de pantalla cuando el botón es solo ícono. */
   accessibilityLabel?: string;
+
+  /**
+   * Clases extra para el texto (tamaño, color). En web el `className` del
+   * `<button>` original también pisaba el texto; acá el texto es un `Text`
+   * aparte y no hereda nada del contenedor.
+   */
+  claseTexto?: string;
 }
 
 /**
@@ -143,6 +151,7 @@ export function Boton({
   disabled = false,
   onClick,
   accessibilityLabel,
+  claseTexto,
 }: BotonProps) {
   const defaultIconSize =
     variante === "chip" ? 16 : variante === "secundario" ? 18 : 20;
@@ -157,7 +166,7 @@ export function Boton({
       {/* Sin texto no se renderiza el Text: vacío igual ocupaba lugar y el
           `gap-2` descentraba los botones de solo ícono. */}
       {texto != null && texto !== false && (
-        <Text style={fuente("medium")} className={variantes[variante].texto}>
+        <Text style={fuente("medium")} className={twMerge(variantes[variante].texto, claseTexto)}>
           {texto}
         </Text>
       )}
@@ -166,7 +175,7 @@ export function Boton({
 
   if (href) {
     return (
-      <Link href={href} className={baseClasses}>
+      <Link href={href} bloque className={baseClasses}>
         {content}
       </Link>
     );

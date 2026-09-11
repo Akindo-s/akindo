@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/mercado/BarraBusquedaFiltros.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { Buscador } from "@/components/ui/Buscador";

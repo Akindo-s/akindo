@@ -25,6 +25,7 @@
         "@expo/html-elements": "^57.0.0",
         "expo-image-picker": "~57.0.16",
         "expo-router": "~57.0.19",
+        "lucide-react-native": "^1.44.0",
         "nativewind": "^4.2.6",
         "react-native-svg": "^15.15.5",
         "tailwind-merge": "^3.5.0"

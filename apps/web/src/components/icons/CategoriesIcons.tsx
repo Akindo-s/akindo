@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/icons/CategoriesIcons.tsx ; ya no lo usa ninguna ruta de web (se puede borrar al final de la migracion).
 import { SVGProps } from "react";
 
 interface IconProps extends SVGProps<SVGSVGElement> {

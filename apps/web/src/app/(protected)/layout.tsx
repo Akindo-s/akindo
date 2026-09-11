@@ -21,10 +21,12 @@ export default async function ProtectedLayout({
 
         <CarritoProvider cargarIds={cargarIdsCarrito}>
       <Header isLoggedIn={isLoggedIn} tipoUsuario={tipoUsuario}/>
-      <div className="flex flex-1">
+      {/* Solo el <main> scrollea (el body ya no). El BottomNav de este layout
+          sigue siendo el viejo, `fixed`: por eso el pb-16. */}
+      <div className="flex flex-1 min-h-0">
         <Sidebar tipoUsuario={tipoUsuario} />
 
-        <main className="flex-1 min-w-0 pb-16 md:pb-0">
+        <main className="flex-1 min-w-0 overflow-y-auto pb-16 md:pb-0">
           {children}
         </main>
       </div>

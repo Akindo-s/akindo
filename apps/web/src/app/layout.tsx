@@ -45,7 +45,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body suppressHydrationWarning className=" min-h-screen w-full md:w-[100lvw] flex flex-col   overflow-y-auto">
+      {/* El body no scrollea: ocupa la pantalla (dvh sigue a la barra del
+          navegador en móvil) y cada layout pone el scroll en su <main>. Así
+          Header, Sidebar y BottomNav quedan siempre a la vista. */}
+      <body suppressHydrationWarning className="h-dvh w-full flex flex-col overflow-hidden">
       {children}
     </body>
     </html>
