@@ -15,7 +15,8 @@ export type PesoFuente =
   | "normal"
   | "medium"
   | "semibold"
-  | "bold";
+  | "bold"
+  | "extrabold";
 
 const tokens = require("./tailwind-tokens") as {
   FAMILIA_WEB: string[];

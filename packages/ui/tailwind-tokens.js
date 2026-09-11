@@ -42,6 +42,7 @@ const PESOS = {
   medium: ["PlusJakartaSans_500Medium", "500"],
   semibold: ["PlusJakartaSans_600SemiBold", "600"],
   bold: ["PlusJakartaSans_700Bold", "700"],
+  extrabold: ["PlusJakartaSans_800ExtraBold", "800"],
 };
 
 /**

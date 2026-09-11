@@ -28,3 +28,13 @@ export function elegirImagen(): Promise<string | null> {
     input.click();
   });
 }
+
+/**
+ * Convierte la URL `blob:` que devuelve `elegirImagen` en el `File` que espera
+ * la API (y que Next sabe mandar como argumento de una server action).
+ */
+export async function archivoDeImagen(uri: string): Promise<Blob> {
+  const blob = await (await fetch(uri)).blob();
+  const extension = blob.type.split("/")[1] || "jpeg";
+  return new File([blob], `imagen.${extension}`, { type: blob.type || "image/jpeg" });
+}

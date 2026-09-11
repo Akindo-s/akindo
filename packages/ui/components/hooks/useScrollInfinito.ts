@@ -1,4 +1,3 @@
-// archivo movido a packages/ui/components/hooks/useScrollInfinito.ts (sin el IntersectionObserver) ; referenciado en otros componentes de web.
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -16,29 +15,13 @@ interface UseScrollInfinitoOptions<T> {
     resetKey?: unknown;
 }
 
-interface UseScrollInfinitoResult<T> {
-    items: T[];
-    cargando: boolean;
-    cargandoMas: boolean;
-    error: string | null;
-    centinelaRef: React.RefObject<HTMLDivElement | null>;
-    recargar: () => void;
-}
-
 /**
- * `useScrollInfinito` — Hook genérico de scroll infinito.
+ * `useScrollInfinito` — paginación para scroll infinito.
  *
- * Encapsula el patrón IntersectionObserver + paginación usado en `InventarioView.tsx`.
- * Usado tanto en el inventario privado del distribuidor como en las páginas públicas del mercado.
- *
- * @example
- * const { items, cargando, cargandoMas, centinelaRef } = useScrollInfinito({
- *   fetchFn: async (pagina) => {
- *     const data = await listarProductosCatalogo(pagina, 12, busqueda, categoriasFiltro);
- *     return { items: data.productos, tieneSiguiente: data.tiene_siguiente };
- *   },
- *   resetKey: `${busqueda}-${categoriasFiltro.join(",")}`,
- * });
+ * Misma lógica que `apps/web/src/components/hooks/useScrollInfinito.ts`, sin
+ * el IntersectionObserver: en vez de un ref al DOM devuelve `cargarSiguiente`,
+ * que se conecta a un `<Centinela onVisible={cargarSiguiente}>` (ver
+ * ContenedorPantalla.tsx), que sabe detectar el final en cada plataforma.
  */
 export function useScrollInfinito<T>({ fetchFn, resetKey }: UseScrollInfinitoOptions<T>) {
     const [items, setItems] = useState<T[]>([]);
@@ -48,7 +31,6 @@ export function useScrollInfinito<T>({ fetchFn, resetKey }: UseScrollInfinitoOpt
     const [cargandoMas, setCargandoMas] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const observerRef = useRef<IntersectionObserver | null>(null);
     const paginaRef = useRef(1);
     const tieneSiguienteRef = useRef(false);
     const cargandoMasRef = useRef(false);
@@ -78,27 +60,17 @@ export function useScrollInfinito<T>({ fetchFn, resetKey }: UseScrollInfinitoOpt
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resetKey]);
 
-    // se ejecuta cuando el elemento entra/sale del DOM
-    const centinelaRef = useCallback((nodo: HTMLDivElement | null) => {
-        // Limpiar observer anterior si el nodo cambia
-        observerRef.current?.disconnect();
-
-        if (!nodo) return;
-
-        observerRef.current = new IntersectionObserver((entries) => {
-            if (
-                entries[0].isIntersecting &&
-                tieneSiguienteRef.current &&
-                !cargandoMasRef.current
-            ) {
-                cargar(paginaRef.current + 1);
-            }
-        }, { threshold: 0.1 });
-
-        observerRef.current.observe(nodo);
+    /** Lo que antes hacía el callback del IntersectionObserver. */
+    const cargarSiguiente = useCallback(() => {
+        if (tieneSiguienteRef.current && !cargandoMasRef.current) {
+            // Ya, sin esperar al render: en nativo el aviso de fin de scroll
+            // llega varias veces seguidas y pedía la misma página dos veces.
+            cargandoMasRef.current = true;
+            cargar(paginaRef.current + 1);
+        }
     }, [cargar]);
 
     const recargar = useCallback(() => cargar(1, true), [cargar]);
 
-    return { items, cargando, cargandoMas, error, centinelaRef, recargar,tieneSiguiente };
+    return { items, cargando, cargandoMas, error, cargarSiguiente, recargar, tieneSiguiente };
 }

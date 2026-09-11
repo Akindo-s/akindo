@@ -3,10 +3,16 @@ import {
   obtenerCategoriasDistribuidores,
   obtenerCategoriasProductos,
 } from "@akindo/shared/api/categorias";
-import { agregarProductoCarrito, obtenerIdsCarrito } from "@akindo/shared/api/carrito";
+import { agregarProductoCarrito, obtenerIdsCarrito, verificarProductoEnCarrito } from "@akindo/shared/api/carrito";
 import { listarProductosCatalogo, obtenerProductoPublico } from "@akindo/shared/api/productos";
 import { MENSAJE_CARRITO_SIN_SESION, type AddToCartInput, type AddToCartResult } from "@akindo/shared/client/carrito";
 import { emitir } from "@akindo/shared/eventos";
+import { actualizarImagenNegocio as subirImagenNegocio } from "@akindo/shared/api/distribuidor";
+import {
+  actualizarImagenPerfil as subirImagenPerfil,
+  actualizarPerfilDistribuidor as guardarPerfilDistribuidor,
+  esDistribuidorDueno as esDueno,
+} from "@akindo/shared/api/usuario";
 import { estadoLayoutPublico } from "@akindo/shared/layoutsBehaviors/public";
 import { sesionActual } from "./session";
 
@@ -36,6 +42,13 @@ export async function cargarDestacadas() {
   return obtenerCategoriasDestacadas(token);
 }
 
+/** Espejo de `verificarProductoEnCarrito` de web: solo los clientes tienen carrito. */
+export async function verificarEnCarrito(productoId: string): Promise<boolean> {
+  const { token, tipo } = await sesionActual();
+  if (!token || tipo !== "cliente") return false;
+  return verificarProductoEnCarrito(productoId, token);
+}
+
 /** Primeros productos del catálogo global (el "sustituto temporal" de las recomendaciones de web). */
 export async function cargarRecomendaciones() {
   return (await listarProductosCatalogo(1, 8)).productos;
@@ -58,4 +71,31 @@ export async function agregarAlCarrito({ productoId, distribuidorId, cantidad = 
 
   emitir("carrito:updated");
   return { ok: true, message: resultado.message ?? "Producto agregado al carrito" };
+}
+
+// ─── Tienda del distribuidor ─────────────────────────────────────────────────
+// Espejo de las server actions de `apps/web/src/lib/api/{distribuidor,usuario}.ts`.
+
+/** Si el usuario actual es el dueño del perfil, sin redirigir si no hay sesión. */
+export async function esDistribuidorDueno(distribuidorId: string): Promise<boolean> {
+  const { token, tipo } = await sesionActual();
+  return esDueno(distribuidorId, token, tipo);
+}
+
+export async function actualizarImagenNegocio(distribuidorId: string, archivo: Blob): Promise<boolean> {
+  const { token } = await sesionActual();
+  return subirImagenNegocio(distribuidorId, archivo, token);
+}
+
+export async function actualizarImagenPerfil(archivo: Blob): Promise<boolean> {
+  const { token } = await sesionActual();
+  return subirImagenPerfil(archivo, token);
+}
+
+export async function actualizarPerfilDistribuidor(
+  distribuidorId: string,
+  datos: { descripcion?: string },
+): Promise<boolean> {
+  const { token } = await sesionActual();
+  return guardarPerfilDistribuidor(distribuidorId, datos, token);
 }

@@ -4,21 +4,22 @@ Migración de `apps/web` a `packages/ui` para que web (Next) y `apps/mobile` (Ex
 
 ## Terminado (ya commiteado por el usuario)
 
-Registro (barra final en `/distribuidores/` y `/clientes/`), home `(public)/`, scroll de web solo en el `<main>` y BottomNav oculto desde `md` por el layout.
+Registro, home `(public)/`, scroll de web solo en el `<main>`, `(public)/mercado` y sus cuatro subrutas (productos, detalle, distribuidores, categorías).
 
-## Terminado en esta tanda: `(public)/mercado`
+## Terminado en esta tanda: `mercado/distribuidor/tienda`
 
-- Compartido: `packages/ui/screens/mercado.tsx`, `components/mercado/TarjetaProductoCatalogo.tsx`, `components/ui/ContenedorPantalla.tsx` (home pasó a usarlo), `components/ui/Avisos.tsx` (`AvisosProvider` en los dos layouts `(public)`).
-- `CarritoProvider` ahora también inyecta `agregar` (`useAgregarAlCarrito()`); mobile pasa `agregarAlCarrito` (`apps/mobile/utils/providers-data.ts`).
-- Web: `app/(public)/mercado/page.tsx` usa la pantalla compartida; `app/api/carrito/route.ts` responde 401 "Inicia sesión para agregar productos al carrito" (antes el aviso decía "NEXT_REDIRECT").
-- Mobile: `app/(public)/mercado/index.tsx` → aparece la tab Mercado.
-- Arreglo general: `ExpoLink` registrado en nativewind (los `Link` en línea ignoraban su `className` en nativo); `Link bloque` en web lleva `relative`.
+Con esto queda cerrado todo el grupo `(public)`.
+
+- Compartido: `packages/ui/screens/tienda.tsx` (perfil, aviso de no verificado, "Acerca de" editable y catálogo con scroll infinito).
+- Lo público va directo al núcleo; las cuatro acciones con sesión entran por prop: `esDistribuidorDueno`, `actualizarImagenNegocio`, `actualizarImagenPerfil` y `actualizarPerfilDistribuidor` (web: server actions; mobile: loaders nuevos en `utils/providers-data.ts`).
+- `@akindo/ui/image-picker` ahora también exporta `archivoDeImagen(uri)`: `File` en web, `{ uri, name, type }` en nativo.
+- En vez de `window.location.reload()`, después de subir una imagen o guardar la descripción se vuelve a pedir el perfil.
+- Arreglos en piezas compartidas: el `Boton` resuelve sus clases con twMerge (antes el mismo botón salía de ancho completo en nativo) y la variante `secundario` recupera los 16px del original; el botón de volver del `HeaderSticky` lleva `z-10` (en nativo no recibía el toque, también en el detalle de producto).
 
 ## Para probar antes de commitear
 
-- Agregar al carrito con una sesión real, en web y en mobile (aviso "Producto agregado", ícono verde).
-- Mobile ya verificado en el simulador: pantalla, buscador fijo, cambio de tab.
+Probada en web (medidas a 375 y 1280 contra una copia de la página vieja, incluido el modo dueño forzado) y en el simulador de iOS. Lo único sin disparar es el scroll infinito del catálogo: ningún distribuidor de la base local pasa de 12 productos. Sigue pendiente agregar al carrito con una sesión real.
 
 ## Siguiente
 
-Confirmar con el usuario: `mercado/productos` o `mercado/productos/detalle` (ver `migracion-progreso.md`).
+`(protected)`: carrito, pedidos, perfil y el lado del distribuidor. Confirmar con el usuario por dónde empezar.

@@ -1,7 +1,7 @@
 "use client";
 
 import { cssInterop } from 'nativewind';
-import { H1, H2, H3, P, A, Span, Nav, Header, Section, Footer } from '@expo/html-elements';
+import { H1, H2, H3, H4, P, A, Span, Nav, Header, Section, Footer } from '@expo/html-elements';
 import {Rect,Svg,Path} from 'react-native-svg'
 
 
@@ -11,6 +11,7 @@ import {Rect,Svg,Path} from 'react-native-svg'
 cssInterop(H1, { className: 'style' });
 cssInterop(H2, { className: 'style' });
 cssInterop(H3, { className: 'style' });
+cssInterop(H4, { className: 'style' });
 cssInterop(P, { className: 'style' });
 cssInterop(A, { className: 'style' });
 cssInterop(Span, { className: 'style' });

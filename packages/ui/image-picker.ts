@@ -14,3 +14,15 @@ export async function elegirImagen(): Promise<string | null> {
   if (resultado.canceled) return null;
   return resultado.assets[0]?.uri ?? null;
 }
+
+/**
+ * Convierte la URI que devuelve `elegirImagen` en lo que `FormData` necesita
+ * para subirla. En nativo no hay `Blob` de un `file://`: React Native acepta
+ * `{ uri, name, type }` y arma el multipart él mismo (por eso el cast).
+ */
+export async function archivoDeImagen(uri: string): Promise<Blob> {
+  const nombre = uri.split("/").pop() || "imagen.jpg";
+  const extension = nombre.split(".").pop()?.toLowerCase() || "jpeg";
+  const type = `image/${extension === "jpg" ? "jpeg" : extension}`;
+  return { uri, name: nombre, type } as unknown as Blob;
+}

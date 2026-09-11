@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/mercado/TarjetaDistribuidor.tsx ; ya no lo usa ninguna ruta de web (se puede borrar al final de la migracion).
 import Link from "next/link";
 import { Store, Star } from "lucide-react";
 

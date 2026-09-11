@@ -91,7 +91,9 @@ const variantes: Record<NonNullable<BotonProps["variante"]>, { contenedor: strin
   secundario: {
     contenedor:
       "bg-transparent hover:bg-[#FCEAD2] text-[#4F4634] rounded-xl transition border-none py-3 shadow-none cursor-pointer",
-    texto: "text-[#4F4634]",
+    // Sin tamaño explícito, en web el <button> original heredaba los 16px/24 del
+    // body; un `Text` de RNW arranca en 14px.
+    texto: "text-[#4F4634] text-base leading-normal",
     icono: "#4F4634",
   },
   peligro: {
@@ -157,7 +159,16 @@ export function Boton({
     variante === "chip" ? 16 : variante === "secundario" ? 18 : 20;
   const size = iconoSize ?? defaultIconSize;
 
-  const baseClasses = `${variantes[variante].contenedor} flex flex-row items-center justify-center gap-2 h-fit w-fit px-2 ${className}`;
+  // twMerge y no concatenar: con clases que chocan (`w-full` de la variante vs
+  // `w-fit` de la base) en web mandaba el orden del CSS de Tailwind —siempre
+  // `w-fit`—, pero en nativo `w-fit` se descarta y quedaba el `w-full`, así que
+  // el mismo botón salía de ancho completo. twMerge deja una sola y las dos
+  // plataformas coinciden; el `className` de la instancia sigue ganando.
+  const baseClasses = twMerge(
+    variantes[variante].contenedor,
+    "flex flex-row items-center justify-center gap-2 h-fit w-fit px-2",
+    className
+  );
   const texto = loading ? loadingText : children;
 
   const content = (

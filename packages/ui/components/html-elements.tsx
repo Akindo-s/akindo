@@ -11,6 +11,7 @@ import {
     H1 as RawH1, 
     H2 as RawH2, 
     H3 as RawH3,
+    H4 as RawH4,
     P as RawP,
     A as RawA,
     Span as RawSpan,
@@ -69,6 +70,7 @@ function conTipografia<P extends object>(Componente: React.ComponentType<P>) {
 export const H1 = conTipografia(RawH1 as React.ComponentType<ComponentProps<typeof RawH1>>);
 export const H2 = conTipografia(RawH2 as React.ComponentType<ComponentProps<typeof RawH2>>);
 export const H3 = conTipografia(RawH3 as React.ComponentType<ComponentProps<typeof RawH3>>);
+export const H4 = conTipografia(RawH4 as React.ComponentType<ComponentProps<typeof RawH4>>);
 export const P = conTipografia(RawP as React.ComponentType<ComponentProps<typeof RawP>>);
 export const A = conTipografia(RawA as React.ComponentType<ComponentProps<typeof RawA>>);
 export const Span = conTipografia(RawSpan as React.ComponentType<ComponentProps<typeof RawSpan>>);

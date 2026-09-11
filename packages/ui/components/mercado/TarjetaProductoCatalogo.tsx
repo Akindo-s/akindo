@@ -1,16 +1,15 @@
 /** @jsxImportSource nativewind */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Image, Platform, View } from "react-native";
+import { useState } from "react";
+import { Image, View } from "react-native";
 import { ArrowUpRight, Loader2, Package, ShoppingCart } from "lucide-react-native";
 import { MONEDA } from "@akindo/shared/constants";
 import { useAgregarAlCarrito, useIdsCarrito } from "@akindo/shared/carrito-context";
 import { H3, P, Pressable, Span } from "../html-elements";
 import { Link } from "../link";
 import { useAviso } from "../ui/Avisos";
-
-const DRIVER_NATIVO = Platform.OS !== "web";
+import { Girando } from "../ui/Animaciones";
 
 interface TarjetaProductoCatalogoProps {
     productoId: string;
@@ -19,20 +18,6 @@ interface TarjetaProductoCatalogoProps {
     unidad: string;
     imagen: string | null;
     disponible: boolean;
-}
-
-/** `animate-spin`: una vuelta por segundo, lineal, sin fin. */
-function Girando({ children }: { children: React.ReactNode }) {
-    const giro = useRef(new Animated.Value(0)).current;
-    useEffect(() => {
-        const bucle = Animated.loop(
-            Animated.timing(giro, { toValue: 1, duration: 1000, easing: Easing.linear, useNativeDriver: DRIVER_NATIVO })
-        );
-        bucle.start();
-        return () => bucle.stop();
-    }, [giro]);
-    const rotate = giro.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
-    return <Animated.View style={{ transform: [{ rotate }] }}>{children}</Animated.View>;
 }
 
 /**

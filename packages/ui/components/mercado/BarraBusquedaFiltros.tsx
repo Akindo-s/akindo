@@ -2,14 +2,14 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { ArrowLeft, Package } from "lucide-react-native";
 import useRouter from "@akindo/ui/router";
 import { useCategorias } from "@akindo/shared/categorias-context";
 import { Buscador } from "../ui/Buscador";
 import { Pressable } from "../html-elements";
 import { StorefrontIcon } from "../../icons/NavigationIcons";
-import { fuente } from "../../fonts";
+import { ChipFiltro } from "./ChipFiltro";
 
 interface Categoria {
     id: string;
@@ -29,26 +29,6 @@ interface BarraBusquedaFiltrosProps {
     onChange?: (valor: string) => void;
     desactivarAutoBusqueda?: boolean;
 }
-
-function Chip({ activo, onPress, children }: { activo: boolean; onPress: () => void; children: React.ReactNode }) {
-    return (
-        <Pressable
-            role="button"
-            onPress={onPress}
-            className={`flex-shrink-0 flex flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border transition-colors cursor-pointer ${
-                activo
-                    ? "bg-[#DAA520] border-[#DAA520]"
-                    : "bg-transparent border-stone-200 hover:bg-stone-50"
-            }`}
-        >
-            {children}
-        </Pressable>
-    );
-}
-
-// El texto no hereda el color del botón: va en cada Text.
-const textoChip = (activo: boolean) => `text-xs ${activo ? "text-white" : "text-stone-600"}`;
-const colorChip = (activo: boolean) => (activo ? "#FFFFFF" : "#57534E");
 
 export function BarraBusquedaFiltros({
     placeholder = "Buscar...",
@@ -82,13 +62,16 @@ export function BarraBusquedaFiltros({
     };
 
     const handleBuscar = useCallback((q: string) => {
+        // Antes también navegaba cuando la página ya manejaba la búsqueda: en
+        // distribuidores el `push` chocaba con el `replace` de la página y se
+        // quedaba cargando; en nativo apilaba una pantalla por búsqueda.
         if (onBuscar) onBuscar(q);
-        router.push(`/mercado/productos?q=${q}`)
+        else router.push(`/mercado/productos?q=${q}`)
     }, [onBuscar])
 
     return (
         // `sticky` no existe en nativo: ahí lo resuelve el ScrollView de la
-        // pantalla con stickyHeaderIndices (ver screens/home.tsx).
+        // pantalla con stickyHeaderIndices (ver ContenedorPantalla).
         <View className={`w-full web:sticky top-0 z-20 bg-white border-b border-stone-100 shadow-sm flex flex-col gap-1 ${className}`}>
 
             <View className="flex flex-row items-center gap-3 px-4 pt-3 pb-3">
@@ -122,27 +105,20 @@ export function BarraBusquedaFiltros({
                     className="w-full mb-3"
                     contentContainerClassName="gap-2 pb-0.5 pl-4"
                 >
-                    <Chip activo={!categoriaSeleccionada} onPress={() => handleCategoria(null, undefined)}>
-                        <Text style={fuente("medium")} className={textoChip(!categoriaSeleccionada)}>Todas</Text>
-                    </Chip>
+                    <ChipFiltro activo={!categoriaSeleccionada} onPress={() => handleCategoria(null, undefined)} etiqueta="Todas" />
 
-                    {categorias.map((cat) => {
-                        const activo = categoriaSeleccionada === cat.id;
-                        return (
-                            <Chip
-                                key={cat.id}
-                                activo={activo}
-                                onPress={() => handleCategoria(
-                                    categoriaSeleccionada === cat.id ? null : cat.id,
-                                    cat.tipo
-                                )}
-                            >
-                                {cat.tipo === "producto" && <Package size={12} color={colorChip(activo)} />}
-                                {cat.tipo === "distribuidor" && <StorefrontIcon size={12} color={colorChip(activo)} />}
-                                <Text style={fuente("medium")} className={textoChip(activo)}>{cat.nombre}</Text>
-                            </Chip>
-                        );
-                    })}
+                    {categorias.map((cat) => (
+                        <ChipFiltro
+                            key={cat.id}
+                            activo={categoriaSeleccionada === cat.id}
+                            onPress={() => handleCategoria(
+                                categoriaSeleccionada === cat.id ? null : cat.id,
+                                cat.tipo
+                            )}
+                            etiqueta={cat.nombre}
+                            Icono={cat.tipo === "producto" ? Package : cat.tipo === "distribuidor" ? StorefrontIcon : undefined}
+                        />
+                    ))}
                 </ScrollView>
             )}
         </View>

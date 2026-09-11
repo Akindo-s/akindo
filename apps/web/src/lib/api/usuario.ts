@@ -15,7 +15,7 @@ export type {
 /**
  * Actualiza la imagen de perfil del usuario autenticado (cliente o distribuidor).
  */
-export async function actualizarImagenPerfil(file: File): Promise<boolean> {
+export async function actualizarImagenPerfil(file: Blob): Promise<boolean> {
     const token = await tokenRequerido();
     return conSesion(() => core.actualizarImagenPerfil(file, token));
 }

@@ -37,6 +37,7 @@ import { fuente } from "@akindo/ui/fonts";
 | `medium` | 500 | `PlusJakartaSans_500Medium` |
 | `semibold` | 600 | `PlusJakartaSans_600SemiBold` |
 | `bold` | 700 | `PlusJakartaSans_700Bold` |
+| `extrabold` | 800 | `PlusJakartaSans_800ExtraBold` |
 
 Son una unión de TypeScript: un peso mal escrito no compila.
 
