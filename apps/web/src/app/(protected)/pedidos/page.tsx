@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerMisPedidos, obtenerMisOrdenes } from "@/lib/api/pedidos";
 import { Suspense } from "react";
-import MisPedidosView from "@/components/pedidos/MisPedidosView";
+import Pedidos from "@akindo/ui/screens/pedidos";
 
 export const metadata: Metadata = {
   title: "Mis Pedidos",
@@ -20,11 +20,13 @@ async function PedidosContent() {
   ]);
 
   return (
-    <MisPedidosView
-      activos={[...pedidosPendientes, ...pedidosActivos]}
-      entregados={entregados}
-      cancelados={cancelados}
-      ordenes={ordenes}
+    <Pedidos
+      datos={{
+        activos: [...pedidosPendientes, ...pedidosActivos],
+        entregados,
+        cancelados,
+        ordenes,
+      }}
     />
   );
 }

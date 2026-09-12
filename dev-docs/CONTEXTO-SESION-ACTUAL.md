@@ -6,7 +6,7 @@ Migración de `apps/web` a `packages/ui` para que web (Next) y `apps/mobile` (Ex
 
 Todo `(auth)`, todo `(public)`, y de `(protected)` el layout del grupo y `carrito`.
 
-## Terminado en esta tanda: `(protected)/perfil`
+## Terminado antes en esta sesión: `(protected)/perfil`
 
 - Compartido: `packages/ui/screens/perfil.tsx` (el perfil del cliente) más `components/ui/{Avatar,Badge,CampoEditable,ItemMenu}.tsx`.
 - Las siete acciones con sesión se inyectan (perfil, imagen, las cuatro de direcciones y `onLogout`). En mobile, un distribuidor se redirige a su tienda desde la propia ruta, como hace el `page.tsx` en web.
@@ -30,6 +30,23 @@ Comparado con la vista vieja a 375 y 1280 con datos falsos, y probado en el simu
 
 **Ojo**: con las cuatro tabs visibles, "Pedidos" todavía no existe en mobile y cae en la pantalla "Unmatched Route" de expo-router.
 
+## Terminado antes en esta sesión: `(protected)/pedidos`
+
+- Compartido: `packages/ui/screens/pedidos.tsx`. Web sigue cargando los datos en el servidor y los pasa en una prop `datos`; mobile pasa `null` y un `cargarDatos` (`cargarPedidos`).
+- Con esto las cuatro tabs del BottomNav ya funcionan en mobile.
+- Las pestañas Activos/Entregados/Cancelados tuvieron que quedar con className fijo y los colores por `style`: cambiar clases en un componente que tiene un `hover:` hacía reventar la app en nativo (regla 50). El único costo es que la pastilla activa mide 2px más de ancho que en web.
+- Ojo: la lista enlaza a `/pedidos/ordenes` y a `/pedidos/<id>`, que todavía no existen en mobile (caen en "Unmatched Route"). Y un distribuidor se sigue redirigiendo a `/distribuidor/pedidos`, también sin migrar.
+
+## Terminado en esta tanda: `(protected)/distribuidor/pedidos`
+
+- Compartido: `packages/ui/screens/distribuidor-pedidos.tsx`, con el modal para actualizar el estado.
+- El `<select>` del modal se reemplazó por un desplegable propio (React Native no tiene select), con la misma caja.
+- Probado con tu sesión de distribuidor en el simulador, incluida **una actualización real**: el pedido `#9e84ca5d` de `testuser` pasó de "pendiente de envío" a "en envío" (era la transición normal hacia adelante; no toqué "Cancelar Pedido").
+
+## Sesiones para probar
+
+Cuando una ruta necesite sesión de cliente o de distribuidor, paro y te aviso para que la cambies a mano en el simulador. No escribo contraseñas en los formularios.
+
 ## Siguiente
 
-`pedidos`, por lo de la tab. Después quedan `carrito/preorden`, `admin/categorias` y el lado del distribuidor.
+Las dos subrutas de pedidos (`ordenes` y el detalle), que son los links que hoy no llevan a ninguna parte en mobile — y que sirven para las dos sesiones. Después `carrito/preorden`, `admin/categorias` y el resto del lado del distribuidor.

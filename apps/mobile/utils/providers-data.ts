@@ -13,6 +13,13 @@ import {
   verificarProductoEnCarrito,
 } from "@akindo/shared/api/carrito";
 import { listarProductosCatalogo, obtenerProductoPublico } from "@akindo/shared/api/productos";
+import {
+  enviarActualizacionPedido,
+  obtenerMisOrdenes,
+  obtenerMisPedidos,
+  obtenerPedidosDistribuidor,
+} from "@akindo/shared/api/pedidos";
+import type { EstadoPedido } from "@akindo/shared/types/pedidos";
 import { MENSAJE_CARRITO_SIN_SESION, type AddToCartInput, type AddToCartResult } from "@akindo/shared/client/carrito";
 import { emitir } from "@akindo/shared/eventos";
 import { actualizarImagenNegocio as subirImagenNegocio } from "@akindo/shared/api/distribuidor";
@@ -176,4 +183,38 @@ export async function guardarDireccion(id: string, datos: DatosDireccionParcial)
 export async function quitarDireccion(id: string) {
   const { token } = await sesionActual();
   return eliminarDireccion(id, token);
+}
+
+// ─── Pedidos ─────────────────────────────────────────────────────────────────
+// Espejo de `apps/web/src/lib/api/pedidos.ts` y de lo que arma el `page.tsx`
+// de web antes de pintar la pantalla.
+
+export async function cargarPedidos() {
+  const { token } = await sesionActual();
+  const [activosEnEnvio, pendientes, entregados, cancelados, ordenes] = await Promise.all([
+    obtenerMisPedidos("en envio", token),
+    obtenerMisPedidos("pendiente de envio", token),
+    obtenerMisPedidos("entregado", token),
+    obtenerMisPedidos("cancelado", token),
+    obtenerMisOrdenes(undefined, token),
+  ]);
+  return { activos: [...pendientes, ...activosEnEnvio], entregados, cancelados, ordenes };
+}
+
+// ─── Pedidos del distribuidor ────────────────────────────────────────────────
+
+export async function cargarPedidosDistribuidor() {
+  const { token } = await sesionActual();
+  const [pendientes, enEnvio, entregados, cancelados] = await Promise.all([
+    obtenerPedidosDistribuidor("pendiente de envio", token),
+    obtenerPedidosDistribuidor("en envio", token),
+    obtenerPedidosDistribuidor("entregado", token),
+    obtenerPedidosDistribuidor("cancelado", token),
+  ]);
+  return { activos: [...pendientes, ...enEnvio], historial: [...entregados, ...cancelados] };
+}
+
+export async function actualizarEstadoPedido(pedidoId: string, estado: EstadoPedido, descripcion?: string) {
+  const { token } = await sesionActual();
+  return enviarActualizacionPedido(pedidoId, estado, descripcion, token);
 }
