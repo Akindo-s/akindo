@@ -1,3 +1,4 @@
+// archivo movido a packages/ui ; referenciado en otros componentes de web.
 import { ReactNode } from "react";
 
 type VarianteBadge = "oro" | "exito" | "error" | "neutro" | "advertencia";

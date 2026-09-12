@@ -27,6 +27,7 @@ const nextConfig: NextConfig = withExpo({
       // so the `.web` twins are unreachable without pointing at them explicitly.
       "@akindo/ui/router": "@akindo/ui/router.web",
       "@akindo/ui/image-picker": "@akindo/ui/image-picker.web",
+      "@akindo/ui/confirmar": "@akindo/ui/confirmar.web",
     },
     resolveExtensions: [
       ".web.js",

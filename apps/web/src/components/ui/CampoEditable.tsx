@@ -1,3 +1,4 @@
+// archivo movido a packages/ui ; referenciado en otros componentes de web.
 "use client";
 
 import { useState, InputHTMLAttributes } from "react";

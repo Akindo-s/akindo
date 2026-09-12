@@ -12,14 +12,6 @@ import { agregarAlCarrito, cargarIdsCarrito } from "@/utils/providers-data";
 // Espejo de apps/web/src/app/(protected)/layout.tsx. Sin Sidebar: en web solo
 // aparece desde md, y acá la navegación es el BottomNav.
 
-/**
- * Tabs del BottomNav que ya existen como ruta en mobile. En el grupo público
- * salen de las Tabs de expo-router; acá el grupo es un Stack (el carrito no es
- * una tab: se entra desde el Header), así que va la lista. Agregar "/pedidos" y
- * "/perfil" cuando se migren.
- */
-const HREFS_MIGRADOS = ["/", "/mercado"];
-
 export default function ProtectedLayout() {
   const sesion = useSesion();
   const { isLoggedIn, tipoUsuario, requiereLogin } = estadoLayoutProtegido(sesion);
@@ -39,7 +31,8 @@ export default function ProtectedLayout() {
           <View className="flex-1">
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#FFFFFF" } }} />
           </View>
-          <BottomNav tipoUsuario={tipoUsuario} hrefsVisibles={HREFS_MIGRADOS} />
+          {/* Sin `hrefsVisibles`, como el layout público: se ven las cuatro tabs. */}
+          <BottomNav tipoUsuario={tipoUsuario} />
         </AvisosProvider>
       </View>
     </CarritoProvider>

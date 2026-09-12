@@ -1,3 +1,4 @@
+// archivo movido a packages/ui ; referenciado en otros componentes de web.
 import Link from "next/link";
 
 interface ItemMenuProps {

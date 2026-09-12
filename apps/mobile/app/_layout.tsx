@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, Tabs } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";

@@ -17,9 +17,18 @@ import { MENSAJE_CARRITO_SIN_SESION, type AddToCartInput, type AddToCartResult }
 import { emitir } from "@akindo/shared/eventos";
 import { actualizarImagenNegocio as subirImagenNegocio } from "@akindo/shared/api/distribuidor";
 import {
+  actualizarDireccion,
   actualizarImagenPerfil as subirImagenPerfil,
+  actualizarPerfilCliente,
   actualizarPerfilDistribuidor as guardarPerfilDistribuidor,
+  crearDireccion,
+  eliminarDireccion,
   esDistribuidorDueno as esDueno,
+  obtenerInformacionPerfil,
+  obtenerMisDirecciones,
+  obtenerPerfilDistribuidor,
+  type DatosDireccion,
+  type DatosDireccionParcial,
 } from "@akindo/shared/api/usuario";
 import { estadoLayoutPublico } from "@akindo/shared/layoutsBehaviors/public";
 import { sesionActual } from "./session";
@@ -129,4 +138,42 @@ export async function eliminarItem(distribuidorId: string, productoId: string) {
 export async function vaciarCarritos() {
   const { token } = await sesionActual();
   return vaciarCarritosCliente(token);
+}
+
+// ─── Perfil ──────────────────────────────────────────────────────────────────
+// Espejo de las server actions de `apps/web/src/lib/api/usuario.ts`.
+
+export async function cargarPerfilCliente() {
+  const { token } = await sesionActual();
+  return obtenerInformacionPerfil(token);
+}
+
+export async function cargarPerfilDistribuidor() {
+  const { token } = await sesionActual();
+  return obtenerPerfilDistribuidor(token);
+}
+
+export async function guardarPerfilCliente(datos: { nombre?: string; telefono?: string; email?: string }) {
+  const { token } = await sesionActual();
+  return actualizarPerfilCliente(datos, token);
+}
+
+export async function cargarDirecciones() {
+  const { token } = await sesionActual();
+  return obtenerMisDirecciones(token);
+}
+
+export async function agregarDireccion(datos: DatosDireccion) {
+  const { token } = await sesionActual();
+  return crearDireccion(datos, token);
+}
+
+export async function guardarDireccion(id: string, datos: DatosDireccionParcial) {
+  const { token } = await sesionActual();
+  return actualizarDireccion(id, datos, token);
+}
+
+export async function quitarDireccion(id: string) {
+  const { token } = await sesionActual();
+  return eliminarDireccion(id, token);
 }

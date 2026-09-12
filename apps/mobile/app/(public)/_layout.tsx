@@ -36,7 +36,7 @@ export default function PublicLayout() {
             // El BottomNav compartido hace de barra: solo muestra las tabs que
             // existen como ruta en este grupo.
             tabBar={({ state }) => (
-              <BottomNav tipoUsuario={tipoUsuario} hrefsVisibles={state.routes.map((ruta) => hrefDeRuta(ruta.name))} />
+              <BottomNav tipoUsuario={tipoUsuario}  />
             )}
           />
         </AvisosProvider>
