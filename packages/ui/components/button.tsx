@@ -164,9 +164,16 @@ export function Boton({
   // `w-fit`—, pero en nativo `w-fit` se descarta y quedaba el `w-full`, así que
   // el mismo botón salía de ancho completo. twMerge deja una sola y las dos
   // plataformas coinciden; el `className` de la instancia sigue ganando.
+  // El orden imita lo que pasaba en web, donde ganaba la clase que el CSS de
+  // Tailwind pone después (y no la que va después en el string): el `px-2` es
+  // solo un default y la variante lo pisa (`px-6` de peligro), mientras que el
+  // `w-fit` le gana al `w-full` de la variante. Concatenar como antes dejaba
+  // las dos clases y en nativo, donde `w-fit` no existe, ganaba `w-full` y el
+  // botón salía de ancho completo (ver regla 41).
   const baseClasses = twMerge(
+    "flex flex-row items-center justify-center gap-2 px-2",
     variantes[variante].contenedor,
-    "flex flex-row items-center justify-center gap-2 h-fit w-fit px-2",
+    "h-fit w-fit",
     className
   );
   const texto = loading ? loadingText : children;

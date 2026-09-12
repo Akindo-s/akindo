@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/ui/EncabezadoPagina.tsx ; referenciado en otros componentes de web.
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 

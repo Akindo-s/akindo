@@ -3,7 +3,15 @@ import {
   obtenerCategoriasDistribuidores,
   obtenerCategoriasProductos,
 } from "@akindo/shared/api/categorias";
-import { agregarProductoCarrito, obtenerIdsCarrito, verificarProductoEnCarrito } from "@akindo/shared/api/carrito";
+import {
+  actualizarCantidadCarrito,
+  agregarProductoCarrito,
+  eliminarItemCarrito,
+  obtenerCarritoCliente,
+  obtenerIdsCarrito,
+  vaciarCarritosCliente,
+  verificarProductoEnCarrito,
+} from "@akindo/shared/api/carrito";
 import { listarProductosCatalogo, obtenerProductoPublico } from "@akindo/shared/api/productos";
 import { MENSAJE_CARRITO_SIN_SESION, type AddToCartInput, type AddToCartResult } from "@akindo/shared/client/carrito";
 import { emitir } from "@akindo/shared/eventos";
@@ -98,4 +106,27 @@ export async function actualizarPerfilDistribuidor(
 ): Promise<boolean> {
   const { token } = await sesionActual();
   return guardarPerfilDistribuidor(distribuidorId, datos, token);
+}
+
+// ─── Carrito (grupo `(protected)`) ───────────────────────────────────────────
+// Espejo de las server actions de `apps/web/src/lib/api/carrito.ts`.
+
+export async function cargarCarrito() {
+  const { token } = await sesionActual();
+  return obtenerCarritoCliente(token);
+}
+
+export async function actualizarCantidad(distribuidorId: string, productoId: string, cantidad: number) {
+  const { token } = await sesionActual();
+  return actualizarCantidadCarrito(distribuidorId, productoId, cantidad, token);
+}
+
+export async function eliminarItem(distribuidorId: string, productoId: string) {
+  const { token } = await sesionActual();
+  return eliminarItemCarrito(distribuidorId, productoId, token);
+}
+
+export async function vaciarCarritos() {
+  const { token } = await sesionActual();
+  return vaciarCarritosCliente(token);
 }

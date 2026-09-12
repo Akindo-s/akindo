@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/layout/FooterFijo.tsx ; referenciado en otros componentes de web.
 import { ReactNode } from "react";
 
 export default function FooterFijo({ children,className }: { children: ReactNode,className?:string }) {

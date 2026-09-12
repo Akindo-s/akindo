@@ -1,3 +1,4 @@
+// archivo movido a packages/ui ; referenciado en otros componentes de web.
 "use client";
 
 import { MONEDA } from "@akindo/shared/constants";

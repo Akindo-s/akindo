@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/ui/Tarjeta.tsx ; referenciado en otros componentes de web.
 import { ReactNode } from "react";
 
 type VarianteTarjeta = "blanco" | "calido";

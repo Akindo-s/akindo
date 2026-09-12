@@ -4,22 +4,19 @@ Migración de `apps/web` a `packages/ui` para que web (Next) y `apps/mobile` (Ex
 
 ## Terminado (ya commiteado por el usuario)
 
-Registro, home `(public)/`, scroll de web solo en el `<main>`, `(public)/mercado` y sus cuatro subrutas (productos, detalle, distribuidores, categorías).
+Todo `(auth)` y todo `(public)`: home, `mercado`, sus cuatro subrutas y `mercado/distribuidor/tienda`.
 
-## Terminado en esta tanda: `mercado/distribuidor/tienda`
+## Terminado en esta tanda: el layout `(protected)` y `carrito`
 
-Con esto queda cerrado todo el grupo `(public)`.
-
-- Compartido: `packages/ui/screens/tienda.tsx` (perfil, aviso de no verificado, "Acerca de" editable y catálogo con scroll infinito).
-- Lo público va directo al núcleo; las cuatro acciones con sesión entran por prop: `esDistribuidorDueno`, `actualizarImagenNegocio`, `actualizarImagenPerfil` y `actualizarPerfilDistribuidor` (web: server actions; mobile: loaders nuevos en `utils/providers-data.ts`).
-- `@akindo/ui/image-picker` ahora también exporta `archivoDeImagen(uri)`: `File` en web, `{ uri, name, type }` en nativo.
-- En vez de `window.location.reload()`, después de subir una imagen o guardar la descripción se vuelve a pedir el perfil.
-- Arreglos en piezas compartidas: el `Boton` resuelve sus clases con twMerge (antes el mismo botón salía de ancho completo en nativo) y la variante `secundario` recupera los 16px del original; el botón de volver del `HeaderSticky` lleva `z-10` (en nativo no recibía el toque, también en el detalle de producto).
+- **Layout `(protected)`**: ahora usa el `Header` y el `BottomNav` compartidos, con el mismo armado que el público (solo el `<main>` scrollea; el BottomNav va en el flujo y se oculta desde `md`). Comportamiento común en `packages/shared/src/layoutsBehaviors/protected.ts`. En mobile el grupo es un Stack con `<Redirect href="/login">` cuando no hay sesión, y el `BottomNav` recibe la lista de rutas ya migradas.
+- **Carrito**: `packages/ui/screens/carrito.tsx` + `components/carrito/{CarritoItemCard,QuantityStepper}.tsx`, y se movieron también `components/ui/{Tarjeta,EncabezadoPagina}.tsx` y `components/layout/FooterFijo.tsx`. Las acciones se inyectan (server actions en web, loaders en mobile) y `initialData` solo viaja en web; mobile lo pide al montar.
+- `Titulo`/`SubTitulo`/`Parrafo` aceptan `peso`: en nativo el peso es otra familia y no se puede cambiar con un `font-semibold` del className.
+- El `Boton` volvió a resolver sus clases como lo hacía web (el `px-6` de la variante peligro le gana al `px-2` de la base, y el `w-fit` al `w-full`).
 
 ## Para probar antes de commitear
 
-Probada en web (medidas a 375 y 1280 contra una copia de la página vieja, incluido el modo dueño forzado) y en el simulador de iOS. Lo único sin disparar es el scroll infinito del catálogo: ningún distribuidor de la base local pasa de 12 productos. Sigue pendiente agregar al carrito con una sesión real.
+Comparado con la vista vieja a 375 y 1280 con datos falsos, y probado en las dos plataformas: stepper con debounce, eliminar, vaciar y estado vacío. Falta verlo con un carrito real (el de la sesión del simulador está vacío).
 
 ## Siguiente
 
-`(protected)`: carrito, pedidos, perfil y el lado del distribuidor. Confirmar con el usuario por dónde empezar.
+Confirmar con el usuario. Lo natural son `perfil` y `pedidos`, que son tabs del BottomNav: al migrarlas hay que agregar su href a `HREFS_MIGRADOS` en `apps/mobile/app/(protected)/_layout.tsx`.
