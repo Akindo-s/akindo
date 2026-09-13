@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/ui/ModalConfirmacion.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useEffect } from "react";

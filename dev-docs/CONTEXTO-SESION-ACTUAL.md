@@ -43,10 +43,26 @@ Comparado con la vista vieja a 375 y 1280 con datos falsos, y probado en el simu
 - El `<select>` del modal se reemplazó por un desplegable propio (React Native no tiene select), con la misma caja.
 - Probado con tu sesión de distribuidor en el simulador, incluida **una actualización real**: el pedido `#9e84ca5d` de `testuser` pasó de "pendiente de envío" a "en envío" (era la transición normal hacia adelante; no toqué "Cancelar Pedido").
 
+## Terminado en esta tanda: `(protected)/pedidos/ordenes`
+
+- Compartido: `packages/ui/screens/ordenes.tsx` (junta el encabezado del `page.tsx` y el viejo `MisOrdenesCompra`) más `components/ui/ModalConfirmacion.tsx`, que ahora también es compartido.
+- `cancelarOrden` se inyecta por prop. Al cancelar bien, en vez del `router.refresh()` del original la pantalla marca la orden como `cancelada`.
+- El modal tuvo que subir al nivel de la pantalla: dentro de la tarjeta quedaba **debajo** de las tarjetas siguientes en web (cada View de react-native-web es un contexto de apilamiento) y en nativo habría tapado solo la tarjeta (regla 54).
+- Dos diferencias de medida encontradas y corregidas: las alturas de una fila de tarjetas no se igualan solas como en un grid (`flex-1`, regla 55) y `tracking-wide` a 10px es 0.25px, no 0.5 (partía "Total de la orden" en dos líneas, regla 56).
+- Probado en el simulador con datos falsos (tarjetas, desplegar productos, modal y error) y después con la sesión real de cliente: 9 órdenes pendientes y 4 aceptadas, con imágenes reales. No se canceló ninguna orden de verdad.
+- **Arreglo que salió al probar**: la tarjeta "Órdenes de Compra" de `screens/pedidos.tsx` no respondía al toque en el teléfono y al tocarla reventaba la app. El `hover:` del original estaba en la `Tarjeta`, que es hija del `Link`: nativewind le engancha el gesto al hijo y el Link nunca lo recibe (regla 57). Ahora el hover va por el `onHoverChange` del Link. De paso se corrigieron los cuatro `tracking-*` de esa pantalla (regla 56).
+
+## Terminado en esta tanda: `(protected)/pedidos/[pedidoId]` (solo la vista del cliente)
+
+- Compartido: `packages/ui/screens/pedido-detalle.tsx`, más `components/pedidos/{ListaProductosPedido,HistorialActualizacionesPedido}.tsx`, que también usan las dos vistas del distribuidor.
+- El `page.tsx` de web sigue eligiendo por tipo de usuario: un distribuidor ve `DetallePedidoDistView`, **todavía sin migrar**.
+- El detalle de orden de compra no se hizo: en web solo existe del lado del distribuidor (`/distribuidor/ordenes/[ordenId]`, con aceptar/rechazar). Queda para la tanda del distribuidor (decisión del usuario).
+- Probado en el simulador con la sesión de cliente: pedido en proceso, entregado con valoración y entregado sin valorar (el formulario y las estrellas). **No se envió ninguna valoración.**
+
 ## Sesiones para probar
 
 Cuando una ruta necesite sesión de cliente o de distribuidor, paro y te aviso para que la cambies a mano en el simulador. No escribo contraseñas en los formularios.
 
 ## Siguiente
 
-Las dos subrutas de pedidos (`ordenes` y el detalle), que son los links que hoy no llevan a ninguna parte en mobile — y que sirven para las dos sesiones. Después `carrito/preorden`, `admin/categorias` y el resto del lado del distribuidor.
+El lado del distribuidor: `DetallePedidoDistView` (la otra mitad de `pedidos/[pedidoId]`) y `distribuidor/ordenes` con su detalle. Después `carrito/preorden`, `admin/categorias` y el resto del distribuidor.

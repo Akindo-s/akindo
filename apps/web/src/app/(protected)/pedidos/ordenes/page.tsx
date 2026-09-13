@@ -1,10 +1,9 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { obtenerMisOrdenes } from "@/lib/api/pedidos";
+import { obtenerMisOrdenes, cancelarOrden } from "@/lib/api/pedidos";
 import { Suspense } from "react";
-import MisOrdenesCompra from "@/components/pedidos/MisOrdenesCompra";
-import { EncabezadoPagina } from "@/components/ui/EncabezadoPagina";
+import Ordenes from "@akindo/ui/screens/ordenes";
 
 export const metadata: Metadata = {
   title: "Mis Órdenes de Compra",
@@ -14,14 +13,12 @@ export const metadata: Metadata = {
 async function OrdenesContent() {
   const ordenes = await obtenerMisOrdenes();
 
-  return (
-    <div className="mx-auto w-full max-w-6xl pb-24">
-      <EncabezadoPagina titulo="Órdenes de Compra" href="/pedidos" />
-      <div className="pt-4">
-        <MisOrdenesCompra ordenes={ordenes} />
-      </div>
-    </div>
-  );
+  async function cancelarAction(ordenId: string) {
+    "use server";
+    return cancelarOrden(ordenId);
+  }
+
+  return <Ordenes ordenes={ordenes} cancelarAction={cancelarAction} />;
 }
 
 function OrdenesSkeleton() {

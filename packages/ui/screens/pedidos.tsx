@@ -69,7 +69,7 @@ function PedidoCard({ pedido }: { pedido: PedidoListItem }) {
     <Tarjeta className={`relative border-l-4 ${BORDE_ESTADO[pedido.estado] ?? "border-l-stone-300"}`}>
       <View className="flex flex-row items-start justify-between gap-2">
         <View className="flex-1 min-w-0">
-          <P peso="semibold" className="text-[10px] leading-normal text-stone-400 uppercase tracking-[1.5px]">
+          <P peso="semibold" className="text-[10px] leading-normal text-stone-400 uppercase tracking-[1px]">
             PEDIDO #{pedido.id.slice(0, 8).toUpperCase()}
           </P>
           <H3 peso="bold" className="text-base text-stone-900 mt-0.5 leading-tight">
@@ -81,12 +81,12 @@ function PedidoCard({ pedido }: { pedido: PedidoListItem }) {
 
       <View className="flex flex-row gap-6 mt-3">
         <View>
-          <P peso="semibold" className="text-[10px] leading-normal uppercase tracking-[0.5px] text-stone-400">Fecha de Pedido</P>
+          <P peso="semibold" className="text-[10px] leading-normal uppercase tracking-[0.25px] text-stone-400">Fecha de Pedido</P>
           <P peso="medium" className="text-xs text-stone-700 mt-0.5">{formatFecha(pedido.confirmado_at)}</P>
         </View>
         {pedido.entregado_at && (
           <View>
-            <P peso="semibold" className="text-[10px] leading-normal uppercase tracking-[0.5px] text-stone-400">Entregado</P>
+            <P peso="semibold" className="text-[10px] leading-normal uppercase tracking-[0.25px] text-stone-400">Entregado</P>
             <P peso="medium" className="text-xs text-stone-700 mt-0.5">{formatFecha(pedido.entregado_at)}</P>
           </View>
         )}
@@ -94,7 +94,7 @@ function PedidoCard({ pedido }: { pedido: PedidoListItem }) {
 
       <View className="flex flex-row items-center justify-between mt-3 pt-3 border-t border-stone-100">
         <View>
-          <P peso="semibold" className="text-[10px] leading-normal uppercase tracking-[0.5px] text-stone-400">Total</P>
+          <P peso="semibold" className="text-[10px] leading-normal uppercase tracking-[0.25px] text-stone-400">Total</P>
           <P peso="extrabold" className="text-xl text-stone-900">
             ${formatMoney(pedido.total)} <Span className="text-xs text-stone-400">{MONEDA}</Span>
           </P>
@@ -129,6 +129,9 @@ interface PedidosProps {
 
 export default function Pedidos({ datos: datosIniciales, cargarDatos }: PedidosProps) {
   const [tab, setTab] = useState<Tab>("Activos");
+  // El hover de la tarjeta de órdenes, por estado y no con una variante
+  // `hover:` (ver abajo).
+  const [ordenesEnHover, setOrdenesEnHover] = useState(false);
   const [datos, setDatos] = useState<DatosPedidos | null>(datosIniciales);
   const [errorCarga, setErrorCarga] = useState(false);
   const [intento, setIntento] = useState(0);
@@ -177,13 +180,19 @@ export default function Pedidos({ datos: datosIniciales, cargarDatos }: PedidosP
 
       {/* Acceso a Órdenes de Compra */}
       <View className="px-4 mb-6">
-        <Link href="/pedidos/ordenes" bloque>
+        <Link href="/pedidos/ordenes" bloque onHoverChange={setOrdenesEnHover}>
           {/* El degradado `from-amber-50 to-white` se dibuja con SVG: en RN no
               hay `linear-gradient` (regla 17). `overflow-hidden` lo recorta al
               radio de la tarjeta. */}
           {/* Sin `p-4`: en web el `p-5` de la Tarjeta le ganaba por orden del CSS
               (la tarjeta medía 95px de alto, no 86) — ver regla 41. */}
-          <Tarjeta className="border-amber-100 hover:border-amber-200 transition-colors overflow-hidden">
+          {/* El `hover:border-amber-200` del original iba acá, pero una
+              variante de interacción en un hijo del Link se queda con el toque:
+              en el simulador la tarjeta no navegaba y al tocarla la app
+              reventaba con "Couldn't find a navigation context" (regla 57). El
+              hover va por el `onHoverChange` del Link, que sí es el que
+              recibe el gesto. */}
+          <Tarjeta className={`${ordenesEnHover ? "border-amber-200" : "border-amber-100"} transition-colors overflow-hidden`}>
             <Degradado direccion="to-br" paradas={[{ offset: 0, color: "#FFFBEB" }, { offset: 1, color: "#FFFFFF" }]} />
             <View className="flex flex-row items-center justify-between">
               <View className="flex flex-row items-center gap-3 shrink">

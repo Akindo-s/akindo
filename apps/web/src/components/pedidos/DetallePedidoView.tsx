@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/screens/pedido-detalle.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useState } from "react";

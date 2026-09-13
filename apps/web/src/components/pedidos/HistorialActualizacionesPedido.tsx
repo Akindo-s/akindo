@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/pedidos/HistorialActualizacionesPedido.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import type { PedidoActualizacion } from "@akindo/shared/types/pedidos";

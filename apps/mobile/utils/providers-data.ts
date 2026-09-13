@@ -14,7 +14,10 @@ import {
 } from "@akindo/shared/api/carrito";
 import { listarProductosCatalogo, obtenerProductoPublico } from "@akindo/shared/api/productos";
 import {
+  cancelarOrden,
+  crearValoracion,
   enviarActualizacionPedido,
+  obtenerDetallePedido,
   obtenerMisOrdenes,
   obtenerMisPedidos,
   obtenerPedidosDistribuidor,
@@ -199,6 +202,28 @@ export async function cargarPedidos() {
     obtenerMisOrdenes(undefined, token),
   ]);
   return { activos: [...pendientes, ...activosEnEnvio], entregados, cancelados, ordenes };
+}
+
+/** Las órdenes de compra del cliente, para `/pedidos/ordenes`. */
+export async function cargarOrdenes() {
+  const { token } = await sesionActual();
+  return obtenerMisOrdenes(undefined, token);
+}
+
+export async function cancelarOrdenCompra(ordenId: string) {
+  const { token } = await sesionActual();
+  return cancelarOrden(ordenId, token);
+}
+
+/** El detalle de un pedido, para `/pedidos/<id>`. */
+export async function cargarDetallePedido(pedidoId: string) {
+  const { token, tipo } = await sesionActual();
+  return obtenerDetallePedido(pedidoId, tipo === "distribuidor", token);
+}
+
+export async function valorarPedido(pedidoId: string, puntuacion: number, comentario?: string) {
+  const { token } = await sesionActual();
+  return crearValoracion(pedidoId, puntuacion, comentario, token);
 }
 
 // ─── Pedidos del distribuidor ────────────────────────────────────────────────

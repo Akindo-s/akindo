@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/pedidos/ListaProductosPedido.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { Package2 } from "lucide-react";
