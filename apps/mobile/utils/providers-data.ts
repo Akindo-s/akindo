@@ -14,13 +14,17 @@ import {
 } from "@akindo/shared/api/carrito";
 import { listarProductosCatalogo, obtenerProductoPublico } from "@akindo/shared/api/productos";
 import {
+  aceptarOrden,
   cancelarOrden,
   crearValoracion,
   enviarActualizacionPedido,
   obtenerDetallePedido,
   obtenerMisOrdenes,
+  obtenerDetalleOrden,
   obtenerMisPedidos,
+  obtenerOrdenesDistribuidor,
   obtenerPedidosDistribuidor,
+  rechazarOrden,
 } from "@akindo/shared/api/pedidos";
 import type { EstadoPedido } from "@akindo/shared/types/pedidos";
 import { MENSAJE_CARRITO_SIN_SESION, type AddToCartInput, type AddToCartResult } from "@akindo/shared/client/carrito";
@@ -237,6 +241,33 @@ export async function cargarPedidosDistribuidor() {
     obtenerPedidosDistribuidor("cancelado", token),
   ]);
   return { activos: [...pendientes, ...enEnvio], historial: [...entregados, ...cancelados] };
+}
+
+/** Las órdenes de compra que le llegan al distribuidor. */
+export async function cargarOrdenesDistribuidor() {
+  const { token } = await sesionActual();
+  const [pendientes, aceptadas, rechazadas] = await Promise.all([
+    obtenerOrdenesDistribuidor("pendiente", token),
+    obtenerOrdenesDistribuidor("aceptada", token),
+    obtenerOrdenesDistribuidor("rechazada", token),
+  ]);
+  return { pendientes, aceptadas, rechazadas };
+}
+
+/** El detalle de una orden, para `/distribuidor/ordenes/<id>`. */
+export async function cargarDetalleOrden(ordenId: string) {
+  const { token } = await sesionActual();
+  return obtenerDetalleOrden(ordenId, token);
+}
+
+export async function aceptarOrdenCompra(ordenId: string) {
+  const { token } = await sesionActual();
+  return aceptarOrden(ordenId, token);
+}
+
+export async function rechazarOrdenCompra(ordenId: string, motivo?: string) {
+  const { token } = await sesionActual();
+  return rechazarOrden(ordenId, motivo, token);
 }
 
 export async function actualizarEstadoPedido(pedidoId: string, estado: EstadoPedido, descripcion?: string) {

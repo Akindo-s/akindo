@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/screens/distribuidor-orden-detalle.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useState } from "react";

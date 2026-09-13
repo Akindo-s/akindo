@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { obtenerDetalleOrden, aceptarOrden, rechazarOrden } from "@/lib/api/pedidos";
-import DetalleOrdenCompraDistView from "@/components/distribuidor/DetalleOrdenCompraDistView";
+import DistribuidorOrdenDetalle from "@akindo/ui/screens/distribuidor-orden-detalle";
 
 interface PageProps {
   params: Promise<{
@@ -28,8 +28,8 @@ export default async function DetalleOrdenPage({ params }: PageProps) {
   }
 
   return (
-    <DetalleOrdenCompraDistView 
-      orden={orden} 
+    <DistribuidorOrdenDetalle
+      orden={orden}
       aceptarAction={handleAceptar}
       rechazarAction={handleRechazar}
     />

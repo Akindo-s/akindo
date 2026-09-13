@@ -59,10 +59,30 @@ Comparado con la vista vieja a 375 y 1280 con datos falsos, y probado en el simu
 - El detalle de orden de compra no se hizo: en web solo existe del lado del distribuidor (`/distribuidor/ordenes/[ordenId]`, con aceptar/rechazar). Queda para la tanda del distribuidor (decisión del usuario).
 - Probado en el simulador con la sesión de cliente: pedido en proceso, entregado con valoración y entregado sin valorar (el formulario y las estrellas). **No se envió ninguna valoración.**
 
+## Terminado en esta tanda: la vista del distribuidor de `pedidos/[pedidoId]`
+
+- Compartido: `packages/ui/screens/distribuidor-pedido-detalle.tsx`, más `components/pedidos/ResumenFinancieroPedido.tsx` y el `Selector` genérico nuevo (`components/ui/Selector.tsx`), que reemplaza al `<select>`.
+- Con esto la ruta `pedidos/[pedidoId]` queda completa: el `page.tsx` de web y la ruta de mobile eligen vista según el tipo de usuario.
+- Dos cosas que salieron al comparar: en el CSS de Tailwind `.w-fit` va antes que `.w-full` (así que en web gana `w-full` y el `twMerge` del Boton hace lo contrario — ver la corrección a la regla 41), y un `flex-1` en columna colapsa la tarjeta en nativo (regla 59).
+- Probado en el simulador con datos falsos y después con la sesión real del distribuidor (pedido #192469c7 de testuser). **No se guardó ningún cambio de estado.**
+
+## Terminado en esta tanda: `(protected)/distribuidor/ordenes`
+
+- Compartido: `packages/ui/screens/distribuidor-ordenes.tsx`, con el modal de rechazo.
+- Probado con la sesión real del distribuidor: las dos órdenes pendientes de `sergio9`, las aceptadas, las pestañas y el modal. **No se aceptó ni rechazó ninguna orden.**
+- Tres detalles de fidelidad que salieron midiendo: `w-full shrink` en vez de `flex-1` para los botones del modal (regla 60), `border-0` en vez de `border-transparent` (regla 61) y que el `bg-red-50`/`text-red-600` del botón "Rechazar" pierden contra la variante `chip` en web (regla 62).
+
+## Terminado en esta tanda: `(protected)/distribuidor/ordenes/[ordenId]`
+
+- Compartido: `packages/ui/screens/distribuidor-orden-detalle.tsx`. Con esto el lado de órdenes del distribuidor queda completo (lista + detalle).
+- Probado con la sesión real del distribuidor. **No se aceptó ni rechazó ninguna orden.**
+- Dos cosas que solo se vieron en el teléfono: el botón "Detalle" de la lista no navegaba porque el Boton iba dentro de un Link (regla 63) y el total se partía en dos renglones (`native:shrink-0`).
+- Ojo para la próxima: `{/* … */}` entre atributos o justo después de un `&& (` rompe la compilación **aunque `tsc` pase** (regla 64).
+
 ## Sesiones para probar
 
 Cuando una ruta necesite sesión de cliente o de distribuidor, paro y te aviso para que la cambies a mano en el simulador. No escribo contraseñas en los formularios.
 
 ## Siguiente
 
-El lado del distribuidor: `DetallePedidoDistView` (la otra mitad de `pedidos/[pedidoId]`) y `distribuidor/ordenes` con su detalle. Después `carrito/preorden`, `admin/categorias` y el resto del distribuidor.
+`carrito/preorden` (del lado del cliente), `admin/categorias` y lo que queda del distribuidor: el dashboard `/distribuidor`, `distribuidor/productos*`, `distribuidor/valoraciones` y `distribuidor/reportes`.

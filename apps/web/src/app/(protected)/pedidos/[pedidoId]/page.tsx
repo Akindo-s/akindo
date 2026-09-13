@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerDetallePedido, crearValoracion, enviarActualizacionPedido } from "@/lib/api/pedidos";
 import PedidoDetalle from "@akindo/ui/screens/pedido-detalle";
-import DetallePedidoDistView from "@/components/distribuidor/DetallePedidoDistView";
+import DistribuidorPedidoDetalle from "@akindo/ui/screens/distribuidor-pedido-detalle";
 import { EstadoPedido } from "@akindo/shared/types/pedidos";
 
 export const metadata: Metadata = { title: "Detalle del Pedido" };
@@ -33,7 +33,7 @@ export default async function DetallePedidoPage({
   }
 
   if (tipo === "distribuidor") {
-    return <DetallePedidoDistView pedido={pedido} actualizarEstadoAction={actualizarEstadoAction} />;
+    return <DistribuidorPedidoDetalle pedido={pedido} actualizarEstadoAction={actualizarEstadoAction} />;
   }
 
   return <PedidoDetalle pedido={pedido} valorarAction={valorarAction} />;

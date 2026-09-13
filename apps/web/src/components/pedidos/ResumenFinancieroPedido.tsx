@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/pedidos/ResumenFinancieroPedido.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { Tarjeta } from "@/components/ui/Tarjeta";
