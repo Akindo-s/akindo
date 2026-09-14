@@ -2,7 +2,7 @@
 
 Migración de `apps/web` a `packages/ui` para que web (Next) y `apps/mobile` (Expo) compartan la UI. Branch `mobile-dev`.
 
-**El estado completo está en [`migracion-progreso.md`](./migracion-progreso.md)**: la tabla de rutas (hechas y pendientes), la lista de archivos ya movidos, las 72 reglas aprendidas, cómo se verifica cada ruta y los pendientes conocidos. Este archivo es solo el resumen para retomar. Complementarios: [`RUTAS-PROTEGIDAS.md`](./RUTAS-PROTEGIDAS.md) (quién entra a cada ruta), [`COMPONENTES-MULTIPLATAFORMA.md`](./COMPONENTES-MULTIPLATAFORMA.md), [`TIPOGRAFIA.md`](./TIPOGRAFIA.md) y [`migracion-ui-reglas.md`](./migracion-ui-reglas.md) (el proceso pedido por el usuario).
+**El estado completo está en [`migracion-progreso.md`](./migracion-progreso.md)**: la tabla de rutas (hechas y pendientes), la lista de archivos ya movidos, las 73 reglas aprendidas, cómo se verifica cada ruta y los pendientes conocidos. Este archivo es solo el resumen para retomar. Complementarios: [`RUTAS-PROTEGIDAS.md`](./RUTAS-PROTEGIDAS.md) (quién entra a cada ruta), [`COMPONENTES-MULTIPLATAFORMA.md`](./COMPONENTES-MULTIPLATAFORMA.md), [`TIPOGRAFIA.md`](./TIPOGRAFIA.md) y [`migracion-ui-reglas.md`](./migracion-ui-reglas.md) (el proceso pedido por el usuario).
 
 ## Cómo se trabaja (pedido del usuario)
 
@@ -14,13 +14,13 @@ Migración de `apps/web` a `packages/ui` para que web (Next) y `apps/mobile` (Ex
 
 ## Qué está hecho
 
-Todo `(auth)` y todo `(public)`. De `(protected)`: el layout del grupo, `carrito`, `perfil`, `pedidos`, `pedidos/ordenes`, `pedidos/[pedidoId]` (las vistas de cliente y de distribuidor), y del distribuidor `pedidos`, `ordenes`, `ordenes/[ordenId]`, el panel `/distribuidor`, su inventario `distribuidor/productos` y **crear / editar producto** (`distribuidor/productos/crear` y `[id]/editar`, un solo form compartido).
+Todo `(auth)` y todo `(public)`. De `(protected)`: el layout del grupo, `carrito`, `perfil`, `pedidos`, `pedidos/ordenes`, `pedidos/[pedidoId]` (las vistas de cliente y de distribuidor), y del distribuidor `pedidos`, `ordenes`, `ordenes/[ordenId]`, el panel `/distribuidor`, su inventario `distribuidor/productos`, **crear / editar producto** (`distribuidor/productos/crear` y `[id]/editar`, un solo form compartido) y **valoraciones y reportes** (`distribuidor/valoraciones` y `distribuidor/reportes`, hechas juntas a pedido del usuario). Del distribuidor ya no queda ninguna ruta. Del cliente también está **`carrito/preorden`**.
 
-Las últimas tandas (panel, inventario y crear/editar producto) pueden estar **sin commitear**: mirar `git status`.
+Las últimas tandas (valoraciones, reportes y preorden) pueden estar **sin commitear**: mirar `git status`.
 
 ## Qué falta
 
-`distribuidor/valoraciones`, `distribuidor/reportes`, `carrito/preorden` y `admin/categorias`.
+Solo `admin/categorias`. `sobrenosotros` y `(public)/distribuidores` **no se migran**: el usuario las va a eliminar.
 
 En mobile ya no quedan links del distribuidor que caigan en "Unmatched Route" por rutas sin migrar dentro de lo hecho.
 
@@ -35,4 +35,4 @@ En mobile ya no quedan links del distribuidor que caigan en "Unmatched Route" po
 
 - Simulador: iPhone 17 Pro, con **sesión de distribuidor** (`Dulcería el valle`) en el momento de escribir esto. La cuenta de cliente que se usó antes es `sergio9`.
 - La foto de perfil del cliente quedó con una imagen de muestra del simulador (una cascada), de cuando se probó la subida de imágenes.
-- El dev server de web (puerto 3000) lo levantó otra sesión; esta lo usó abriendo una pestaña a `localhost:3000`.
+- El dev server de web (puerto 3000) se levanta con la configuración `web` de `.claude/launch.json`.

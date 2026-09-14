@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerPreOrden } from "@/lib/api/pedidos";
 import { crearOrden } from "@/lib/api/pedidos";
-import PreOrdenView from "@/components/pedidos/PreOrdenView";
+import PreOrden from "@akindo/ui/screens/preorden";
 
 export const metadata: Metadata = {
   title: "Confirmar orden de compra",
@@ -45,7 +45,7 @@ export default async function PreOrdenPage({
   }
 
   return (
-    <PreOrdenView
+    <PreOrden
       preOrden={preOrden}
       crearOrdenAction={crearOrdenAction}
     />

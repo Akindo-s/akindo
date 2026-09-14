@@ -35,7 +35,11 @@ import {
   obtenerMisPedidos,
   obtenerOrdenesDistribuidor,
   obtenerPedidosDistribuidor,
+  obtenerValoracionesDistribuidor,
   rechazarOrden,
+  obtenerPreOrden,
+  crearOrden,
+  type DatosCrearOrden,
 } from "@akindo/shared/api/pedidos";
 import type { EstadoPedido } from "@akindo/shared/types/pedidos";
 import { MENSAJE_CARRITO_SIN_SESION, type AddToCartInput, type AddToCartResult } from "@akindo/shared/client/carrito";
@@ -306,6 +310,23 @@ export async function rechazarOrdenCompra(ordenId: string, motivo?: string) {
 export async function actualizarEstadoPedido(pedidoId: string, estado: EstadoPedido, descripcion?: string) {
   const { token } = await sesionActual();
   return enviarActualizacionPedido(pedidoId, estado, descripcion, token);
+}
+
+/** La preorden de un distribuidor del carrito, para `/carrito/preorden`. */
+export async function cargarPreOrden(distribuidorId: string) {
+  const { token } = await sesionActual();
+  return obtenerPreOrden(distribuidorId, token);
+}
+
+export async function crearOrdenCompra(datos: DatosCrearOrden) {
+  const { token } = await sesionActual();
+  return crearOrden(datos, token);
+}
+
+/** Lo que pinta `/distribuidor/valoraciones`. */
+export async function cargarValoracionesDistribuidor() {
+  const { token } = await sesionActual();
+  return obtenerValoracionesDistribuidor(token);
 }
 
 // ─── Crear / editar producto ─────────────────────────────────────────────────

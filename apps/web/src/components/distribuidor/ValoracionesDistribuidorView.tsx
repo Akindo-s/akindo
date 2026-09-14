@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/screens/distribuidor-valoraciones.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { Star, MessageSquare, Calendar, User, Package, ArrowUpRight, ExternalLink } from "lucide-react";

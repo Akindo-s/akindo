@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerValoracionesDistribuidor } from "@/lib/api/pedidos";
 import { Suspense } from "react";
-import ValoracionesDistribuidorView from "@/components/distribuidor/ValoracionesDistribuidorView";
+import DistribuidorValoraciones from "@akindo/ui/screens/distribuidor-valoraciones";
 
 export const metadata: Metadata = {
   title: "Mis Valoraciones",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 async function ValoracionesContent() {
   const valoraciones = await obtenerValoracionesDistribuidor();
 
-  return <ValoracionesDistribuidorView valoraciones={valoraciones} />;
+  return <DistribuidorValoraciones valoraciones={valoraciones} />;
 }
 
 function ValoracionesSkeleton() {
