@@ -1,7 +1,7 @@
 /** @jsxImportSource nativewind */
 import { Text } from "react-native";
 import { twMerge } from "tailwind-merge";
-import { fuente } from "../fonts";
+import { fuente, type PesoFuente } from "../fonts";
 import { Pressable } from "./html-elements";
 import {Link} from "./link";
 
@@ -65,6 +65,13 @@ interface BotonProps {
    * aparte y no hereda nada del contenedor.
    */
   claseTexto?: string;
+
+  /**
+   * Peso del texto. Default `"medium"`, el `font-medium` de las variantes. Por
+   * `className` no se puede (TIPOGRAFIA.md): un `font-semibold` de la instancia
+   * que ganaba en web va acá.
+   */
+  pesoTexto?: PesoFuente;
 }
 
 /**
@@ -154,6 +161,7 @@ export function Boton({
   onClick,
   accessibilityLabel,
   claseTexto,
+  pesoTexto = "medium",
 }: BotonProps) {
   const defaultIconSize =
     variante === "chip" ? 16 : variante === "secundario" ? 18 : 20;
@@ -184,7 +192,7 @@ export function Boton({
       {/* Sin texto no se renderiza el Text: vacío igual ocupaba lugar y el
           `gap-2` descentraba los botones de solo ícono. */}
       {texto != null && texto !== false && (
-        <Text style={fuente("medium")} className={twMerge(variantes[variante].texto, claseTexto)}>
+        <Text style={fuente(pesoTexto)} className={twMerge(variantes[variante].texto, claseTexto)}>
           {texto}
         </Text>
       )}

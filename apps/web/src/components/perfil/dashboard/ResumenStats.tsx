@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/screens/distribuidor-dashboard.tsx ; referenciado en otros componentes de web.
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { obtenerResumenMensual } from "@/lib/api/distribuidor";
 

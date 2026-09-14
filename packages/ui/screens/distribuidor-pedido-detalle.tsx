@@ -32,11 +32,11 @@ function formatFecha(iso: string | null) {
   });
 }
 
-const ESTADOS_DISPONIBLES: { label: string; valor: EstadoPedido }[] = [
-  { label: "Pendiente de Envío", valor: "pendiente de envio" },
-  { label: "En Envío", valor: "en envio" },
-  { label: "Entregado", valor: "entregado" },
-  { label: "Cancelado", valor: "cancelado" },
+const ESTADOS_DISPONIBLES: { etiqueta: string; valor: EstadoPedido }[] = [
+  { etiqueta: "Pendiente de Envío", valor: "pendiente de envio" },
+  { etiqueta: "En Envío", valor: "en envio" },
+  { etiqueta: "Entregado", valor: "entregado" },
+  { etiqueta: "Cancelado", valor: "cancelado" },
 ];
 
 /** La API manda más campos de los que declara el tipo compartido. */
@@ -166,11 +166,12 @@ export default function DistribuidorPedidoDetalle({
                       mide 15 (ahí va `leading-normal`, regla 19). */}
                   <Span peso="bold" className="text-[10px] leading-6 text-stone-400 uppercase tracking-[0.5px]">Nuevo Estado</Span>
                   <Selector
+                    modo="simple"
                     opciones={ESTADOS_DISPONIBLES}
                     valor={nuevoEstado ?? pedido.estado}
                     onChange={setNuevoEstado}
                     accessibilityLabel="Nuevo estado del pedido"
-                    className="bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5"
+                    claseCaja="bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5"
                     claseTexto="text-sm text-stone-800"
                   />
                 </View>

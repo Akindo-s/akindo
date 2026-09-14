@@ -1,4 +1,10 @@
-import RegistrarProductoForm from "@/components/productos/RegistrarProductoForm";
+import RegistrarProductoForm from "@akindo/ui/components/productos/RegistrarProductoForm";
+import {
+    actualizarProducto,
+    crearProducto,
+    guardarBorradorProducto,
+    subirImagenProducto,
+} from "@/lib/api/productos";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -10,5 +16,13 @@ export default async function CrearProductoPage() {
     if (!token) redirect("/login");
     if (tipoUsuario !== "distribuidor") redirect("/");
 
-    return <RegistrarProductoForm />;
+    // Las escrituras se inyectan como server actions (el form es compartido con mobile).
+    return (
+        <RegistrarProductoForm
+            crearAction={crearProducto}
+            guardarBorradorAction={guardarBorradorProducto}
+            actualizarAction={actualizarProducto}
+            subirImagenAction={subirImagenProducto}
+        />
+    );
 }

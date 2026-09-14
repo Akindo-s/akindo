@@ -12,7 +12,18 @@ import {
   vaciarCarritosCliente,
   verificarProductoEnCarrito,
 } from "@akindo/shared/api/carrito";
-import { listarProductosCatalogo, obtenerProductoPublico } from "@akindo/shared/api/productos";
+import {
+  actualizarProducto,
+  archivarProducto,
+  crearProducto,
+  guardarBorradorProducto,
+  listarProductosCatalogo,
+  obtenerProducto,
+  obtenerProductoPublico,
+  subirImagenProducto,
+  type DatosActualizarProducto,
+  type DatosCrearProducto,
+} from "@akindo/shared/api/productos";
 import {
   aceptarOrden,
   cancelarOrden,
@@ -29,7 +40,12 @@ import {
 import type { EstadoPedido } from "@akindo/shared/types/pedidos";
 import { MENSAJE_CARRITO_SIN_SESION, type AddToCartInput, type AddToCartResult } from "@akindo/shared/client/carrito";
 import { emitir } from "@akindo/shared/eventos";
-import { actualizarImagenNegocio as subirImagenNegocio } from "@akindo/shared/api/distribuidor";
+import {
+  actualizarImagenNegocio as subirImagenNegocio,
+  obtenerPedidosActivos,
+  obtenerProductosPocasExistencias,
+  obtenerResumenMensual,
+} from "@akindo/shared/api/distribuidor";
 import {
   actualizarDireccion,
   actualizarImagenPerfil as subirImagenPerfil,
@@ -254,6 +270,23 @@ export async function cargarOrdenesDistribuidor() {
   return { pendientes, aceptadas, rechazadas };
 }
 
+/** Todo lo que pinta el panel de `/distribuidor`. */
+export async function cargarDashboardDistribuidor() {
+  const { token } = await sesionActual();
+  const [resumen, ordenesPendientes, pedidosActivos, alertas] = await Promise.all([
+    obtenerResumenMensual(token),
+    obtenerOrdenesDistribuidor("pendiente", token),
+    obtenerPedidosActivos(token),
+    obtenerProductosPocasExistencias(token),
+  ]);
+  return { resumen, ordenesPendientes, pedidosActivos, alertas };
+}
+
+export async function archivarProductoDistribuidor(productoId: string) {
+  const { token } = await sesionActual();
+  return archivarProducto(productoId, token);
+}
+
 /** El detalle de una orden, para `/distribuidor/ordenes/<id>`. */
 export async function cargarDetalleOrden(ordenId: string) {
   const { token } = await sesionActual();
@@ -273,4 +306,33 @@ export async function rechazarOrdenCompra(ordenId: string, motivo?: string) {
 export async function actualizarEstadoPedido(pedidoId: string, estado: EstadoPedido, descripcion?: string) {
   const { token } = await sesionActual();
   return enviarActualizacionPedido(pedidoId, estado, descripcion, token);
+}
+
+// ─── Crear / editar producto ─────────────────────────────────────────────────
+// Espejo de las server actions de `apps/web/src/lib/api/productos.ts`.
+
+/** El producto completo, para `/distribuidor/productos/<id>/editar`. */
+export async function cargarProducto(productoId: string) {
+  const { token } = await sesionActual();
+  return obtenerProducto(productoId, token);
+}
+
+export async function crearProductoDistribuidor(datos: DatosCrearProducto) {
+  const { token } = await sesionActual();
+  return crearProducto(datos, false, token);
+}
+
+export async function guardarBorradorProductoDistribuidor(datos: DatosCrearProducto) {
+  const { token } = await sesionActual();
+  return guardarBorradorProducto(datos, token);
+}
+
+export async function actualizarProductoDistribuidor(productoId: string, datos: DatosActualizarProducto) {
+  const { token } = await sesionActual();
+  return actualizarProducto(productoId, datos, token);
+}
+
+export async function subirImagenProductoDistribuidor(productoId: string, archivo: Blob) {
+  const { token } = await sesionActual();
+  return subirImagenProducto(productoId, archivo, token);
 }

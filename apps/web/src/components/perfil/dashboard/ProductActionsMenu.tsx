@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/perfil/ProductActionsMenu.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useState, useRef, useEffect } from "react";

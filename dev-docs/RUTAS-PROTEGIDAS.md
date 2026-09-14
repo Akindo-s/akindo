@@ -42,7 +42,7 @@ if (requiereLogin) return <Redirect href="/login" />;
 
 - `estadoLayoutProtegido` (`packages/shared/src/layoutsBehaviors/protected.ts`) es el cálculo compartido: `isLoggedIn`, `tipoUsuario` y `requiereLogin`. El layout de web llama al mismo para el Header.
 - **El `cargada` es obligatorio.** La cookie de web ya está leída antes de pintar; el storage de mobile no, así que sin esa guarda la app mandaba a `/login` aunque hubiera sesión guardada.
-- Todavía **no se valida el tipo de usuario** en mobile: el layout solo exige que haya token. Cuando se migre una ruta que en web pide un tipo (por ejemplo `pedidos`, que es solo de clientes), hay que agregar esa comprobación —en el layout si vale para todo el grupo, o en la pantalla si es de una sola.
+- **El tipo de usuario se valida en cada pantalla, no en el layout.** El layout solo exige que haya token. Las rutas que en web se bifurcan por tipo hacen lo mismo en mobile, en su `index.tsx`: `pedidos` manda a un distribuidor a `/distribuidor/pedidos`, `perfil` le muestra su perfil de distribuidor y `pedidos/[pedidoId]` elige entre las dos vistas del detalle. **Lo que todavía falta** es el caso inverso: las rutas del distribuidor (`/distribuidor`, `distribuidor/productos`, `distribuidor/pedidos`, `distribuidor/ordenes*`) no comprueban nada, así que un cliente que llegue por deep link las ve intentar cargar y fallar contra la API; en web esas páginas hacen `redirect("/")`.
 - Token vencido: web lo traduce a `redirect("/login")` dentro de `conSesion`; **mobile todavía no tiene equivalente**. Hoy el error llega a la pantalla (en el carrito se ve "No se pudo cargar tu carrito" con un "Volver a intentar"). Está anotado como pendiente en `migracion-progreso.md`.
 
 ## Qué pasa con lo que no es una ruta

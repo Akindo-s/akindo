@@ -335,6 +335,7 @@ Qué mirar:
 ## Ojo con esto
 
 - **El pragma faltante no da error, da un componente sin estilos.** Es el modo de falla silencioso más probable de esta arquitectura.
+- **El typecheck no valida todo el JSX.** `{/* … */}` entre atributos o justo después de un `&& (` pasa `tsc` pero rompe la compilación de Next (SWC) y la de Metro (Babel), con la página en 500 y un "Failed to compile" en el simulador. Entre atributos va `//`; después de un `&& (`, el comentario se sube arriba del condicional. Por eso el typecheck **no** reemplaza abrir la ruta en el dev server y la pantalla en el simulador.
 - **Todo primitivo de `@expo/html-elements` tiene que estar registrado en [`nativewind-classname.ts`](../packages/ui/nativewind-classname.ts)**, que se importa desde `components/html-elements.tsx`. Importarlo solo desde el `layout.tsx` de web no alcanza: es Server Component, y un módulo `"use client"` importado por efecto desde ahí nunca se evalúa en el navegador. Síntoma: el `className` de `H1`/`P`/`Section` se descarta sin error.
 - **Un `Text` no hereda color, tamaño ni alineación de su `View`**, ni en nativo ni en react-native-web. `text-white`, `text-sm` o `text-center` van en el texto mismo, no en el contenedor (ver `Boton`).
 - **Web perdona el texto suelto en `View`; nativo no.** Si desarrollás mirando solo web, ese bug llega a producción móvil.

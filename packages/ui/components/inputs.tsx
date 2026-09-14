@@ -81,6 +81,16 @@ interface InputProps {
    * cuenta. La validacion real la hace el formulario que lo usa.
    */
   required?: boolean;
+
+  /**
+   * Teclado numérico, en lugar del `<input type="number">` de web. En web
+   * react-native-web lo pinta como `inputMode="numeric"`/`"decimal"`: el campo
+   * sigue siendo de texto (sin las flechitas del navegador).
+   */
+  teclado?: "entero" | "decimal";
+
+  /** Clases extra para el campo de texto (ej. el `[&_input]:pl-5` del original). */
+  claseInput?: string;
 }
 
 export function Input({
@@ -94,6 +104,8 @@ export function Input({
   onChangeText,
   value,
   editable,
+  teclado,
+  claseInput = "",
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
@@ -134,14 +146,18 @@ export function Input({
           // Estaba como `secureTextEntry={showPassword}`, invertido: el valor
           // inicial `false` mostraba la contrasena en claro.
           secureTextEntry={isPassword && !showPassword}
-          keyboardType={isEmail ? "email-address" : isTel ? "phone-pad" : "default"}
+          keyboardType={
+            teclado === "entero" ? "number-pad"
+              : teclado === "decimal" ? "decimal-pad"
+              : isEmail ? "email-address" : isTel ? "phone-pad" : "default"
+          }
           autoCapitalize={autoCapitalize ?? (isEmail ? "none" : undefined)}
           textContentType={isPassword ? 'password' : type}
           placeholder={placeholder}
           onChangeText={onChangeText}
           value={value}
           editable={editable}
-          className="flex-1 bg-transparent text-stone-800 text-xs  placeholder-stone-400 outline-none w-full py-1"
+          className={`flex-1 bg-transparent text-stone-800 text-xs  placeholder-stone-400 outline-none w-full py-1 ${claseInput}`}
         />
         {isPassword && (
           <Pressable

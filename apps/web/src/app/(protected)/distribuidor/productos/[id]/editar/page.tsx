@@ -1,7 +1,13 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { obtenerProducto } from "@/lib/api/productos";
-import RegistrarProductoForm from "@/components/productos/RegistrarProductoForm";
+import {
+    actualizarProducto,
+    crearProducto,
+    guardarBorradorProducto,
+    obtenerProducto,
+    subirImagenProducto,
+} from "@/lib/api/productos";
+import RegistrarProductoForm from "@akindo/ui/components/productos/RegistrarProductoForm";
 
 /**
  * Página de edición de producto.
@@ -26,9 +32,18 @@ export default async function EditarProductoPage({
 
     if (!producto) {
         // TODO: Mostrar página de error 404 personalizada porque pos esa de next y vercel bad bad not gud
-        
+
         redirect("/distribuidor/productos");
     }
 
-    return <RegistrarProductoForm modo="editar" productoInicial={producto} />;
+    return (
+        <RegistrarProductoForm
+            modo="editar"
+            productoInicial={producto}
+            crearAction={crearProducto}
+            guardarBorradorAction={guardarBorradorProducto}
+            actualizarAction={actualizarProducto}
+            subirImagenAction={subirImagenProducto}
+        />
+    );
 }

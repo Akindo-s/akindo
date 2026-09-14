@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/screens/inventario.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";

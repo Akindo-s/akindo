@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/productos/TarjetaProducto.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useRouter } from "next/navigation";

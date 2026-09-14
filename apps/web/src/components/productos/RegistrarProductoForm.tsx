@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/productos/RegistrarProductoForm.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useState, useEffect, useRef } from "react";

@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/screens/distribuidor-dashboard.tsx ; referenciado en otros componentes de web.
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Badge } from "@/components/ui/Badge";
 import { Clock, CheckCircle2, ChevronRight } from "lucide-react";

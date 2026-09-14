@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/screens/distribuidor-dashboard.tsx ; referenciado en otros componentes de web.
 import { PlusCircle, FileText, Users, ShoppingBag, ShoppingBasket, MessageSquare } from "lucide-react";
 import { Suspense } from "react";
 import { Boton } from "@/components/ui/Boton";

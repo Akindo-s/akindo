@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/components/ui/Selector.tsx ; referenciado en otros componentes de web.
 "use client";
 
 import { useState, useRef, useEffect, ReactNode } from "react";

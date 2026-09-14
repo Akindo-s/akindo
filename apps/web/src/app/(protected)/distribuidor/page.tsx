@@ -1,17 +1,35 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { obtenerPerfilDistribuidor } from "@/lib/api/usuario";
 import { Suspense } from "react";
-import PerfilDistribuidor from "@/components/perfil/PerfilDistribuidor";
 import { Metadata } from "next";
+import DistribuidorDashboard from "@akindo/ui/screens/distribuidor-dashboard";
+import { obtenerResumenMensual, obtenerPedidosActivos, obtenerProductosPocasExistencias } from "@/lib/api/distribuidor";
+import { obtenerOrdenesDistribuidor } from "@/lib/api/pedidos";
+import { archivarProducto } from "@/lib/api/productos";
 
 export const metadata: Metadata = {
     title: "Panel de Distribuidor",
 };
 
 async function DashboardContent() {
-    const distribuidor = await obtenerPerfilDistribuidor();
-    return <PerfilDistribuidor distribuidor={distribuidor} />;
+    const [resumen, ordenesPendientes, pedidosActivos, alertas] = await Promise.all([
+        obtenerResumenMensual(),
+        obtenerOrdenesDistribuidor("pendiente"),
+        obtenerPedidosActivos(),
+        obtenerProductosPocasExistencias(),
+    ]);
+
+    async function archivarAction(productoId: string) {
+        "use server";
+        return archivarProducto(productoId);
+    }
+
+    return (
+        <DistribuidorDashboard
+            datos={{ resumen, ordenesPendientes, pedidosActivos, alertas }}
+            archivarAction={archivarAction}
+        />
+    );
 }
 
 function DashboardSkeleton() {

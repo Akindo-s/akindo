@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerPerfilDistribuidor } from "@/lib/api/usuario";
-import InventarioView from "@/components/productos/InventarioView";
+import { archivarProducto } from "@/lib/api/productos";
+import Inventario from "@akindo/ui/screens/inventario";
 
 /**
  * Página de inventario del distribuidor.
@@ -22,5 +23,10 @@ export default async function InventarioPage() {
         redirect("/distribuidor");
     }
 
-    return <InventarioView distribuidorId={perfil.id} />;
+    async function archivarAction(productoId: string) {
+        "use server";
+        return archivarProducto(productoId);
+    }
+
+    return <Inventario distribuidorId={perfil.id} archivarAction={archivarAction} />;
 }
