@@ -38,7 +38,7 @@ export async function fetchWithAuth(
   }
 
   const url = endpoint.startsWith("http") ? endpoint : `${API_URL}${endpoint}`;
-
+  console.log("---- url :",url)
   const init: RequestInitConCache = {
     ...options,
     headers,
