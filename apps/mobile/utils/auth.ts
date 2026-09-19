@@ -24,6 +24,5 @@ export async function _logout():Promise<void>{
 export async function _registerClient(data:RegistrarClienteDatos):Promise<void>{
     const response = await registrarCliente(data);
     if (!response) throw Error("No response in register client action");
-    console.log(response);
     // storage.setItem('token',response.data.token); 
 }

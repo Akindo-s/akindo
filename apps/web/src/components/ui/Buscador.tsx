@@ -94,7 +94,6 @@ const handleChange = useCallback(
                 placeholder={placeholder}
                 onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                        console.log(e.key)
                         if (timerRef.current) clearTimeout(timerRef.current);
                         onBuscarRef.current?.(valorActivo);
                     }
