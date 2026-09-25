@@ -46,7 +46,7 @@ export function TarjetaProductoCatalogo({
             <Link
                 href={`/mercado/productos/detalle?p=${productoId}`}
                 bloque
-                className={`flex-1 bg-white rounded-2xl border border-stone-100 drop-drop-shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
+                className={`hover:-translate-y-2 transition-all flex-1 bg-white rounded-2xl border border-stone-100 drop-drop-shadow-sm overflow-hidden hover:shadow-md ${
                     !disponible ? "opacity-60" : ""
                 }`}
             >

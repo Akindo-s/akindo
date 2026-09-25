@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Image, Text, View } from "react-native";
+import { Image, View } from "react-native";
 import {
   Clock,
   CheckCircle2,
@@ -143,7 +143,7 @@ function OrdenCard({
     // `flex-1`: el grid del original estiraba todas las tarjetas de una fila a
     // la altura de la más alta, y una fila que envuelve (regla 26) no lo hace
     // sola; con esto la tarjeta llena la celda, que sí se estira.
-    <View className={`rounded-2xl border overflow-hidden transition-all bg-white drop-shadow-sm flex-1 ${cfg.border}`}>
+    <View className={`rounded-2xl border overflow-hidden transition-all bg-white shadow-sm flex-1 ${cfg.border}`}>
       {/* Fila principal — siempre visible */}
       <View className="p-4">
         {/* Distribuidor */}
@@ -373,11 +373,39 @@ export default function Ordenes({ ordenes: ordenesIniciales, cargarOrdenes, canc
   return (
     <>
     {/* indiceFijo 0: el encabezado. */}
-    <ContenedorPantalla key="ordenes" indiceFijo={0} className="w-full  pb-24">
+    <ContenedorPantalla key="ordenes" indiceFijo={0} className="mx-auto w-full max-w-6xl pb-24">
       <EncabezadoPagina titulo="Órdenes de Compra" href="/pedidos" />
 
-      <View classname="mx-lg px-2xl">
-        <Text className="text-red-500">Hola</Text>
+      <View className="pt-4">
+        {/* Sin órdenes el original no pintaba nada (devolvía null), solo queda
+            el encabezado. */}
+        {ordenes.length > 0 && (
+          <Section className="px-4 mb-6">
+            {/* Encabezado de la sección */}
+            <View className="flex flex-row items-center gap-2 mb-3">
+              <ShoppingBag size={16} color="#DAA520" />
+              <H2 peso="bold" className="text-sm text-stone-700 uppercase tracking-[0.7px]">
+                Órdenes de Compra
+              </H2>
+              {pendientes.length > 0 && (
+                <View className="bg-amber-400 px-2 py-0.5 rounded-full">
+                  <Span peso="bold" className="text-[10px] leading-normal text-stone-900">
+                    {pendientes.length} pendiente{pendientes.length > 1 ? "s" : ""}
+                  </Span>
+                </View>
+              )}
+            </View>
+
+            {/* El grid responsive es una fila que envuelve (regla 26). */}
+            <View className="flex flex-row flex-wrap -m-2">
+              {[...pendientes, ...otras].map((o) => (
+                <View key={o.id} className="w-full md:w-1/2 xl:w-1/3 p-2">
+                  <OrdenCard orden={o} error={erroresCancelar[o.id]} onPedirCancelar={setOrdenACancelar} />
+                </View>
+              ))}
+            </View>
+          </Section>
+        )}
       </View>
     </ContenedorPantalla>
 

@@ -2,33 +2,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Image, Platform, View, type ImageSourcePropType } from "react-native";
+import { Animated, Easing, Image, Platform, View } from "react-native";
 import { Users } from "lucide-react-native";
 import { H2, P, Span } from "../html-elements";
 import { Link } from "../link";
 import { Degradado } from "../ui/Degradado";
+import { AnuncioDestacado } from "@akindo/shared/types/anuncios";
 
 const DRIVER_NATIVO = Platform.OS !== "web";
 // Curva y duración del `transition-opacity` de Tailwind.
 const EASE_TRANSICION = Easing.bezier(0.4, 0, 0.2, 1);
 
-interface HeroCardProps {
-  /** Web: `{ uri: "/fondo-inicio.png" }`. Mobile: el `require` del asset. */
-  imagen?: ImageSourcePropType|string;
-  width:number
+interface HeroCardProps extends AnuncioDestacado{
+  
 }
-const badges = [
-  "Calidad Premium",
-  "Variedad de productos",
-  "Productos cachanillas"
-]
+
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export function HeroCard({ imagen , width = 56.25 }: HeroCardProps) {
+export function HeroCard({ badges,internal,coverImage,description,internalCover,link,titulo,style }:HeroCardProps) {
   const [badge, setBadge] = useState("");
   useEffect(() => {
+    if (!badges) return;
     let isMounted = true;
 
     (async function () {
@@ -75,30 +71,41 @@ export function HeroCard({ imagen , width = 56.25 }: HeroCardProps) {
   useEffect(() => {
     Animated.timing(opacidad, { toValue: visible ? 1 : 0, duration: 150, easing: EASE_TRANSICION, useNativeDriver: DRIVER_NATIVO }).start();
   }, [visible, opacidad]);
+
+  const darkStyle = '';
+  const akindoStyle = '';
+
   return (
-    <View className={`relative rounded-2xl w-[340px] overflow-hidden  max-w-[340px] flex flex-col justify-between bg-[#565045]`}>
+    <View className={`relative rounded-2xl w-[267px] overflow-hidden  md:w-[500px] flex flex-col justify-between bg-[#565045] h-80`}>
       {/* Imagen de fondo */}
-      {imagen && (
+      {internal && internalCover && (
         <Image
-          source={imagen}
+          source={internalCover}
           accessibilityLabel="Mercado Akindo"
           resizeMode="cover"
           className="absolute inset-0 w-full h-full"
         />
       )}
 
+
       {/* bg-gradient-to-t from-black/80 via-black/40 to-transparent */}
-      <Degradado
+      {style==='default'?(
+
+        <Degradado
+        
         direccion="to-t"
         paradas={[
           { offset: 0, color: "#000000", opacity: 0.8 },
           { offset: 0.5, color: "#000000", opacity: 0.4 },
           { offset: 1, color: "#000000", opacity: 0 },
         ]}
-      />
+        />
+      ):null}
 
       {/* Badge */}
-      <View className="relative p-4 z-10 flex flex-row gap-6 flex-wrap">
+      {badges&&(
+
+        <View className="relative p-4 z-10 flex flex-row gap-6 flex-wrap">
         {/* Animated.View no acepta className: el estilo va en el View de adentro. */}
         <Animated.View style={{ opacity: opacidad }}>
           <View className="bg-[#9E7517] px-3 py-1 rounded-md select-none">
@@ -110,27 +117,33 @@ export function HeroCard({ imagen , width = 56.25 }: HeroCardProps) {
           </View>
         </Animated.View>
       </View>
+                )}
 
       {/* Contenido */}
       <View className="relative z-10 p-5 flex flex-col gap-3">
-        <H2 peso="bold" className="text-xl text-white leading-tight">
-          El lugar de referencia para el comercio centrado en la calidad.
+        <H2 peso="bold" className={`text-xl  
+            ${style==='akindostyle'?"text-[#DAA520]":'text-white'} 
+            leading-tight`}>
+          {titulo}
         </H2>
-        <P className="text-xs text-stone-300 leading-relaxed max-w-[300px]">
-          Conéctate con distribuidores de primer nivel y gestiona pedidos al por mayor sin complicaciones.
+        <P className="text-sm text-[#D3C5AE] leading-relaxed max-w-[300px]">
+          {description}
         </P>
-        <View className="flex flex-row gap-6">
+        {link&&(
+
+          <View className="flex flex-row gap-6">
           <Link
-            href="https://akindolandingpage.vercel.app"
+            href={link}
             bloque
             className="flex flex-row items-center gap-2 self-start bg-[#DAA520] hover:bg-[#C1901D] px-5 py-2.5 rounded-xl transition shadow-md hover:shadow-lg select-none"
-          >
+            >
             <Users size={16} color="#FFFFFF" />
             <Span peso="medium" className="text-xs text-white">
               Conocenos
             </Span>
           </Link>
         </View>
+        )}
       </View>
     </View>
   );
