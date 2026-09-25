@@ -70,7 +70,7 @@ function EnlacePedido({ pedidoId }: { pedidoId: string }) {
       bloque
       onHoverChange={setHover}
       // --color-primary-50 y --color-primary-100.
-      className="flex flex-row items-center gap-1.5 bg-[#FFFBF0] hover:bg-[#FDF3D7] px-3 py-1.5 rounded-xl shadow-sm active:scale-95 cursor-pointer"
+      className="flex flex-row items-center gap-1.5 bg-[#FFFBF0] hover:bg-[#FDF3D7] px-3 py-1.5 rounded-xl drop-shadow-sm active:scale-95 cursor-pointer"
     >
       <View style={{ transform: [{ rotate: hover ? "12deg" : "0deg" }] }}>
         <Package size={12} color={color} />

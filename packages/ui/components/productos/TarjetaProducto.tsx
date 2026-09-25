@@ -48,7 +48,7 @@ export function TarjetaProducto({ children, producto, className = "" }: TarjetaP
   const colorPunto = sinStock ? "bg-red-800" : stockBajo ? "bg-orange-800" : "bg-green-800";
 
   return (
-    <View className={`bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden ${className}`}>
+    <View className={`bg-white rounded-2xl border border-stone-100 drop-shadow-sm overflow-hidden ${className} `}>
       <View className="relative w-full h-44 bg-[#F3EBE0]">
         {producto.imagen ? (
           <Image source={{ uri: producto.imagen }} accessibilityLabel={producto.nombre} resizeMode="cover" className="w-full h-full" />

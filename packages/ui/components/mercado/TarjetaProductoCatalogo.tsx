@@ -10,7 +10,8 @@ import { H3, P, Pressable, Span } from "../html-elements";
 import { Link } from "../link";
 import { useAviso } from "../ui/Avisos";
 import { Girando } from "../ui/Animaciones";
-
+import { Degradado } from "../ui/Degradado";
+// import {LinearGradient} from 'expo-linear-gradient';
 interface TarjetaProductoCatalogoProps {
     productoId: string;
     nombre: string;
@@ -45,12 +46,12 @@ export function TarjetaProductoCatalogo({
             <Link
                 href={`/mercado/productos/detalle?p=${productoId}`}
                 bloque
-                className={`flex-1 bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
+                className={`flex-1 bg-white rounded-2xl border border-stone-100 drop-drop-shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
                     !disponible ? "opacity-60" : ""
                 }`}
             >
                 {/* Imagen */}
-                <View className="relative w-full h-36 bg-[#FBF7EF]">
+                <View className="relative w-full h-36 bg-[#FBF7EF] ">
                     {imagen ? (
                         <Image
                             source={{ uri: imagen }}
@@ -63,6 +64,14 @@ export function TarjetaProductoCatalogo({
                             <Package size={36} color="#D6D3D1" />
                         </View>
                     )}
+                    {/* <View className='absolute top-0 h-full w-full bg-gradient-to-t from-[#2B2722] to-transparent opacity-25'/> */}
+                    <Degradado
+                            direccion="to-t"
+                            paradas={[
+                              { offset: 0, color: "#2B2722", opacity: 0.25 },
+                              { offset: 1, color: "#2B2722", opacity: 0 },
+                            ]}
+                          />
                     {!disponible && (
                         <View className="absolute inset-0 flex items-center justify-center bg-black/20">
                             <View className="bg-black/50 px-2 py-0.5 rounded-full">

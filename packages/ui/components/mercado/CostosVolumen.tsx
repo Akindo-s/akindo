@@ -97,7 +97,7 @@ export function CostosVolumen({ unidadMedida, nivelesPrecio, seleccionCantidad }
     if (ranges.length === 0) return null;
 
     return (
-        <View className="bg-white p-5 md:p-6 shadow-sm border-y border-stone-100 mx-0 lg:mx-4 lg:rounded-2xl lg:border lg:mb-4">
+        <View className="bg-white p-5 md:p-6 drop-shadow-sm border-y border-stone-100 mx-0 lg:mx-4 lg:rounded-2xl lg:border lg:mb-4">
             {/* tracking-wide = 0.025em; a 14px son 0.35px. */}
             <H3 peso="bold" className="text-sm text-stone-800 mb-4 uppercase tracking-[0.35px]">
                 Costos por volumen

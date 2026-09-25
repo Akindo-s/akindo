@@ -203,7 +203,7 @@ export default function DistribuidorPedidoDetalle({
                   en web gana el `w-full` de la variante y el botón ocupa todo el ancho;
                   el `twMerge` del Boton compartido deja el `w-fit` de la base, así que
                   hay que pedirlo en la instancia (ver regla 41, corregida). */}
-              <Boton onClick={handleActualizar} loading={loading} disabled={sinCambios} className="w-full px-8 shadow-sm">
+              <Boton onClick={handleActualizar} loading={loading} disabled={sinCambios} className="w-full px-8 drop-shadow-sm">
                 Guardar Cambios
               </Boton>
             </View>
@@ -285,7 +285,7 @@ export default function DistribuidorPedidoDetalle({
             <P peso="semibold" className="text-xs text-stone-500 uppercase tracking-[0.3px]">Valoración del Cliente</P>
             <Tarjeta className="bg-amber-50/30 border-amber-100/50">
               <View className="flex flex-row items-start gap-4">
-                <View className="bg-white p-3 rounded-2xl shadow-sm border border-amber-100 min-w-[60px] items-center">
+                <View className="bg-white p-3 rounded-2xl drop-shadow-sm border border-amber-100 min-w-[60px] items-center">
                   <P peso="extrabold" className="text-2xl text-amber-600 leading-none">{pedido.valoracion.puntuacion}</P>
                   <View className="flex flex-row justify-center gap-0.5 mt-1.5">
                     {[1, 2, 3, 4, 5].map((s) => (

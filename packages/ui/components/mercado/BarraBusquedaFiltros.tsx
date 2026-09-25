@@ -72,7 +72,7 @@ export function BarraBusquedaFiltros({
     return (
         // `sticky` no existe en nativo: ahí lo resuelve el ScrollView de la
         // pantalla con stickyHeaderIndices (ver ContenedorPantalla).
-        <View className={`w-full web:sticky top-0 z-20 bg-white border-b border-stone-100 shadow-sm flex flex-col gap-1 ${className}`}>
+        <View className={`w-full web:sticky top-0 z-20 bg-white  flex flex-col gap-1 ${className}`}>
 
             <View className="flex flex-row items-center gap-3 px-4 pt-3 pb-3">
                 {mostrarVolver && (
@@ -98,10 +98,11 @@ export function BarraBusquedaFiltros({
                     desactivarAutoBusqueda={desactivarAutoBusqueda}
                 />
             </View>
-
+        
             {categorias && categorias.length > 0 && (
                 <ScrollView
                     horizontal
+                    showsHorizontalScrollIndicator={false}
                     className="w-full mb-3"
                     contentContainerClassName="gap-2 pb-0.5 pl-4"
                 >

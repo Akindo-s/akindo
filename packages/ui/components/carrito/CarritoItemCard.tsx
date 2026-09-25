@@ -36,7 +36,7 @@ export default function CarritoItemCard({
 }: CarritoItemCardProps) {
   return (
     // Era un <article>: @expo/html-elements no lo trae, y el estilo es el mismo.
-    <View className="rounded-3xl border border-[#DDD3C7] bg-[#F2ECE6] p-5 shadow-sm">
+    <View className="rounded-3xl border border-[#DDD3C7] bg-[#F2ECE6] p-5 drop-shadow-sm">
       <View className="flex flex-row gap-5">
         <Link href={`/mercado/productos/detalle?p=${item.productoId}`} bloque>
           <View className="relative h-32 w-32 overflow-hidden rounded-2xl bg-stone-100">

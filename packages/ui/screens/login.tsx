@@ -44,7 +44,7 @@ export default function LoginForm({ login }: LoginFormProps) {
       {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />}
 
       <View
-        className="flex flex-col items-center bg-white rounded-3xl p-8 w-full max-w-md mx-auto shadow-sm select-none"
+        className="flex flex-col items-center bg-white rounded-3xl p-8 w-full max-w-md mx-auto drop-shadow-sm select-none"
       >
         <Header className="w-full flex justify-center items-center mb-6">
           <Titulo>Akindo</Titulo>

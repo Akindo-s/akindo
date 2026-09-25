@@ -37,7 +37,7 @@ export function HeaderSticky({
   };
 
   return (
-    <Header className="web:sticky top-0 z-40 bg-white/80 backdrop-blur-md flex flex-row items-center px-4 h-14 border-b border-stone-200/50 shadow-sm transition-all duration-300">
+    <Header className="web:sticky top-0 z-40 bg-white/80 backdrop-blur-md flex flex-row items-center px-4 h-14 border-b border-stone-200/50 drop-shadow-sm transition-all duration-300">
       <View className="flex flex-row items-center w-full max-w-4xl mx-auto">
         {mostrarBack && (
           <Pressable

@@ -37,12 +37,12 @@ export function HistorialActualizacionesPedido({
               {/* El punto sobre la línea. */}
               <View
                 className={`absolute -left-[25px] top-1.5 w-4 h-4 rounded-full border-4 z-10 ${
-                  cancelado ? "bg-red-500 border-white shadow-sm" : "bg-white border-stone-200"
+                  cancelado ? "bg-red-500 border-white drop-shadow-sm" : "bg-white border-stone-200"
                 }`}
               />
               <View
                 className={`rounded-2xl p-4 border ${
-                  cancelado ? "bg-red-50 border-red-100 shadow-sm" : "bg-stone-50 border-stone-100"
+                  cancelado ? "bg-red-50 border-red-100 drop-shadow-sm" : "bg-stone-50 border-stone-100"
                 }`}
               >
                 <View className="flex flex-row justify-between items-start mb-2">

@@ -50,7 +50,7 @@ export function TarjetaDistribuidor({
         <Link
             href={`/mercado/distribuidor/tienda?d=${distribuidorId}`}
             bloque
-            className="flex-1 group bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+            className="flex-1 group bg-white rounded-2xl border border-stone-100 drop-shadow-sm overflow-hidden hover:shadow-md transition-shadow"
         >
             {/* Imagen de fondo / Hero */}
             <View className="relative w-full h-36 overflow-hidden">

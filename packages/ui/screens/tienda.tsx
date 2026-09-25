@@ -42,7 +42,7 @@ export type TiendaProps = {
 
 function SkeletonProductoList() {
     return (
-        <Pulso className="flex flex-row gap-3 bg-white p-3 rounded-2xl border border-stone-100 shadow-sm">
+        <Pulso className="flex flex-row gap-3 bg-white p-3 rounded-2xl border border-stone-100 drop-shadow-sm">
             <View className="w-24 h-24 bg-stone-200 rounded-xl flex-shrink-0" />
             <View className="flex flex-col flex-1 py-1 gap-2">
                 <View className="h-4 w-3/4 bg-stone-200 rounded" />
@@ -110,7 +110,7 @@ function CatalogoDistribuidor({ distribuidorId }: { distribuidorId: string }) {
                         // columna de texto (`flex-1`) toma lo que sobra. En RN un `flex-1`
                         // dentro de una fila de ancho automático resuelve a 0 y el texto
                         // desaparecía: ahí la tarjeta ocupa el renglón.
-                        className="flex flex-row gap-3 bg-white p-3 rounded-2xl border border-stone-200 shadow-sm transition-shadow hover:shadow-md cursor-pointer native:w-full"
+                        className="flex flex-row gap-3 bg-white p-3 rounded-2xl border border-stone-200 drop-shadow-sm transition-shadow hover:shadow-md cursor-pointer native:w-full"
                     >
                         {/* Imagen */}
                         <View className="w-24 h-24 flex-shrink-0 bg-stone-100 rounded-xl overflow-hidden relative">
@@ -312,7 +312,7 @@ export default function Tienda({
                     <Pressable
                         role="button"
                         onPress={handleSubirFondo}
-                        className="flex flex-row items-center gap-2 px-6 absolute top-4 right-4 bg-black/50 hover:bg-black/70 p-2 rounded-full cursor-pointer transition-all z-10 shadow-sm border border-white/20"
+                        className="flex flex-row items-center gap-2 px-6 absolute top-4 right-4 bg-black/50 hover:bg-black/70 p-2 rounded-full cursor-pointer transition-all z-10 drop-shadow-sm border border-white/20"
                     >
                         <Camera size={18} color="#FFFFFF" />
                         {/* En el original el span heredaba los 16px/24 del body. */}
@@ -372,7 +372,7 @@ export default function Tienda({
                         <Span peso="semibold" className="text-sm text-white">Administrar mi negocio</Span>
                     </Link>
                 ) : (
-                    <Pressable role="button" className="w-full max-w-sm mx-auto flex flex-row items-center justify-center gap-2 bg-white border border-[#E8DEC1] rounded-lg py-2 shadow-sm hover:bg-[#FDFBF7] transition-colors cursor-pointer">
+                    <Pressable role="button" className="w-full max-w-sm mx-auto flex flex-row items-center justify-center gap-2 bg-white border border-[#E8DEC1] rounded-lg py-2 drop-shadow-sm hover:bg-[#FDFBF7] transition-colors cursor-pointer">
                         <Plus size={16} color="#44403C" />
                         <Span peso="semibold" className="text-sm text-stone-700">Seguir Distribuidor</Span>
                     </Pressable>
@@ -415,7 +415,7 @@ export default function Tienda({
 
                 {/* Acerca de */}
                 {(distribuidor.descripcion || esDueno) && (
-                    <View className="bg-white rounded-2xl border border-stone-200 p-4 mt-5 shadow-sm">
+                    <View className="bg-white rounded-2xl border border-stone-200 p-4 mt-5 drop-shadow-sm">
                         <View className="flex flex-row items-center justify-between mb-2">
                             <SubTitulo className="shrink">
                                 <Span peso="semibold" className="text-sm text-[#201B12]">Acerca de </Span>

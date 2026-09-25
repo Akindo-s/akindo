@@ -16,3 +16,13 @@ patchedDependencies:
 overrides:
   react: 19.2.3
   react-dom: 19.2.3
+
+minimumReleaseAgeExclude:
+  - '@expo/cli@57.0.26'
+  - expo-asset@57.0.18
+  - expo-constants@57.0.19
+  - expo@57.0.24
+  - '@expo/metro-runtime@57.0.16'
+  - '@expo/ui@57.0.19'
+  - expo-image-picker@57.0.19
+  - expo-router@57.0.22

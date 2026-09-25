@@ -22,7 +22,7 @@ const ICON_MAP: Record<string, IconoCategoria> = {
   "Artesanías": ArtsAndCraftsIcon,
 };
 
-// drop-shadow-sm: el filtro de CSS no existe en RN, en texto es un textShadow.
+// drop-drop-shadow-sm: el filtro de CSS no existe en RN, en texto es un textShadow.
 const SOMBRA_TEXTO = { textShadowColor: "rgba(0, 0, 0, 0.05)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 1 };
 
 function CategoryCard({ label, slug, imageSrc, Icon }: CategoryCardProps) {
@@ -75,7 +75,7 @@ function CategoryCard({ label, slug, imageSrc, Icon }: CategoryCardProps) {
 
       {/* Floating Icon */}
       {Icon && (
-        <View className="absolute top-3 right-3 z-10 bg-white/90 rounded-lg p-1.5 shadow-sm">
+        <View className="absolute top-3 right-3 z-10 bg-white/90 rounded-lg p-1.5 drop-shadow-sm">
           <Icon size={20} color="#DAA520" />
         </View>
       )}

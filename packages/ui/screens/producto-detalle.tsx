@@ -39,7 +39,7 @@ export default function ProductoDetalle({ productoId, verificarEnCarrito }: Prod
         return (
             <View className="flex flex-col items-center justify-center min-h-screen px-6 bg-[#FAF5EE]">
                 <P peso="medium" className="text-stone-500 text-sm mb-4 text-center">No se especificó un producto.</P>
-                <Link href="/mercado/productos" bloque className="bg-white px-4 py-2 rounded-lg border border-stone-200 shadow-sm">
+                <Link href="/mercado/productos" bloque className="bg-white px-4 py-2 rounded-lg border border-stone-200 drop-shadow-sm">
                     <Span peso="medium" className="text-sm text-[#C1901D]">Volver al catálogo</Span>
                 </Link>
             </View>
@@ -118,7 +118,7 @@ function Detalle({ productoId, verificarEnCarrito }: { productoId: string; verif
             // cargar y el Header nuevo (con `transition` y `hover:`) obliga a
             // nativewind a "mejorarlo" en caliente, lo que en nativo reventaba.
             <ContenedorPantalla key="cargando" indiceFijo={0} className="flex flex-col min-h-screen bg-stone-50 pb-20">
-                <View className="web:sticky top-0 z-30 bg-white flex flex-row items-center px-4 h-14 border-b border-stone-100 shadow-sm">
+                <View className="web:sticky top-0 z-30 bg-white flex flex-row items-center px-4 h-14 border-b border-stone-100 drop-shadow-sm">
                     <Pressable role="button" accessibilityLabel="Volver" onPress={() => router.back()} className="p-2 -ml-2">
                         <ArrowLeft size={20} color="#78716C" />
                     </Pressable>
@@ -142,7 +142,7 @@ function Detalle({ productoId, verificarEnCarrito }: { productoId: string; verif
                 <Pressable
                     role="button"
                     onPress={() => router.back()}
-                    className="mt-4 bg-white px-4 py-2 rounded-lg border border-stone-200 shadow-sm"
+                    className="mt-4 bg-white px-4 py-2 rounded-lg border border-stone-200 drop-shadow-sm"
                 >
                     <Span peso="medium" className="text-sm text-[#C1901D]">Volver atrás</Span>
                 </Pressable>
@@ -199,7 +199,7 @@ function Detalle({ productoId, verificarEnCarrito }: { productoId: string; verif
                     {/* Badges Flotantes. tracking-wider = 0.05em; a 10px son 0.5px. */}
                     <View className="absolute top-4 left-4 flex flex-col gap-2">
                         {(isNoDisponible || isAgotado) && (
-                            <View className="bg-red-500/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm flex flex-row items-center gap-1">
+                            <View className="bg-red-500/90 backdrop-blur px-2.5 py-1 rounded-full drop-shadow-sm flex flex-row items-center gap-1">
                                 <AlertCircle size={12} color="#FFFFFF" />
                                 <Span peso="bold" className="text-white text-[10px] leading-normal uppercase tracking-[0.5px]">
                                     {isNoDisponible ? 'No Disponible' : 'Agotado'}
@@ -207,7 +207,7 @@ function Detalle({ productoId, verificarEnCarrito }: { productoId: string; verif
                             </View>
                         )}
                         {producto.disponible && producto.existencias > 0 && producto.existencias < 67 && (
-                            <View className="bg-orange-500/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm self-start">
+                            <View className="bg-orange-500/90 backdrop-blur px-2.5 py-1 rounded-full drop-shadow-sm self-start">
                                 <Span peso="bold" className="text-white text-[10px] leading-normal uppercase tracking-[0.5px]">
                                     ¡Últimas {producto.existencias}!
                                 </Span>
@@ -217,7 +217,7 @@ function Detalle({ productoId, verificarEnCarrito }: { productoId: string; verif
                 </View>
 
                 {/* Información Principal */}
-                <View className="bg-white p-5 md:p-6 shadow-sm border-b border-stone-100 mb-2">
+                <View className="bg-white p-5 md:p-6 drop-shadow-sm border-b border-stone-100 mb-2">
                     <View className="flex flex-row flex-wrap items-start justify-between gap-4 mb-3">
                         <H1 peso="bold" className="text-xl md:text-2xl text-stone-900 leading-tight flex-1">
                             {producto.nombre}
@@ -245,7 +245,7 @@ function Detalle({ productoId, verificarEnCarrito }: { productoId: string; verif
                 {/* Información del Distribuidor */}
                 {distribuidor && (
                     <Pressable
-                        className="bg-white p-4 md:p-6 shadow-sm border-y border-stone-100 mb-2 mx-0 lg:mx-4 lg:rounded-2xl lg:border lg:mt-4 transition-colors hover:bg-stone-50 cursor-pointer"
+                        className="bg-white p-4 md:p-6 drop-shadow-sm border-y border-stone-100 mb-2 mx-0 lg:mx-4 lg:rounded-2xl lg:border lg:mt-4 transition-colors hover:bg-stone-50 cursor-pointer"
                         onPress={() => router.push(`/mercado/distribuidor/tienda?d=${distribuidor.id}`)}
                     >
                         <View className="flex flex-row items-center gap-2 mb-4">
@@ -256,7 +256,7 @@ function Detalle({ productoId, verificarEnCarrito }: { productoId: string; verif
                         </View>
 
                         <View className="flex flex-row items-center gap-4">
-                            <View className="w-14 h-14 rounded-full border-2 border-stone-100 overflow-hidden bg-white shadow-sm flex-shrink-0 flex items-center justify-center">
+                            <View className="w-14 h-14 rounded-full border-2 border-stone-100 overflow-hidden bg-white drop-shadow-sm flex-shrink-0 flex items-center justify-center">
                                 {distribuidor.imagen_perfil ? (
                                     <Image source={{ uri: distribuidor.imagen_perfil }} accessibilityLabel={distribuidor.nombre_negocio} resizeMode="cover" className="w-full h-full" />
                                 ) : (
@@ -291,7 +291,7 @@ function Detalle({ productoId, verificarEnCarrito }: { productoId: string; verif
 
                 {/* Descripción (si existe en atributos extra) */}
                 {!!(producto.atributos_extra && producto.atributos_extra.descripcion) && (
-                    <View className="bg-white p-5 md:p-6 shadow-sm border-y border-stone-100 mb-2 mx-0 lg:mx-4 lg:rounded-2xl lg:border lg:mb-4">
+                    <View className="bg-white p-5 md:p-6 drop-shadow-sm border-y border-stone-100 mb-2 mx-0 lg:mx-4 lg:rounded-2xl lg:border lg:mb-4">
                         <H3 peso="bold" className="text-sm text-stone-800 mb-3 uppercase tracking-[0.35px]">Descripción</H3>
                         <P className="text-sm text-stone-600 leading-relaxed">
                             {producto.atributos_extra.descripcion as string}

@@ -356,7 +356,7 @@ export default function Carrito({
         <EncabezadoPagina titulo="Tu carrito" href="/mercado" className="mb-2" />
 
         {success ? (
-          <View className="mx-4 mb-3 rounded-xl border border-amber-700/20 bg-amber-500 px-4 py-3 shadow-sm">
+          <View className="mx-4 mb-3 rounded-xl border border-amber-700/20 bg-amber-500 px-4 py-3 drop-shadow-sm">
             <Span peso="bold" className="text-sm uppercase text-stone-900">{success.message}</Span>
           </View>
         ) : null}

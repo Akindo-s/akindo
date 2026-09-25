@@ -133,7 +133,7 @@ export default function DistribuidorOrdenDetalle({
         {/* `space-y-6` → `gap-6` (regla 44). */}
         <View className="flex-1 w-full max-w-2xl mx-auto p-4 flex flex-col gap-6">
           {/* Estado y acciones */}
-          <Tarjeta className="relative overflow-hidden border-stone-200/60 shadow-sm">
+          <Tarjeta className="relative overflow-hidden border-stone-200/60 drop-shadow-sm">
             <View className="flex flex-col gap-4">
               <View className="flex flex-row justify-between items-start">
                 <View className="shrink">

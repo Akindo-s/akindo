@@ -85,7 +85,7 @@ function TarjetaDireccion({
     <Pressable
       onHoverIn={() => setAcciones(true)}
       onHoverOut={() => setAcciones(false)}
-      className={`border ${dir.es_predeterminada ? "border-yellow-400 bg-yellow-50" : "border-stone-200 bg-white"} p-4 rounded-xl shadow-sm transition-all hover:border-yellow-300 relative`}
+      className={`border ${dir.es_predeterminada ? "border-yellow-400 bg-yellow-50" : "border-stone-200 bg-white"} p-4 rounded-xl drop-shadow-sm transition-all hover:border-yellow-300 relative`}
     >
       <View className="flex flex-row justify-between items-start mb-1">
         <View className="flex flex-row items-center gap-2">

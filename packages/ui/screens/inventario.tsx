@@ -150,7 +150,7 @@ export default function Inventario({ distribuidorId, archivarAction }: Inventari
           {cargando ? (
             [0, 1, 2].map((i) => (
               <View key={i} className="w-full md:w-1/2 lg:w-1/3 p-2">
-                <View className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                <View className="bg-white rounded-2xl border border-stone-100 drop-shadow-sm overflow-hidden">
                   <View className="w-full h-44 bg-stone-200" />
                   <View className="p-4 flex flex-col gap-2">
                     <View className="h-4 w-3/4 bg-stone-200 rounded" />

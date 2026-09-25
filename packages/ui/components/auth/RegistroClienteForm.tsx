@@ -51,7 +51,7 @@ export default function RegistroClienteForm() {
       {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />}
 
       <View
-        className="pb-18 flex flex-col items-center bg-white rounded-3xl p-6 w-full max-w-md mx-auto shadow-sm select-none"
+        className="pb-18 flex flex-col items-center bg-white rounded-3xl p-6 w-full max-w-md mx-auto drop-shadow-sm select-none"
       >
         <Header className="w-full flex justify-center relative items-center p-2 lg:p-1 xl:p-2 mb-2 lg:mb-1 xl:mb-2">
           {/* Sin onClick, igual que en el original: todavia no vuelve a ningun lado.

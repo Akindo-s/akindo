@@ -107,7 +107,7 @@ export default function RegistroDistribuidorForm() {
       {error && <VentanaEmergente mensaje={error} onClose={() => setError(null)} />}
 
       {/* La sombra va en un View aparte: en iOS un ScrollView recorta su propia sombra. */}
-      <View className="bg-white rounded-3xl w-full max-w-md mx-auto shadow-sm select-none max-h-[90vh]">
+      <View className="bg-white rounded-3xl w-full max-w-md mx-auto drop-shadow-sm select-none max-h-[90vh]">
         {/* `sticky top-0` no existe en nativo: el header fijo lo da stickyHeaderIndices
             (en web react-native-web lo resuelve con position: sticky). */}
         <ScrollView stickyHeaderIndices={[0]} className="rounded-3xl" contentContainerClassName="flex flex-col">

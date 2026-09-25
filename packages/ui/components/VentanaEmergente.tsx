@@ -117,7 +117,7 @@ export function VentanaEmergente({ mensaje, duracion = 4000, onClose }: VentanaE
     // `fixed` no existe en nativo: ahi va `absolute`, que respecto de la
     // pantalla da lo mismo. En web se mantiene `fixed` para que no se vaya
     // con el scroll. `elevation-[50]` solo existe en Android: ahi el orden lo
-    // decide la elevacion antes que el z-index, y la tarjeta (shadow-sm) tiene.
+    // decide la elevacion antes que el z-index, y la tarjeta (drop-shadow-sm) tiene.
     <View
       // box-none: mientras entra o sale, el hueco invisible no tapa los toques
       // de lo que haya debajo.

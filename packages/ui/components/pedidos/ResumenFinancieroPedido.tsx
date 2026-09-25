@@ -99,7 +99,7 @@ export function ResumenFinancieroPedido({
             </View>
 
             {!esDistribuidor && (
-              <View className="bg-amber-100 px-2 py-1 rounded-lg shadow-sm border border-amber-200">
+              <View className="bg-amber-100 px-2 py-1 rounded-lg drop-shadow-sm border border-amber-200">
                 <Span peso="extrabold" className="text-amber-700 text-[10px] leading-normal uppercase tracking-[-0.5px]">
                   Pagado
                 </Span>

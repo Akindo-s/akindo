@@ -196,7 +196,7 @@ export default function PedidoDetalle({ pedido: pedidoInicial, cargarPedido, val
       <View className="px-4 pt-4 flex flex-col gap-6">
         {/* Línea de tiempo */}
         {pedido.estado !== "cancelado" && (
-          <View className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm">
+          <View className="bg-white rounded-2xl p-5 border border-stone-100 drop-shadow-sm">
             <View className="relative flex flex-row justify-between">
               {/* La línea de fondo y la de avance. Van antes que los nodos: en
                   nativo un hermano posterior se pinta encima (regla 43). */}

@@ -15,7 +15,7 @@ import { useScrollInfinito } from "../components/hooks/useScrollInfinito";
 
 function SkeletonDistribuidor() {
     return (
-        <Pulso className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+        <Pulso className="bg-white rounded-2xl border border-stone-100 drop-shadow-sm overflow-hidden">
             <View className="w-full h-36 bg-stone-200" />
             <View className="p-3 flex flex-col gap-2">
                 <View className="h-4 w-3/4 bg-stone-200 rounded" />

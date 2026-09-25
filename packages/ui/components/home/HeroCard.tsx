@@ -14,7 +14,8 @@ const EASE_TRANSICION = Easing.bezier(0.4, 0, 0.2, 1);
 
 interface HeroCardProps {
   /** Web: `{ uri: "/fondo-inicio.png" }`. Mobile: el `require` del asset. */
-  imagen?: ImageSourcePropType;
+  imagen?: ImageSourcePropType|string;
+  width:number
 }
 const badges = [
   "Calidad Premium",
@@ -25,7 +26,7 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export function HeroCard({ imagen }: HeroCardProps) {
+export function HeroCard({ imagen , width = 56.25 }: HeroCardProps) {
   const [badge, setBadge] = useState("");
   useEffect(() => {
     let isMounted = true;
@@ -74,9 +75,8 @@ export function HeroCard({ imagen }: HeroCardProps) {
   useEffect(() => {
     Animated.timing(opacidad, { toValue: visible ? 1 : 0, duration: 150, easing: EASE_TRANSICION, useNativeDriver: DRIVER_NATIVO }).start();
   }, [visible, opacidad]);
-
   return (
-    <View className="relative w-full rounded-2xl overflow-hidden min-h-[280px] md:min-h-[360px] flex flex-col justify-between bg-[#565045]">
+    <View className={`relative rounded-2xl w-[340px] overflow-hidden  max-w-[340px] flex flex-col justify-between bg-[#565045]`}>
       {/* Imagen de fondo */}
       {imagen && (
         <Image
@@ -104,7 +104,7 @@ export function HeroCard({ imagen }: HeroCardProps) {
           <View className="bg-[#9E7517] px-3 py-1 rounded-md select-none">
             {/* tracking-widest = 0.1em; a 10px son 1px, y así no depende de
                 cómo resuelva `em` cada plataforma. */}
-            <Span peso="bold" className="text-[10px] leading-normal uppercase tracking-[1px] text-white">
+            <Span peso="bold" className="text-[10px] leading-normal uppercase tracking-[1px] text-white min-h-4">
               {badge}
             </Span>
           </View>

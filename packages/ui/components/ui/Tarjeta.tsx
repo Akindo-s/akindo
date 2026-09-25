@@ -32,7 +32,7 @@ interface TarjetaProps {
 }
 
 const varianteBg: Record<VarianteTarjeta, string> = {
-  blanco: "bg-white border-stone-100 shadow-sm",
+  blanco: "bg-white border-stone-100 drop-shadow-sm",
   calido: "bg-[#F3EBE0] border-[#E8DEC1]",
 };
 

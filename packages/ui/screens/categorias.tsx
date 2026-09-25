@@ -92,7 +92,7 @@ export default function Categorias({ cargarCategorias }: CategoriasProps) {
             {/* Barra sticky. El original usaba `top-[49px]`, que con el scroll en
                 el <main> dejaba 49px de hueco bajo el Header; en nativo el
                 stickyHeaderIndices no admite desplazamiento. */}
-            <View className="web:sticky top-0 z-20 bg-white border-b border-stone-100 shadow-sm px-4 pt-3 pb-3 flex flex-col gap-2.5">
+            <View className="web:sticky top-0 z-20 bg-white border-b border-stone-100 drop-shadow-sm px-4 pt-3 pb-3 flex flex-col gap-2.5">
                 <View className="flex flex-row items-center gap-3">
                     <Pressable
                         role="button"

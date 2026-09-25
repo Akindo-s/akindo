@@ -13,7 +13,7 @@ interface TarjetaCategoriaProps {
     tipo: "producto" | "distribuidor";
 }
 
-// drop-shadow-sm: el filtro de CSS no existe en RN, en texto es un textShadow.
+// drop-drop-shadow-sm: el filtro de CSS no existe en RN, en texto es un textShadow.
 const SOMBRA_TEXTO = { textShadowColor: "rgba(0, 0, 0, 0.05)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 1 };
 
 /**
@@ -34,7 +34,7 @@ export function TarjetaCategoria({ id, nombre, imagen, tipo }: TarjetaCategoriaP
         <Link
             href={href}
             bloque
-            className="relative rounded-2xl overflow-hidden aspect-square flex flex-col justify-end bg-[#D1CEC8] hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-sm"
+            className="relative rounded-2xl overflow-hidden aspect-square flex flex-col justify-end bg-[#D1CEC8] hover:scale-[1.02] active:scale-[0.98] transition-transform drop-shadow-sm"
         >
             {/* Imagen de fondo */}
             {imagen ? (
