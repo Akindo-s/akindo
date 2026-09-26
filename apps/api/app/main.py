@@ -53,6 +53,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://akindo.vercel.app",
+        "https://akindo-preview.vercel.app",
         "http://localhost:3000",
     ],
     allow_credentials=True,
