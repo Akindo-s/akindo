@@ -76,7 +76,7 @@ export function HeroCard({ badges,internal,coverImage,description,internalCover,
   const akindoStyle = '';
 
   return (
-    <View className={`relative rounded-2xl w-[267px] overflow-hidden  md:w-[500px] flex flex-col justify-between bg-[#565045] h-80`}>
+    <View className={`relative rounded-2xl w-[267px] overflow-hidden  md:w-[395px] flex flex-col justify-between bg-[#565045] h-80`}>
       {/* Imagen de fondo */}
       {internal && internalCover && (
         <Image

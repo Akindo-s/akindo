@@ -22,7 +22,7 @@ export default async function PublicLayout({
       <Header isLoggedIn={isLoggedIn} tipoUsuario={tipoUsuario} onLogout={_logout} />
       <div className="flex flex-1 min-h-0">
         <Sidebar tipoUsuario={tipoUsuario} />
-        <main className="flex-1 min-w-0 overflow-y-auto">
+        <main className="flex-1 min-w-0 overflow-y-auto overflow-x-none">
           {children}
         </main>
       </div>

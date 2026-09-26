@@ -42,25 +42,26 @@ export default function Home({ cargarCategorias, destacadas, imagenHero, anuncio
     },
     
     ...anuncios])
-  const ITEM_MARGIN = 12; // el margin real que uses en HeroCard
-  const SNAP_INTERVAL = 325 + ITEM_MARGIN;
+  const ITEM_MARGIN = 12;
+  const SNAP_INTERVAL = 267 + ITEM_MARGIN;
   const snapOffsets = anuncios.map((_, i) => i * SNAP_INTERVAL);
 
   return (
     // indiceFijo 2: el buscador, tercer hijo.
-    <ContenedorPantalla indiceFijo={2} className="flex flex-col gap-5 py-5 w-full items-center  ">
+    <ContenedorPantalla indiceFijo={1} className="flex flex-col gap-5 py-5 w-full items-center  px-0 md:px-4  ">
       <View className='px-0 flex flex-col gap-5 w-full max-w-4xl'>
 
         <Titulo className="text-lg text-[#2B2722] px-6 md:px-0">
           {/* Un Text anidado no hereda el peso de la fuente: va de nuevo. */}
           ¿Qué quieres <Span peso="bold" className="text-[#DAA520]">comprar</Span> hoy?
         </Titulo>
-        <MercadoBuscador cargarCategorias={cargarCategorias} />
       </View>
+      <MercadoBuscador cargarCategorias={cargarCategorias} className='max-w-4xl'/>
 
       <FlatList
+        className = "w-full"
         data={anunciosItems}
-        // keyExtractor={(item) => `${item.id}`}
+        keyExtractor={(item) => `anuncio-${item.titulo}`}
         horizontal
         showsHorizontalScrollIndicator={false}
         snapToInterval={SNAP_INTERVAL}
