@@ -72,7 +72,7 @@ export function BarraBusquedaFiltros({
     return (
         // `sticky` no existe en nativo: ahí lo resuelve el ScrollView de la
         // pantalla con stickyHeaderIndices (ver ContenedorPantalla).
-        <View className={`w-full web:sticky top-0 z-20 bg-white  flex flex-col gap-1 ${className}`}>
+        <View className={`w-full web:sticky top-0 md:top-4 z-20 bg-white  flex flex-col gap-1 drop-shadow-md ${className} `}>
 
             <View className="flex flex-row items-center gap-3 px-4 pt-3 pb-3">
                 {mostrarVolver && (

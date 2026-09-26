@@ -8,9 +8,10 @@ import { BarraBusquedaFiltros } from "./BarraBusquedaFiltros";
 interface MercadoBuscadorProps {
     /** Loader de categorías: en web una server action, en mobile la llamada con el token guardado. */
     cargarCategorias: CargarCategorias;
+    className?:string
 }
 
-export function MercadoBuscador({ cargarCategorias }: MercadoBuscadorProps) {
+export function MercadoBuscador({ cargarCategorias,className }: MercadoBuscadorProps) {
 
     const [valor, setValor] = useState("");
 
@@ -20,7 +21,7 @@ export function MercadoBuscador({ cargarCategorias }: MercadoBuscadorProps) {
                 placeholder="Buscar productos, distribuidores..."
                 valorBusqueda={valor}
                 onChange={setValor}
-                className="rounded-2xl border-stone-200"
+                className={`rounded-2xl border-stone-200 ${className}`}
                 mostrarVolver={false}
                 desactivarAutoBusqueda
             />
