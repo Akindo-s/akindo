@@ -168,20 +168,20 @@ export function Boton({
   const size = iconoSize ?? defaultIconSize;
 
   // twMerge y no concatenar: con clases que chocan (`w-full` de la variante vs
-  // `w-fit` de la base) en web mandaba el orden del CSS de Tailwind —siempre
-  // `w-fit`—, pero en nativo `w-fit` se descarta y quedaba el `w-full`, así que
-  // el mismo botón salía de ancho completo. twMerge deja una sola y las dos
-  // plataformas coinciden; el `className` de la instancia sigue ganando.
-  // El orden imita lo que pasaba en web, donde ganaba la clase que el CSS de
-  // Tailwind pone después (y no la que va después en el string): el `px-2` es
-  // solo un default y la variante lo pisa (`px-6` de peligro), mientras que el
-  // `w-fit` le gana al `w-full` de la variante. Concatenar como antes dejaba
-  // las dos clases y en nativo, donde `w-fit` no existe, ganaba `w-full` y el
-  // botón salía de ancho completo (ver regla 41).
+  // `w-fit` de la base) en nativo `w-fit` se descarta y quedan las dos, así que
+  // el resultado dependía de la plataforma. twMerge deja una sola y las dos
+  // coinciden; el `className` de la instancia sigue ganando.
+  // Orden: primero los defaults de la base, después la variante y al final la
+  // instancia. Es lo que hacía el CSS de web, donde `.w-full` está declarado
+  // después de `.w-fit`, así que el `w-full` de `primario` le ganaba al `w-fit`
+  // de la base (antes acá era al revés y los botones primarios salían del ancho
+  // del contenido; se compensaba con `className="w-full"` instancia por
+  // instancia). `px-2` y `h-fit` siguen siendo defaults que la variante o la
+  // instancia pueden pisar. Concatenar en vez de mezclar dejaba las dos clases
+  // y en nativo, donde `w-fit` no existe, ganaba `w-full` (ver regla 41).
   const baseClasses = twMerge(
-    "flex flex-row items-center justify-center gap-2 px-2",
+    "flex flex-row items-center justify-center gap-2 px-2 h-fit w-fit",
     variantes[variante].contenedor,
-    "h-fit w-fit",
     className
   );
   const texto = loading ? loadingText : children;

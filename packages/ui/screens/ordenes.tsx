@@ -19,7 +19,7 @@ import type {
   OrdenPedidoResponse,
   PedidoActionResult,
 } from "@akindo/shared/types/pedidos";
-import { H2, P, Pressable, Section, Span } from "@akindo/ui/html";
+import { H1, H2, Header, P, Pressable, Section, Span } from "@akindo/ui/html";
 import { Boton } from "@akindo/ui/components";
 import { Tarjeta } from "@akindo/ui/components/ui/Tarjeta";
 import { EncabezadoPagina } from "@akindo/ui/components/ui/EncabezadoPagina";
@@ -374,29 +374,30 @@ export default function Ordenes({ ordenes: ordenesIniciales, cargarOrdenes, canc
     <>
     {/* indiceFijo 0: el encabezado. */}
     <ContenedorPantalla key="ordenes" indiceFijo={0} className="mx-auto w-full max-w-6xl pb-24">
-      <EncabezadoPagina titulo="Órdenes de Compra" href="/pedidos" />
 
-      <View className="pt-4">
+      
         {/* Sin órdenes el original no pintaba nada (devolvía null), solo queda
             el encabezado. */}
-        {ordenes.length > 0 && (
-          <Section className="px-4 mb-6">
+        
+          <Header className="p-6 flex flex-row justify-between items-end gap-4 max-w-full flex-wrap">
             {/* Encabezado de la sección */}
-            <View className="flex flex-row items-center gap-2 mb-3">
-              <ShoppingBag size={16} color="#DAA520" />
-              <H2 peso="bold" className="text-sm text-stone-700 uppercase tracking-[0.7px]">
-                Órdenes de Compra
-              </H2>
-              {pendientes.length > 0 && (
-                <View className="bg-amber-400 px-2 py-0.5 rounded-full">
-                  <Span peso="bold" className="text-[10px] leading-normal text-stone-900">
-                    {pendientes.length} pendiente{pendientes.length > 1 ? "s" : ""}
-                  </Span>
-                </View>
-              )}
-            </View>
+            <View className="flex flex-cols gap-2 w-fit items-start ">
 
-            {/* El grid responsive es una fila que envuelve (regla 26). */}
+              <H1 peso="bold" className="text-xl text-stone-700 uppercase tracking-[0.7px]">
+                Órdenes de Compra
+              </H1>
+              <P>
+                Manejo de ordenes de compra, confirmacion de los pedidos.
+              </P>
+            </View>
+            <View className="flex flex-row gap-2 flex-wrap w-fit">
+              <Boton claseTexto="text-[12px]" className="w-fit">Crear Órden de compra</Boton>
+              <Boton claseTexto="text-xs" className="w-fit">Crear Órden de compra</Boton>
+            </View>  
+            
+          </Header>
+
+          
             <View className="flex flex-row flex-wrap -m-2">
               {[...pendientes, ...otras].map((o) => (
                 <View key={o.id} className="w-full md:w-1/2 xl:w-1/3 p-2">
@@ -404,9 +405,8 @@ export default function Ordenes({ ordenes: ordenesIniciales, cargarOrdenes, canc
                 </View>
               ))}
             </View>
-          </Section>
-        )}
-      </View>
+        
+      
     </ContenedorPantalla>
 
     <ModalConfirmacion

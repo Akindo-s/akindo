@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import useRouter from "@akindo/ui/router";
+import { invalidarIdsCarrito } from "@akindo/shared/carrito-context";
 import { View } from "react-native";
 
 import { Titulo, Link, Input, Boton, VentanaEmergente } from "@akindo/ui/components";
@@ -31,6 +32,9 @@ export default function LoginForm({ login }: LoginFormProps) {
 
     try {
       await login(email, password);
+      // Los ids del carrito son de la sesión: si la caché se llenó sin sesión
+      // (lista vacía), el badge se quedaba en 0 hasta recargar la app.
+      invalidarIdsCarrito();
       router.push("/");
     } catch (err: any) {
       setError(err.message || "Ocurrió un error al iniciar sesión");

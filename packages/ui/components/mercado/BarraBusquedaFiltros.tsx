@@ -72,7 +72,7 @@ export function BarraBusquedaFiltros({
     return (
         // `sticky` no existe en nativo: ahí lo resuelve el ScrollView de la
         // pantalla con stickyHeaderIndices (ver ContenedorPantalla).
-        <View className={`w-full web:sticky top-0 md:top-4 z-20 bg-white  flex flex-col gap-1 drop-shadow-md ${className} `}>
+        <View className={`w-full web:sticky top-0 z-20 bg-white  flex flex-col gap-1 drop-shadow-md ${className} `}>
 
             <View className="flex flex-row items-center gap-3 px-4 pt-3 pb-3">
                 {mostrarVolver && (
@@ -103,8 +103,11 @@ export function BarraBusquedaFiltros({
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    className="w-full mb-3"
-                    contentContainerClassName="gap-2 pb-0.5 pl-4"
+                    snapToInterval={30}
+                    snapToAlignment="start"
+                    decelerationRate="fast"
+                    className="w-full mb-3 max-w-full"
+                    contentContainerClassName="gap-2 pb-0.5 px-4"
                 >
                     <ChipFiltro activo={!categoriaSeleccionada} onPress={() => handleCategoria(null, undefined)} etiqueta="Todas" />
 

@@ -2,9 +2,9 @@
 "use client";
 
 import { useState } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import useRouter from "@akindo/ui/router";
-import { useIdsCarrito } from "@akindo/shared/carrito-context";
+import { invalidarIdsCarrito, useIdsCarrito } from "@akindo/shared/carrito-context";
 import { Header as HeaderSemantico, Nav, Pressable, Span } from "../html-elements";
 import { Link } from "../link";
 import { Boton } from "../button";
@@ -96,6 +96,7 @@ export function Header({ isLoggedIn, tipoUsuario, onLogout }: HeaderProps) {
   const handleLogout = async () => {
     try {
       await onLogout();
+      invalidarIdsCarrito();
       // `replace`: en expo-router `push` siempre apila, y desde "/" dejaba un
       // segundo home encima del primero.
       router.replace("/");
@@ -120,7 +121,10 @@ export function Header({ isLoggedIn, tipoUsuario, onLogout }: HeaderProps) {
             {/* `native:w-auto`: `max-w-fit` no existe en nativo y el `w-full` del
                 primario ocuparía toda la barra. El `text-xs` le ganaba al
                 `text-sm` de la variante en el original. */}
-            {tipoUsuario === "admin" && (
+            {/* Solo web: la ruta `/admin/categorias` no se migró a mobile
+                (decisión del usuario), y en nativo el botón caía en
+                "Unmatched Route". */}
+            {tipoUsuario === "admin" && Platform.OS === "web" && (
               <Boton
                 className="max-w-fit native:w-auto"
                 claseTexto="text-xs"

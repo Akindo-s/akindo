@@ -1,4 +1,4 @@
-import { Stack, Tabs } from "expo-router";
+import { router, Stack, Tabs } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
@@ -12,6 +12,10 @@ import {
   PlusJakartaSans_700Bold,
   PlusJakartaSans_800ExtraBold,
 } from "@expo-google-fonts/plus-jakarta-sans";
+
+import { registrarManejadorSesionInvalida } from "@akindo/shared/sesion";
+import { invalidarIdsCarrito } from "@akindo/shared/carrito-context";
+import { borrarSesion } from "@/utils/session";
 
 import "../global.css";
 
@@ -30,6 +34,15 @@ export default function RootLayout() {
     PlusJakartaSans_700Bold,
     PlusJakartaSans_800ExtraBold,
   });
+
+  // Equivalente del `conSesion` de web (`redirect("/login")`): acá el núcleo
+  // lanza `TokenExpiradoError` dentro de la pantalla, donde el `catch` solo
+  // apaga una sección, así que el token vencido se atiende en un solo lugar.
+  useEffect(() => registrarManejadorSesionInvalida(() => {
+    borrarSesion();
+    invalidarIdsCarrito();
+    router.replace("/login");
+  }), []);
 
   useEffect(() => {
     if (fontsCargadas || errorFuentes) {

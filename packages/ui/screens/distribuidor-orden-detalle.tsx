@@ -78,7 +78,7 @@ export default function DistribuidorOrdenDetalle({
     const res = await aceptarAction(orden.id);
     setLoading(false);
     if (!res.ok) {
-      avisar(res.error ?? "No se pudo aceptar la orden");
+      avisar(res.error || "No se pudo aceptar la orden");
       return;
     }
     // En web esto era `router.refresh()`: el servidor devolvía la orden ya
@@ -94,7 +94,7 @@ export default function DistribuidorOrdenDetalle({
     const res = await rechazarAction(orden.id, motivoRechazo);
     setLoading(false);
     if (!res.ok) {
-      avisar(res.error ?? "No se pudo rechazar la orden");
+      avisar(res.error || "No se pudo rechazar la orden");
       return;
     }
     setModalRechazo(false);

@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { TextInput, View } from "react-native";
-import { Truck, ChevronDown } from "lucide-react-native";
+import { Truck } from "lucide-react-native";
 import type { PedidoListItem, EstadoPedido, PedidoResponse, PedidoActionResult } from "@akindo/shared/types/pedidos";
 import { H3, P, Pressable, Section, Span } from "@akindo/ui/html";
 import { Boton, Link } from "@akindo/ui/components";
@@ -12,6 +12,7 @@ import { HeaderSticky } from "@akindo/ui/components/ui/HeaderSticky";
 import { ContenedorPantalla } from "@akindo/ui/components/ui/ContenedorPantalla";
 import { Spinner } from "@akindo/ui/components/ui/Animaciones";
 import { useAviso } from "@akindo/ui/components/ui/Avisos";
+import { Selector, type OpcionSelector } from "@akindo/ui/components/ui/Selector";
 
 const MONEDA = "MXN";
 
@@ -34,52 +35,6 @@ const ESTADO_TARJETA: Record<EstadoPedido, { label: string; clases: string }> = 
   "cancelado": { label: "cancelado", clases: "bg-red-100 text-red-700" },
 };
 
-/**
- * El `<select>` del original: en React Native no existe, así que es un botón
- * que muestra la opción elegida y despliega la lista abajo. Mantiene la caja
- * del select (borde, radio, padding) y el ChevronDown a la derecha.
- */
-function SelectorEstado({
-  opciones,
-  valor,
-  onChange,
-}: {
-  opciones: { val: EstadoPedido; label: string }[];
-  valor: EstadoPedido;
-  onChange: (v: EstadoPedido) => void;
-}) {
-  const [abierto, setAbierto] = useState(false);
-  const elegida = opciones.find((o) => o.val === valor) ?? opciones[0];
-
-  return (
-    <View>
-      <Pressable
-        role="button"
-        accessibilityLabel="Estado del pedido"
-        onPress={() => setAbierto((v) => !v)}
-        className="w-full flex flex-row items-center justify-between p-3 bg-white border border-stone-200 rounded-xl"
-      >
-        <Span className="text-sm text-stone-800">{elegida.label}</Span>
-        <ChevronDown size={16} color="#A8A29E" />
-      </Pressable>
-      {abierto && (
-        <View className="mt-1 bg-white border border-stone-200 rounded-xl overflow-hidden">
-          {opciones.map((op, i) => (
-            <Pressable
-              key={op.val}
-              role="button"
-              onPress={() => { onChange(op.val); setAbierto(false); }}
-              className={`p-3 ${i > 0 ? "border-t border-stone-100" : ""}`}
-            >
-              <Span className={`text-sm ${op.val === valor ? "text-[#C1901D]" : "text-stone-800"}`}>{op.label}</Span>
-            </Pressable>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-}
-
 function ActualizarEstadoModal({
   pedido,
   onClose,
@@ -92,12 +47,12 @@ function ActualizarEstadoModal({
   loading: boolean;
 }) {
   // Solo se puede transicionar "hacia adelante" o cancelar
-  const opciones: { val: EstadoPedido; label: string }[] =
+  const opciones: OpcionSelector<EstadoPedido>[] =
     pedido.estado === "pendiente de envio"
-      ? [{ val: "en envio", label: "En Tránsito" }, { val: "cancelado", label: "Cancelar Pedido" }]
-      : [{ val: "entregado", label: "Entregado" }, { val: "cancelado", label: "Cancelar Pedido" }];
+      ? [{ valor: "en envio", etiqueta: "En Tránsito" }, { valor: "cancelado", etiqueta: "Cancelar Pedido" }]
+      : [{ valor: "entregado", etiqueta: "Entregado" }, { valor: "cancelado", etiqueta: "Cancelar Pedido" }];
 
-  const [estadoSelect, setEstadoSelect] = useState<EstadoPedido>(opciones[0].val);
+  const [estadoSelect, setEstadoSelect] = useState<EstadoPedido>(opciones[0].valor);
   const [desc, setDesc] = useState("");
 
   return (
@@ -111,7 +66,18 @@ function ActualizarEstadoModal({
         </P>
 
         <View className="flex flex-col gap-4 mb-6">
-          <SelectorEstado opciones={opciones} valor={estadoSelect} onChange={setEstadoSelect} />
+          {/* Era un `SelectorEstado` propio de esta pantalla; ahora es el
+              `Selector` compartido, el mismo del detalle del pedido. La caja
+              mantiene la del `<select>` del original. */}
+          <Selector
+            modo="simple"
+            opciones={opciones}
+            valor={estadoSelect}
+            onChange={setEstadoSelect}
+            accessibilityLabel="Estado del pedido"
+            claseCaja="p-3 bg-white border border-stone-200 rounded-xl"
+            claseTexto="text-sm text-stone-800"
+          />
 
           <TextInput
             value={desc}
@@ -208,7 +174,7 @@ export default function PedidosDistribuidor({
     setPedidoAActualizar(null);
 
     if (!res.ok) {
-      avisar(res.error ?? "No se pudo actualizar el pedido");
+      avisar(res.error || "No se pudo actualizar el pedido");
       return;
     }
 

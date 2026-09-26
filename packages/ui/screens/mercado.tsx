@@ -104,7 +104,7 @@ export default function Mercado({ cargarCategorias, recomendaciones }: MercadoPr
             </H1>
 
             {/* Buscador */}
-            <MercadoBuscador cargarCategorias={cargarCategorias} />
+            <MercadoBuscador cargarCategorias={cargarCategorias} className="md:top-4" />
 
             {/* Secciones de exploración */}
             <Section className="flex flex-col gap-3">

@@ -56,7 +56,7 @@ export default function Home({ cargarCategorias, destacadas, imagenHero, anuncio
           ¿Qué quieres <Span peso="bold" className="text-[#DAA520]">comprar</Span> hoy?
         </Titulo>
       </View>
-      <MercadoBuscador cargarCategorias={cargarCategorias} className='max-w-4xl'/>
+      <MercadoBuscador cargarCategorias={cargarCategorias} className='max-w-full md:max-w-4xl md:top-4'/>
 
       <FlatList
         className = "w-full"

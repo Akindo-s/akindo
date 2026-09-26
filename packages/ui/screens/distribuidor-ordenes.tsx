@@ -146,7 +146,7 @@ export default function DistribuidorOrdenes({
     const res = await aceptarAction(orden.id);
     setLoadingId(null);
     if (!res.ok) {
-      avisar(res.error ?? "No se pudo aceptar la orden");
+      avisar(res.error || "No se pudo aceptar la orden");
       return;
     }
     setPendientes((p) => p.filter((x) => x.id !== orden.id));
@@ -162,7 +162,7 @@ export default function DistribuidorOrdenes({
     setOrdenARechazar(null);
 
     if (!res.ok) {
-      avisar(res.error ?? "No se pudo rechazar la orden");
+      avisar(res.error || "No se pudo rechazar la orden");
       return;
     }
     setPendientes((p) => p.filter((x) => x.id !== orden.id));

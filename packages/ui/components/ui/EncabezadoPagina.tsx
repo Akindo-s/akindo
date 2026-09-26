@@ -55,7 +55,7 @@ export function EncabezadoPagina({
   return (
     <Header
       className={twMerge(
-        "web:sticky top-0 z-50 flex flex-row items-center justify-between p-4 bg-[#FAF7F2] xl:bg-white rounded-b-2xl",
+        "web:sticky top-0 z-50 flex flex-row items-center justify-between p-4 bg-[#FAF7F2] rounded-b-2xl",
         className
       )}
     >

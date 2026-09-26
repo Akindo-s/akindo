@@ -31,7 +31,7 @@ Contexto mínimo para retomar. Reglas del proceso: [`migracion-ui-reglas.md`](./
 | `(protected)/distribuidor/valoraciones` | ✅ terminada | `packages/ui/screens/distribuidor-valoraciones.tsx` | `app/(protected)/distribuidor/valoraciones/index.tsx` |
 | `(protected)/distribuidor/reportes` | ✅ terminada (placeholder "próximamente") | `packages/ui/screens/distribuidor-reportes.tsx` | `app/(protected)/distribuidor/reportes/index.tsx` |
 | `(protected)/carrito/preorden` | ✅ terminada | `packages/ui/screens/preorden.tsx` | `app/(protected)/carrito/preorden/index.tsx` (pide la preorden antes de pintar y arma `crearOrdenAction`) |
-| `(protected)/admin/categorias` | ⬜ pendiente | — | — |
+| `(protected)/admin/categorias` | 🚫 no se migra (solo web) | — | — |
 
 **Ubicación:** desde registro se sigue la regla de `migracion-ui-reglas.md`: si el `page.tsx` solo envuelve a un componente, ese componente va a `packages/ui/components/` con la misma ruta que en web, y se importa directo como `@akindo/ui/components/auth/X` (subpath `./components/*` del exports map). No se importa desde el barrel `@akindo/ui/components`, porque la página de Next es Server Component y necesita apuntar a un módulo con `"use client"`. Login es la excepción: quedó en `screens/login.tsx`.
 
@@ -233,7 +233,11 @@ Dependencias de plataforma ya abstraídas (patrón `x.ts` / `x.web.ts` + alias e
 
 ## Siguiente ruta
 
-Solo queda **`admin/categorias`** (277 líneas escritas en el `page.tsx`: hay que convertirlo en pantalla; usa `<select>`, `<input type="file">`, `<form>`, grids y `ModalConfirmacion`). `sobrenosotros` y `(public)/distribuidores` no se migran: el usuario las va a eliminar.
+**Ninguna.** Todas las rutas que van a las dos plataformas ya están migradas.
+
+Fuera de alcance por decisión del usuario:
+- **`(protected)/admin/categorias`**: se queda **solo en web**, con su `page.tsx` original (usa `@/components/ui/Boton` y `@/components/ui/ModalConfirmacion`, o sea que esos dos no se pueden borrar en la limpieza final sin apuntar la página a `@akindo/ui`). El botón "Administración" del `Header` compartido ya está limitado a web (`Platform.OS === "web"`), porque en nativo caía en "Unmatched Route".
+- **`sobrenosotros`** y **`(public)/distribuidores`**: el usuario las va a eliminar.
 
 **Sesiones para probar**: cuando una ruta necesita una sesión de cliente o de distribuidor, hay que parar y pedirle al usuario que la cambie a mano en el simulador (pidió que se le avise). No se escriben contraseñas en los formularios, y **no se hacen escrituras reales** (aceptar/rechazar/cancelar/archivar/valorar) sin preguntarle antes.
 
@@ -283,21 +287,22 @@ Verificación de las cuatro rutas anteriores: en web, a 375 y 1280px contra una 
 - **Valoraciones sin datos reales**: el distribuidor de la sesión del simulador no tiene valoraciones, así que con la API solo se vio el estado vacío; las tarjetas se probaron con datos falsos.
 - **Reportes con `min-h-screen`**: el texto se centra en el alto de la ventana, no en el del `<main>`/pantalla (queda más abajo del centro visible). Venía del original y pasa igual en las dos plataformas.
 - Los comentarios de valoraciones no salen en cursiva en nativo (regla 73).
-- **Detalle de pedido con un id que no existe (mobile)**: además de "No pudimos encontrar el pedido", abajo aparece un aviso rojo **sin texto**. Se vio al entrar desde valoraciones con un id falso; es de la pantalla de detalle (ya migrada), no de valoraciones. Revisar qué mensaje le pasa a `useAviso` cuando la carga falla.
+- ~~**Detalle de pedido con un id que no existe (mobile)**: aviso rojo sin texto.~~ **Arreglado**: `AvisosProvider` cambia un mensaje en blanco por "Ocurrió un error. Intentá de nuevo.", y los `avisar(res.error ?? "…")` pasaron a `||`, porque `??` no atrapa el string vacío que devuelve la API cuando el error viene sin `detail`.
 
 - **Crear/editar producto sin probar de punta a punta**: publicar, guardar borrador, guardar cambios y subir la imagen no se ejecutaron (escrituras reales). Conviene probar uno en cada plataforma y archivarlo después.
 - **El desplegable del detalle de pedido del distribuidor cambió de aspecto**: ahora es el del `Selector` de web (fondo blanco, borde crema, opción elegida dorada con fondo `#FDF2E3`) en vez del que tenía el selector simple. La caja cerrada es la misma (`claseCaja`).
 - **`Selector` en nativo no se cierra al tocar afuera** (no hay documento): se cierra volviendo a tocar la caja o al elegir en modo simple. En web sigue el `mousedown` del original.
 - **Campos numéricos en web**: dejaron de ser `type="number"` (sin las flechitas del navegador); react-native-web los pinta con `inputMode` numérico/decimal.
-- **Rutas del distribuidor sin guardia de tipo en mobile**: crear y editar tampoco comprueban que la sesión sea de distribuidor (igual que el resto, ver `RUTAS-PROTEGIDAS.md`).
+- ~~**Rutas del distribuidor sin guardia de tipo en mobile**~~ **Arreglado**: `apps/mobile/app/(protected)/distribuidor/_layout.tsx` redirige a `/login` si el tipo no es `distribuidor` (el equivalente del `sesionRequerida("distribuidor")` de cada `page.tsx` de web). Cubre todas las rutas del grupo.
 - En nativo el teclado puede tapar los campos de abajo del form (no hay `KeyboardAvoidingView`); el `ScrollView` deja scrollear igual.
-- **`Boton`: el orden de `w-fit`/`w-full` está al revés que en web.** En el CSS de Tailwind `.w-fit` va antes que `.w-full`, así que en web gana el `w-full` de la variante `primario`; el `twMerge` del Boton compartido deja el `w-fit` de la base y el botón sale del ancho del contenido. Hoy se compensa instancia por instancia (`className="w-full"`, como en la tienda, el detalle de pedido del distribuidor y el modal de órdenes). Arreglarlo es invertir el orden en `components/button.tsx`, pero toca todas las pantallas que usan `primario`: hay que hacerlo en su propia tanda y volver a medirlas.
-- **`screens/distribuidor-pedidos.tsx` todavía tiene su propio `SelectorEstado` adentro**, en vez del `components/ui/Selector.tsx` que salió después. Son el mismo patrón; unificarlos cuando se toque esa pantalla.
+- ~~**`Boton`: el orden de `w-fit`/`w-full` está al revés que en web.**~~ **Arreglado**: en `components/button.tsx` el `h-fit w-fit` de la base pasó a ir **antes** de la variante, así que el `w-full` de `primario` gana, como en el CSS de web (`.w-full` se declara después de `.w-fit`). Los `className="w-full"` que compensaban quedaron redundantes, no molestan. **Faltaba medir**: los botones `primario` sin ancho propio que cambian son los de `RegistrarProductoForm` (562, 587), `ModalConfirmacion` (114), `distribuidor-orden-detalle` (181), `distribuidor-pedidos` (99, 294), `inventario` (192), `perfil` (391), `producto-detalle` (324) y `tienda` (487).
+- ~~**`screens/distribuidor-pedidos.tsx` todavía tiene su propio `SelectorEstado`**~~ **Arreglado**: usa el `Selector` compartido en `modo="simple"`, con `claseCaja="p-3 bg-white border border-stone-200 rounded-xl"`. El desplegable ahora se ve como el del detalle del pedido (fondo blanco, opción elegida dorada con `#FDF2E3`) en vez del que tenía el selector propio.
 - **El panel del distribuidor perdió el streaming por sección**: el original pintaba resumen, órdenes, pedidos y alertas por separado con `Suspense`; ahora las cuatro llamadas van juntas y las secciones aparecen a la vez.
 - `apps/mobile/app/_layout.tsx`: el `contentStyle` rojo pasó a blanco (web no pinta fondo en el body, así que en un navegador se ve el blanco del canvas). Sigue el `SafeAreaView` raíz: el fondo de `(auth)` no llega a cubrir la barra de estado.
 - **Home público en web**: antes, sin sesión, `/` mandaba a `/login` porque el `CarritoProvider` del layout llamaba a `obtenerIdsCarrito`, que exige sesión (pasaba igual en `main`). Se arregló en `cargarIdsCarrito` (`tieneCarrito` de `layoutsBehaviors/public`), a pedido del usuario.
-- **Caché del carrito**: `carrito-context` guarda los ids en variables del módulo y nunca las invalida; si la primera carga fue sin sesión (lista vacía), después de iniciar sesión el badge sigue en 0 hasta recargar la app (web: hasta recargar la página). Además, si el loader falla, la promesa rechazada queda guardada. Pasa igual en las dos plataformas.
-- **Token vencido en mobile**: web traduce el `TokenExpiradoError` a `redirect("/login")` (`conSesion`); mobile todavía no tiene equivalente. En el home, un error al cargar las destacadas simplemente oculta la sección.
+- ~~**Caché del carrito**~~ **Arreglado**: `carrito-context` exporta `invalidarIdsCarrito()`, que tira la caché y avisa a los providers montados para que pidan los ids de nuevo (en web el layout se repinta pero `cargarIds` es la misma referencia, así que el `useEffect` no volvía a correr). La llaman la pantalla de login al entrar y el `Header` al cerrar sesión. La promesa rechazada ya no queda guardada.
+- ~~**Token vencido en mobile**~~ **Arreglado**: `@akindo/shared/sesion` tiene `registrarManejadorSesionInvalida` y `api/fetch` lo llama al recibir un 498. El layout raíz de mobile registra el manejador (borra la sesión, tira la caché del carrito y `router.replace("/login")`). Web no registra nada y sigue con `conSesion` → `redirect("/login")`.
+- El botón "Administración" del `Header` solo se pinta en web (`Platform.OS === "web"`): la ruta `admin/categorias` no se migró y en nativo caía en "Unmatched Route".
 - **El Header con sesión de distribuidor se desarma en pantallas angostas**: "Administrar negocio" y "Cerrar sesión" no caben junto al logo y se van a dos renglones encima de él (el header mide 115px). Pasa igual en web a 375px, así que es de antes de la migración, pero en el teléfono se ve peor.
 - `Avatar` ahora vuelve a la foto anterior si la subida falla, y el perfil avisa con `useAviso`. Antes la vista previa se quedaba puesta y el error no se veía en ninguna parte (el original de web también ignoraba el resultado).
 - El checkbox del formulario de direcciones ahora es el `Checkbox` compartido (13px, dorado) y no el del navegador (16px, azul): la etiqueta empieza 3px antes que en el original.

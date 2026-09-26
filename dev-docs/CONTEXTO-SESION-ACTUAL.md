@@ -20,9 +20,25 @@ Las últimas tandas (valoraciones, reportes y preorden) pueden estar **sin commi
 
 ## Qué falta
 
-Solo `admin/categorias`. `sobrenosotros` y `(public)/distribuidores` **no se migran**: el usuario las va a eliminar.
+**Ninguna ruta.** Ya está migrado todo lo que va a las dos plataformas.
 
-En mobile ya no quedan links del distribuidor que caigan en "Unmatched Route" por rutas sin migrar dentro de lo hecho.
+Fuera de alcance por decisión del usuario:
+- `(protected)/admin/categorias`: **solo web**, se queda con su `page.tsx` original (importa `@/components/ui/Boton` y `@/components/ui/ModalConfirmacion`: esos dos no se borran en la limpieza final salvo que la página se apunte a `@akindo/ui`). El botón "Administración" del `Header` compartido ya está limitado a web con `Platform.OS === "web"`.
+- `sobrenosotros` y `(public)/distribuidores`: el usuario las va a eliminar.
+
+En mobile ya no quedan links que caigan en "Unmatched Route".
+
+## Tanda de cierre (sin commitear todavía)
+
+Después de la última ruta se hicieron tres cosas fuera de "ruta por ruta":
+
+1. **Docs + admin solo en web**: el botón "Administración" del `Header` compartido se pinta solo con `Platform.OS === "web"`.
+2. **Limpieza de `apps/web`**: hecha. Se borraron 63 archivos de `apps/web/src/components` que ya no importaba ninguna ruta (los migrados con el comentario "archivo movido a …" más el código muerto), el duplicado `apps/web/src/lib/providers-data 2.ts`, los PNG de la plantilla de Expo de `apps/mobile/assets/images` y las carpetas vacías (`packages/shared/src/{api,client,types} 2`, `apps/web/public/iconos`, `apps/web/src/components/admin`). **Quedan a propósito** 8 archivos en `apps/web/src/components`: `layout/Sidebar.tsx` + `icons/NavigationIcons.tsx` (solo web, los usan los dos layouts), `ui/{Boton,ModalConfirmacion}.tsx` (los usa `admin/categorias`) y `titles.tsx` + `ui/{Badge,Tarjeta,Revelar}.tsx` (los usa `sobrenosotros`, que el usuario va a eliminar). Al borrar `sobrenosotros` se van esos cuatro; `Boton` se queda mientras admin lo use.
+
+   El `tsc` del build de web destapó un bug que hasta ahora nadie tipaba: `packages/ui/components/mercado/BarraBusquedaFiltros.tsx` pasaba `snapToOffsets={5}` (el `ScrollView` espera `number[]`, y el original de web no tenía snap). Se quitó esa prop.
+3. **Diferencias de comportamiento** (ver los tachados en los pendientes de `migracion-progreso.md`): aviso vacío, caché del carrito, token vencido en mobile, guardia de tipo del distribuidor en mobile, `SelectorEstado` → `Selector` compartido y el orden `w-fit`/`w-full` del `Boton`.
+
+**Lo del `Boton` toca todas las pantallas con botón `primario` sin ancho propio: hay que mirarlas.**
 
 ## Cosas que conviene tener presentes
 

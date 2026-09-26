@@ -82,7 +82,7 @@ export function TarjetaProducto({ children, producto, className = "" }: TarjetaP
           Existencias: {existencias} {producto.unidad}
         </P>
 
-        <View className="flex flex-row items-end justify-between mt-1">
+        <View className="flex flex-row items-end justify-between mt-1 flex-wrap">
           <P peso="bold" className="text-lg text-[#DAA520] shrink">
             ${producto.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {MONEDA}
             <Span className="text-xs text-stone-400"> /{producto.unidad}</Span>

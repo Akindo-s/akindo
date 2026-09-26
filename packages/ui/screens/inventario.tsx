@@ -42,7 +42,7 @@ function ProductoConAcciones({
       {/* Sin el `p-1.5` de la instancia: en web el `px-4 py-2.5` de la variante
           `chip` va después en el CSS y le gana (regla 62), así que cada botón
           mide 48×36 y no 28×28. */}
-      <View className="flex flex-row items-center gap-1.5">
+      <View className="flex flex-row items-center gap-1.5 flex-wrap max-w-full">
         <Boton
           variante="chip"
           Icono={Edit3}
@@ -134,8 +134,8 @@ export default function Inventario({ distribuidorId, archivarAction }: Inventari
     <>
       {/* indiceFijo 0: el bloque del encabezado y el buscador, que en el
           original es `sticky top-0`. */}
-      <ContenedorPantalla key="inventario" indiceFijo={0} className="flex flex-col w-full max-w-2xl lg:max-w-6xl mx-auto pb-24 bg-[#FAF7F2] min-h-screen">
-        <View className="px-4 mb-4 web:sticky top-0 z-10 bg-[#FAF7F2] shadow-md pb-2">
+      <ContenedorPantalla key="inventario" indiceFijo={0} className="flex flex-col w-full max-w-full mx-auto pb-24 bg-[#FAF7F2] min-h-screen">
+        <View className="px-4 mb-4 web:sticky top-0 z-10 bg-[#FAF7F2] drop-shadow-md pb-4 ">
           <EncabezadoPagina titulo="Inventario" className="mb-2" onPress={() => router.back()} />
           <Buscador
             placeholder="Buscar productos..."
@@ -146,7 +146,7 @@ export default function Inventario({ distribuidorId, archivarAction }: Inventari
         </View>
 
         {/* El grid responsive es una fila que envuelve (regla 26). */}
-        <View className="px-4 flex flex-row flex-wrap -m-2">
+        <View className="px-2 flex flex-row flex-wrap  max-w-full">
           {cargando ? (
             [0, 1, 2].map((i) => (
               <View key={i} className="w-full md:w-1/2 lg:w-1/3 p-2">
@@ -171,7 +171,7 @@ export default function Inventario({ distribuidorId, archivarAction }: Inventari
             </View>
           ) : (
             productos.map((producto: ProductoInventario) => (
-              <View key={producto.producto_id} className="w-full md:w-1/2 lg:w-1/3 p-2">
+              <View key={producto.producto_id} className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5   p-2">
                 <ProductoConAcciones
                   producto={{ ...producto, disponible: disponibles[producto.producto_id] ?? producto.disponible }}
                   onPedirArchivar={setProductoAArchivar}

@@ -18,7 +18,13 @@ const AvisoContext = createContext<Avisar | null>(null);
  */
 export function AvisosProvider({ children }: { children: React.ReactNode }) {
   const [aviso, setAviso] = useState<{ id: number; mensaje: string } | null>(null);
-  const avisar = useCallback<Avisar>((mensaje) => setAviso({ id: Date.now(), mensaje }), []);
+  // Un `mensaje` en blanco pintaba la ventana roja vacía (pasaba cuando la API
+  // devolvía un error sin `detail`). Se cambia por un texto genérico en vez de
+  // no avisar nada: la acción igual falló.
+  const avisar = useCallback<Avisar>(
+    (mensaje) => setAviso({ id: Date.now(), mensaje: mensaje?.trim() ? mensaje : "Ocurrió un error. Intentá de nuevo." }),
+    [],
+  );
 
   return (
     <AvisoContext.Provider value={avisar}>

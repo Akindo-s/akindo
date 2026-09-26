@@ -30,6 +30,33 @@ export class SesionRequeridaError extends Error {
   }
 }
 
+/**
+ * Aviso de "la sesión ya no sirve" para las plataformas que no pueden redirigir
+ * desde donde se lanza el error.
+ *
+ * Web no lo usa: sus llamadas pasan por `conSesion`, que traduce el error a
+ * `redirect("/login")` del lado del servidor. Mobile sí: los loaders corren en
+ * la pantalla y el error se pierde en un `catch` que solo apaga una sección, así
+ * que el layout raíz registra un manejador que borra la sesión y manda a
+ * `/login`.
+ */
+type ManejadorSesionInvalida = (error: Error) => void;
+
+let manejadorSesionInvalida: ManejadorSesionInvalida | null = null;
+
+/** Devuelve la función para darse de baja. */
+export function registrarManejadorSesionInvalida(manejador: ManejadorSesionInvalida): () => void {
+  manejadorSesionInvalida = manejador;
+  return () => {
+    if (manejadorSesionInvalida === manejador) manejadorSesionInvalida = null;
+  };
+}
+
+/** La llama el núcleo al detectar un token rechazado. Sin manejador no hace nada. */
+export function notificarSesionInvalida(error: Error): void {
+  manejadorSesionInvalida?.(error);
+}
+
 export function esErrorDeSesion(error: unknown): boolean {
   return error instanceof TokenExpiradoError || error instanceof SesionRequeridaError;
 }

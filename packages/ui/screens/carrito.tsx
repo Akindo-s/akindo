@@ -196,7 +196,7 @@ export default function Carrito({
 
   const aplicarResultadoGlobal = async (result: CarritoActionResult) => {
     if (!result.ok) {
-      avisar(result.error ?? "No se pudo completar la acción");
+      avisar(result.error || "No se pudo completar la acción");
       return;
     }
 
@@ -286,7 +286,7 @@ export default function Carrito({
       const { [item.key]: _, ...rest } = prev;
       return rest;
     });
-    avisar(result.error ?? "No se pudo actualizar el carrito");
+    avisar(result.error || "No se pudo actualizar el carrito");
   };
 
   const scheduleDebouncedUpdate = (item: CarritoUiItem, cantidad: number) => {

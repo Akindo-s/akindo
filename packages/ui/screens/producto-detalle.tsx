@@ -168,7 +168,7 @@ function Detalle({ productoId, verificarEnCarrito }: { productoId: string; verif
             setAgregado(true);
             setToastOk(result.message ?? "Producto agregado al carrito");
         } else {
-            avisar(result.error ?? "No se pudo agregar el producto");
+            avisar(result.error || "No se pudo agregar el producto");
         }
         setAgregando(false);
     };
