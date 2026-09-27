@@ -23,8 +23,8 @@ Las últimas tandas (valoraciones, reportes y preorden) pueden estar **sin commi
 **Ninguna ruta.** Ya está migrado todo lo que va a las dos plataformas.
 
 Fuera de alcance por decisión del usuario:
-- `(protected)/admin/categorias`: **solo web**, se queda con su `page.tsx` original (importa `@/components/ui/Boton` y `@/components/ui/ModalConfirmacion`: esos dos no se borran en la limpieza final salvo que la página se apunte a `@akindo/ui`). El botón "Administración" del `Header` compartido ya está limitado a web con `Platform.OS === "web"`.
-- `sobrenosotros` y `(public)/distribuidores`: el usuario las va a eliminar.
+- `(protected)/admin/categorias`: **solo web**, pero ya consume `@akindo/ui` (el `Boton` compartido no hace submit: lo dispara `crear()` desde `onClick`). El botón "Administración" del `Header` está limitado a web con `Platform.OS === "web"`.
+- `sobrenosotros` y `(public)/distribuidores`: **eliminadas**. En `apps/web/src/components` solo quedan `layout/Sidebar.tsx` y `icons/NavigationIcons.tsx`.
 
 En mobile ya no quedan links que caigan en "Unmatched Route".
 
@@ -38,7 +38,22 @@ Después de la última ruta se hicieron tres cosas fuera de "ruta por ruta":
    El `tsc` del build de web destapó un bug que hasta ahora nadie tipaba: `packages/ui/components/mercado/BarraBusquedaFiltros.tsx` pasaba `snapToOffsets={5}` (el `ScrollView` espera `number[]`, y el original de web no tenía snap). Se quitó esa prop.
 3. **Diferencias de comportamiento** (ver los tachados en los pendientes de `migracion-progreso.md`): aviso vacío, caché del carrito, token vencido en mobile, guardia de tipo del distribuidor en mobile, `SelectorEstado` → `Selector` compartido y el orden `w-fit`/`w-full` del `Boton`.
 
-**Lo del `Boton` toca todas las pantallas con botón `primario` sin ancho propio: hay que mirarlas.**
+4. **Los pendientes de código** (la lista que se le pasó al usuario): ya están los diez. Quedan los que dependen de probar escrituras reales (crear/editar producto, preorden con carrito real, valoraciones con datos, Android) y las diferencias que vienen del original, todo en los pendientes de `migracion-progreso.md`.
+5. **Campos de texto a 17px** (regla 77), a pedido del usuario. Los `Selector` siguen en 12/14px: si se quieren igualar, es su propia tanda.
+
+## Rediseño de órdenes de compra (lo último)
+
+`screens/ordenes.tsx` rehecha con el diseño nuevo (tabla desde `md`, tarjetas
+abajo), tarjetas de resumen con snap alimentadas por un provider con mock,
+barra de filtros reutilizable ([`BARRA-FILTROS.md`](./BARRA-FILTROS.md)) y
+exportación a Excel de punta a punta. En la API se agregaron los filtros `q`,
+`distribuidor_id`, `monto_min`/`monto_max` y el endpoint
+`/pedidos/mis-ordenes/exportar` (nueva dependencia: `openpyxl`). En mobile se
+agregó `expo-sharing`. El detalle está en `migracion-progreso.md`.
+
+⚠️ `apps/mobile/.env.local` quedó apuntando a `http://127.0.0.1:8000`: la API
+desplegada todavía no tiene el código nuevo (paginación, filtros y
+`/exportar`), y con ella la pantalla de órdenes sale vacía.
 
 ## Cosas que conviene tener presentes
 

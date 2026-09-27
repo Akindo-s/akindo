@@ -2,7 +2,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef } from "react";
-import { Platform, ScrollView, View, type NativeScrollEvent } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View, type NativeScrollEvent } from "react-native";
 
 interface ContenedorPantallaProps {
   /** Clases del contenedor de la página (padding, gap, max-w...). */
@@ -48,6 +48,12 @@ export function ContenedorPantalla({ className, indiceFijo, children }: Contened
 
   return (
     <FinalContext.Provider value={registrar}>
+      {/* El teclado tapaba los campos de abajo de los formularios largos (crear
+          producto, direcciones del perfil). En iOS `padding` encoge la pantalla
+          al alto que queda libre y el ScrollView alcanza el campo; en Android no
+          se pone `behavior`, porque el sistema ya reajusta la ventana
+          (`adjustResize`) y las dos cosas juntas se pelean. En web es un View. */}
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView
         stickyHeaderIndices={indiceFijo === undefined ? undefined : [indiceFijo]}
         contentContainerClassName={className}
@@ -63,6 +69,7 @@ export function ContenedorPantalla({ className, indiceFijo, children }: Contened
       >
         {children}
       </ScrollView>
+      </KeyboardAvoidingView>
     </FinalContext.Provider>
   );
 }

@@ -343,7 +343,7 @@ export default function Perfil({
                   placeholderTextColor="#A8A29E"
                   value={nuevaCalle}
                   onChangeText={setNuevaCalle}
-                  className="text-xs p-2.5 border border-stone-200 rounded-lg bg-white"
+                  className="text-[17px] leading-6 p-2.5 border border-stone-200 rounded-lg bg-white"
                 />
               </View>
 
@@ -354,7 +354,7 @@ export default function Perfil({
                   <TextInput
                     value={CIUDAD_DEFAULT}
                     editable={false}
-                    className="text-xs p-2.5 border border-stone-100 rounded-lg bg-stone-50 text-stone-500 cursor-not-allowed"
+                    className="text-[17px] leading-6 p-2.5 border border-stone-100 rounded-lg bg-stone-50 text-stone-500 cursor-not-allowed"
                   />
                 </View>
                 <View className="flex flex-col gap-1 flex-1">
@@ -362,7 +362,7 @@ export default function Perfil({
                   <TextInput
                     value={ESTADO_DEFAULT}
                     editable={false}
-                    className="text-xs p-2.5 border border-stone-100 rounded-lg bg-stone-50 text-stone-500 cursor-not-allowed"
+                    className="text-[17px] leading-6 p-2.5 border border-stone-100 rounded-lg bg-stone-50 text-stone-500 cursor-not-allowed"
                   />
                 </View>
               </View>
@@ -375,7 +375,7 @@ export default function Perfil({
                   value={nuevoCP}
                   onChangeText={setNuevoCP}
                   keyboardType="number-pad"
-                  className="text-xs p-2.5 border border-stone-200 rounded-lg bg-white"
+                  className="text-[17px] leading-6 p-2.5 border border-stone-200 rounded-lg bg-white"
                 />
               </View>
 

@@ -11,8 +11,8 @@ import {
     eliminarCategoriaDistribuidor,
     type CategoriaResponse
 } from "@/lib/api/categorias";
-import { Boton } from "@/components/ui/Boton";
-import { ModalConfirmacion } from "@/components/ui/ModalConfirmacion";
+import { Boton } from "@akindo/ui/components";
+import { ModalConfirmacion } from "@akindo/ui/components/ui/ModalConfirmacion";
 import { Trash2 } from "lucide-react";
 
 function FallBackCategoria() {
@@ -100,8 +100,15 @@ export default function CategoriasAdminPage() {
         cargarDatos();
     }, []);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    // `crear` aparte del submit del form: el `Boton` compartido es un Pressable
+    // (funciona igual en web y en mobile), así que no dispara el submit nativo.
+    // El `<form>` se queda para que Enter en el campo siga enviando.
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        crear();
+    };
+
+    const crear = async () => {
         if (!nombre.trim()) return;
 
         setCargando(true);
@@ -209,7 +216,7 @@ export default function CategoriasAdminPage() {
                             />
                         </div>
 
-                        <Boton type="submit" disabled={cargando} className="mt-2">
+                        <Boton onClick={crear} disabled={cargando} className="mt-2">
                             {cargando ? "Guardando..." : "Crear Categoría"}
                         </Boton>
                     </form>

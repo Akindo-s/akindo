@@ -31,6 +31,8 @@ import {
   enviarActualizacionPedido,
   obtenerDetallePedido,
   obtenerMisOrdenes,
+  exportarOrdenes,
+  pagarOrden,
   obtenerDetalleOrden,
   obtenerMisPedidos,
   obtenerOrdenesDistribuidor,
@@ -41,7 +43,8 @@ import {
   crearOrden,
   type DatosCrearOrden,
 } from "@akindo/shared/api/pedidos";
-import type { EstadoPedido } from "@akindo/shared/types/pedidos";
+import type { EstadoPedido, FiltrosOrdenes } from "@akindo/shared/types/pedidos";
+import type { FormatoExportacion } from "@akindo/shared/exportacion-context";
 import { MENSAJE_CARRITO_SIN_SESION, type AddToCartInput, type AddToCartResult } from "@akindo/shared/client/carrito";
 import { emitir } from "@akindo/shared/eventos";
 import {
@@ -223,15 +226,29 @@ export async function cargarPedidos() {
     obtenerMisPedidos("pendiente de envio", token),
     obtenerMisPedidos("entregado", token),
     obtenerMisPedidos("cancelado", token),
-    obtenerMisOrdenes(undefined, token),
+    obtenerMisOrdenes({}, token),
   ]);
-  return { activos: [...pendientes, ...activosEnEnvio], entregados, cancelados, ordenes };
+  // `obtenerMisOrdenes` devuelve el listado paginado; la pantalla de pedidos
+  // solo muestra las órdenes de la primera página.
+  return { activos: [...pendientes, ...activosEnEnvio], entregados, cancelados, ordenes: ordenes.ordenes };
 }
 
-/** Las órdenes de compra del cliente, para `/pedidos/ordenes`. */
-export async function cargarOrdenes() {
+/** El listado paginado de órdenes de compra, con sus filtros. */
+export async function cargarOrdenes(filtros: FiltrosOrdenes = {}) {
   const { token } = await sesionActual();
-  return obtenerMisOrdenes(undefined, token);
+  return obtenerMisOrdenes(filtros, token);
+}
+
+/** El archivo de la exportación contable (por ahora solo Excel). */
+export async function exportarOrdenesCliente(formato: FormatoExportacion, filtros: FiltrosOrdenes = {}) {
+  if (formato !== "xlsx") throw new Error("Por ahora solo se puede exportar a Excel");
+  const { token } = await sesionActual();
+  return exportarOrdenes(filtros, token);
+}
+
+export async function pagarOrdenCompra(ordenId: string) {
+  const { token } = await sesionActual();
+  return pagarOrden(ordenId, token);
 }
 
 export async function cancelarOrdenCompra(ordenId: string) {
@@ -275,15 +292,20 @@ export async function cargarOrdenesDistribuidor() {
 }
 
 /** Todo lo que pinta el panel de `/distribuidor`. */
-export async function cargarDashboardDistribuidor() {
-  const { token } = await sesionActual();
-  const [resumen, ordenesPendientes, pedidosActivos, alertas] = await Promise.all([
-    obtenerResumenMensual(token),
-    obtenerOrdenesDistribuidor("pendiente", token),
-    obtenerPedidosActivos(token),
-    obtenerProductosPocasExistencias(token),
-  ]);
-  return { resumen, ordenesPendientes, pedidosActivos, alertas };
+/**
+ * Las cuatro secciones del panel, cada una como su propia promesa: la pantalla
+ * las pinta por separado con `Suspense`, así que no se esperan entre ellas.
+ * Cada una trae su `catch` porque una promesa rechazada dentro de `Suspense`
+ * reventaría la pantalla entera (el 498 lo atiende el manejador del layout).
+ */
+export function seccionesDashboardDistribuidor() {
+  const token = sesionActual().then((s) => s.token);
+  return {
+    resumen: token.then((t) => obtenerResumenMensual(t)).catch(() => null),
+    ordenesPendientes: token.then((t) => obtenerOrdenesDistribuidor("pendiente", t)).catch(() => []),
+    pedidosActivos: token.then((t) => obtenerPedidosActivos(t)).catch(() => []),
+    alertas: token.then((t) => obtenerProductosPocasExistencias(t)).catch(() => []),
+  };
 }
 
 export async function archivarProductoDistribuidor(productoId: string) {

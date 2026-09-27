@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Image, View } from "react-native";
+import { Image, Platform, View } from "react-native";
 import { ArrowUpRight, Loader2, Package, ShoppingCart } from "lucide-react-native";
 import { MONEDA } from "@akindo/shared/constants";
 import { useAgregarAlCarrito, useIdsCarrito } from "@akindo/shared/carrito-context";
@@ -89,11 +89,16 @@ export function TarjetaProductoCatalogo({
                         {nombre}
                     </H3>
                     <View className="mt-auto flex flex-row items-center justify-between gap-2">
-                        {/* shrink: en CSS el <p> se encogía y partía la línea. El ml-0.5 del
-                            Span no aplica en nativo (un Text anidado no tiene margen). */}
+                        {/* shrink: en CSS el <p> se encogía y partía la línea.
+                            El `ml-0.5` del Span no aplica en nativo (un Text anidado no
+                            tiene margen) y el "/kg" quedaba pegado al importe: ahí la
+                            separación la hace un espacio duro. El `\u2060` (word joiner)
+                            es para que iOS no corte la línea justo después de la barra. */}
                         <P peso="bold" className="text-base text-[#DAA520] shrink">
                             ${costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {MONEDA}
-                            <Span className="text-xs text-stone-400 ml-0.5">/{unidad}</Span>
+                            <Span className="text-xs text-stone-400 ml-0.5">
+                                {Platform.OS === "web" ? "" : "\u00A0"}/{"\u2060"}{unidad}
+                            </Span>
                         </P>
                         <Pressable
                             role="button"

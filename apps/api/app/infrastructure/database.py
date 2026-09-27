@@ -35,8 +35,41 @@ class DatabaseSession(ABC):
         filters: dict | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        filtros_texto: dict[str, str] | None = None,
+        ids: list[str] | None = None,
+        ordenar_por: str | None = None,
+        descendente: bool = False,
     ) -> list[dict]:
-        """Selecciona registros de la tabla indicada."""
+        """Selecciona registros de la tabla indicada.
+
+        `filters` son igualdades. `filtros_texto` son busquedas parciales sin
+        distinguir mayusculas (`ilike`), y la clave puede ser la ruta de un
+        recurso embebido con `!inner` (p. ej. "paquete_pedido.producto.nombre").
+        `ids` limita a esos ids (`in`), util cuando el filtro se calculo antes
+        en Python porque no se puede expresar en SQL. `ordenar_por` es la
+        columna por la que se ordena y `descendente` invierte el sentido.
+        """
+        ...
+
+    @abstractmethod
+    async def select_con_total(
+        self,
+        table: str,
+        columns: str = "*",
+        filters: dict | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        filtros_texto: dict[str, str] | None = None,
+        ids: list[str] | None = None,
+        ordenar_por: str | None = None,
+        descendente: bool = False,
+    ) -> tuple[list[dict], int]:
+        """Igual que `select`, mas cuantas filas hay en total.
+
+        El total ignora `limit`/`offset`: es el de todas las filas que cumplen
+        los filtros, que es lo que hace falta para paginar. `select` no sirve
+        para esto porque devuelve `list[dict]` y no tiene donde traerlo.
+        """
         ...
 
     @abstractmethod
@@ -92,6 +125,37 @@ class SupabaseDb(DatabaseSession):
         response = await self._client.table(table).insert(data).execute()
         return response.data[0] if response.data else {}
 
+    @staticmethod
+    def _aplicar_filtros(
+        query,
+        filters: dict | None,
+        filtros_texto: dict[str, str] | None,
+        ids: list[str] | None,
+        limit: int | None,
+        offset: int | None,
+        ordenar_por: str | None = None,
+        descendente: bool = False,
+    ):
+        """Arma los filtros comunes de `select` y `select_con_total`."""
+        if filters:
+            for key, value in filters.items():
+                query = query.eq(key, value)
+        if filtros_texto:
+            for key, value in filtros_texto.items():
+                query = query.ilike(key, f"%{value}%")
+        if ids is not None:
+            query = query.in_("id", ids)
+        # El orden va antes del limit/offset: paginar sin ordenar devuelve las
+        # filas en el orden que quiera Postgres, y una pagina podria repetir
+        # filas de otra.
+        if ordenar_por:
+            query = query.order(ordenar_por, desc=descendente)
+        if limit is not None:
+            query = query.limit(limit)
+        if offset is not None:
+            query = query.offset(offset)
+        return query
+
     async def select(
         self,
         table: str,
@@ -99,17 +163,41 @@ class SupabaseDb(DatabaseSession):
         filters: dict | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        filtros_texto: dict[str, str] | None = None,
+        ids: list[str] | None = None,
+        ordenar_por: str | None = None,
+        descendente: bool = False,
     ) -> list[dict]:
-        query = self._client.table(table).select(columns)
-        if filters:
-            for key, value in filters.items():
-                query = query.eq(key, value)
-        if limit is not None:
-            query = query.limit(limit)
-        if offset is not None:
-            query = query.offset(offset)
+        query = self._aplicar_filtros(
+            self._client.table(table).select(columns),
+            filters, filtros_texto, ids, limit, offset, ordenar_por, descendente,
+        )
         response = await query.execute()
         return response.data
+
+    async def select_con_total(
+        self,
+        table: str,
+        columns: str = "*",
+        filters: dict | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        filtros_texto: dict[str, str] | None = None,
+        ids: list[str] | None = None,
+        ordenar_por: str | None = None,
+        descendente: bool = False,
+    ) -> tuple[list[dict], int]:
+        # `count="exact"` va en el select y no en los filtros: un filtro se
+        # traduce a `.eq(columna, valor)`, asi que pasarlo ahi haria que
+        # PostgREST buscara una columna llamada `count`. El total llega en
+        # `response.count` (header Content-Range), no en `response.data`, y es
+        # el de todas las filas que hacen match, no el de la pagina.
+        query = self._aplicar_filtros(
+            self._client.table(table).select(columns, count="exact"),
+            filters, filtros_texto, ids, limit, offset, ordenar_por, descendente,
+        )
+        response = await query.execute()
+        return (response.data or []), (response.count or 0)
 
     async def update(self, table: str, data: dict, filters: dict) -> dict:
         query = self._client.table(table).update(data)

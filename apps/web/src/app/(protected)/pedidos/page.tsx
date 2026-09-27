@@ -19,13 +19,16 @@ async function PedidosContent() {
     obtenerMisOrdenes(),
   ]);
 
+  // `obtenerMisOrdenes` devuelve el listado paginado; esta pantalla solo
+  // muestra las órdenes de la primera página.
+
   return (
     <Pedidos
       datos={{
         activos: [...pedidosPendientes, ...pedidosActivos],
         entregados,
         cancelados,
-        ordenes,
+        ordenes: ordenes.ordenes,
       }}
     />
   );

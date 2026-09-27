@@ -53,7 +53,7 @@ function RechazarModal({
           multiline
           placeholder="Ej: Sin stock suficiente..."
           placeholderTextColor="#A8A29E"
-          className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-sm mb-6 min-h-[100px]"
+          className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-[17px] leading-6 mb-6 min-h-[100px]"
         />
 
         <View className="flex flex-row gap-3">

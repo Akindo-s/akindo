@@ -91,7 +91,7 @@ export function Buscador({
                     if (timerRef.current) clearTimeout(timerRef.current);
                     onBuscarRef.current?.(valorActivo);
                 }}
-                className="flex-1 bg-transparent text-sm text-stone-800 outline-none p-0"
+                className="flex-1 bg-transparent text-[17px] leading-6 text-stone-800 outline-none p-0"
             />
             {valorActivo ? (
                 <Pressable

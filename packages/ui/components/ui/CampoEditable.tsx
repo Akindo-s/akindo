@@ -91,7 +91,7 @@ export function CampoEditable({
             autoFocus
             keyboardType={type === "tel" ? "phone-pad" : type === "email" ? "email-address" : "default"}
             autoCapitalize={type === "email" ? "none" : undefined}
-            className="text-sm text-stone-900 w-full border-b border-yellow-400 bg-stone-50 p-1 rounded-t"
+            className="text-[17px] leading-6 text-stone-900 w-full border-b border-yellow-400 bg-stone-50 p-1 rounded-t"
           />
         ) : (
           <Parrafo className="text-sm text-stone-900">{value || placeholder}</Parrafo>

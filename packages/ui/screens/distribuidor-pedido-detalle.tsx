@@ -191,7 +191,7 @@ export default function DistribuidorPedidoDetalle({
                       multiline
                       placeholder="Ej: El repartidor está en camino..."
                       placeholderTextColor="#A8A29E"
-                      className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm min-h-[44px]"
+                      className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-[17px] leading-6 min-h-[44px]"
                     />
                   </View>
                 </View>

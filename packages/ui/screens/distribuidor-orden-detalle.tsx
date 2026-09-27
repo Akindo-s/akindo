@@ -264,7 +264,7 @@ export default function DistribuidorOrdenDetalle({
               multiline
               placeholder="Ej: No contamos con stock suficiente de uno de los artículos..."
               placeholderTextColor="#A8A29E"
-              className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl text-sm mb-6 min-h-[120px]"
+              className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl text-[17px] leading-6 mb-6 min-h-[120px]"
             />
 
             <View className="flex flex-row gap-3">

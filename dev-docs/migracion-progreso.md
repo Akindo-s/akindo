@@ -19,7 +19,7 @@ Contexto mínimo para retomar. Reglas del proceso: [`migracion-ui-reglas.md`](./
 | `(protected)/carrito` | ✅ terminada | `packages/ui/screens/carrito.tsx` + `components/carrito/` | `app/(protected)/carrito/index.tsx` |
 | `(protected)/perfil` | ✅ terminada | `packages/ui/screens/perfil.tsx` + `components/ui/{Avatar,Badge,CampoEditable,ItemMenu}.tsx` | `app/(protected)/perfil/index.tsx` |
 | `(protected)/pedidos` | ✅ terminada | `packages/ui/screens/pedidos.tsx` | `app/(protected)/pedidos/index.tsx` |
-| `(protected)/pedidos/ordenes` | ✅ terminada | `packages/ui/screens/ordenes.tsx` + `components/ui/ModalConfirmacion.tsx` | `app/(protected)/pedidos/ordenes/index.tsx` |
+| `(protected)/pedidos/ordenes` (rediseñada, paginada) | ✅ terminada | `packages/ui/screens/ordenes.tsx` + `components/ui/{TarjetasResumen,BarraFiltros,ExportacionMasiva,ModalConfirmacion}.tsx` | `app/(protected)/pedidos/ordenes/index.tsx` |
 | `(protected)/pedidos/[pedidoId]` | ✅ terminada (cliente y distribuidor) | `packages/ui/screens/{pedido-detalle,distribuidor-pedido-detalle}.tsx` + `components/pedidos/*` | `app/(protected)/pedidos/[pedidoId]/index.tsx` (elige vista según el tipo, como el page.tsx) |
 | `(protected)/distribuidor` (panel) | ✅ terminada | `packages/ui/screens/distribuidor-dashboard.tsx` + `components/perfil/ProductActionsMenu.tsx` | `app/(protected)/distribuidor/index.tsx` |
 | `(protected)/distribuidor/productos` (inventario) | ✅ terminada | `packages/ui/screens/inventario.tsx` + `components/productos/TarjetaProducto.tsx` | `app/(protected)/distribuidor/productos/index.tsx` |
@@ -219,6 +219,14 @@ Dependencias de plataforma ya abstraídas (patrón `x.ts` / `x.web.ts` + alias e
 71. **En web un `<img className="w-full h-full">` dentro de un botón sin alto definido toma su alto natural** (327×218 para una foto apaisada) y el `overflow-hidden` lo recorta, así que cubre todo el alto del botón. En RN `h-full` sí respeta el padding del padre y quedaba en 168px: va `absolute top-0 bottom-0 left-2 right-2`.
 72. `pointerEvents` como prop de un `View` está deprecada en react-native-web (avisa en consola): va en `style={{ pointerEvents: "none" }}`, que también sirve en nativo.
 73. **`italic` no se ve en nativo con Plus Jakarta Sans**: solo están cargadas las variantes rectas, y iOS no inclina una fuente custom por su cuenta. En web el navegador la sintetiza. Pasa con los comentarios de las valoraciones; si importa, hay que cargar las `*_Italic` de `@expo-google-fonts/plus-jakarta-sans` y agregarlas a `fuente()`.
+74. **Para que una sección cargue por su cuenta, la prop es una promesa, no un loader.** El panel del distribuidor recibe las cuatro promesas sin resolver y pinta cada bloque dentro de su `Suspense` con `use()`. En web las crea el Server Component (Next va mandando cada bloque cuando resuelve) y en mobile la ruta, dentro de un `useMemo`: una promesa nueva en cada render volvería a suspender para siempre. Cada promesa tiene que llevar su `.catch`, porque una rechazada dentro de un `Suspense` revienta la pantalla entera.
+75. **Una Server Action no puede comunicar errores lanzándolos**: en build de producción Next reemplaza el mensaje por uno genérico y en dev no, así que el bug no se ve hasta producción. El error se devuelve como valor (`{ ok: false, error }`), como ya hacían las acciones del carrito y los pedidos.
+76. **En nativo un desplegable que tiene que cerrarse al tocar afuera va en un `Modal` transparente**, anclado con `measureInWindow` a la caja: no hay documento al que escucharle el `mousedown`, y un `absolute` dentro de la pantalla no recibe los toques de afuera de su padre. De paso deja de recortarlo el `ScrollView` (es lo que hace el `Selector`).
+77. **Los campos de texto van a 17px como mínimo.** Abajo de 16px, Safari de iOS hace zoom al enfocar un `<input>` (en web) y en el teléfono el texto queda muy chico. El `input { font-size: 17px }` de `globals.css` no alcanza: desde Tailwind v3 un `text-xs` de la clase le gana por especificidad, así que el tamaño va en el `className` del `TextInput` (`text-[17px] leading-6`).
+78. **Lo que se pinta arriba de una pantalla (resumen, exportación) entra por un provider que devuelve una lista, no por props sueltas.** La pantalla recorre la lista y elige el componente según el `tipo` de cada objeto, así que agregar o quitar una tarjeta es tocar el provider, no la pantalla (`resumen-ordenes-context`, `exportacion-context`).
+79. **Un archivo que la API genera viaja en base64, no como `Blob`.** En web la llamada sale de una Server Action (el token es una cookie httpOnly) y por ahí solo pasan valores serializables. Quien lo convierte en descarga es `@akindo/ui/descargar`, con gemelo por plataforma: en web un `<a download>` sobre un Blob; en nativo, `expo-file-system` + la hoja de compartir de `expo-sharing`.
+80. **Una tabla y unas tarjetas son el mismo dato en dos formas.** Se pintan las dos ramas y se esconde la que no toca con `hidden md:flex` / `md:hidden` (regla 28), porque en nativo no hay media queries en CSS: nativewind resuelve el breakpoint por ancho de ventana. Ojo con las `key`: si las dos ramas listan lo mismo, cada una necesita su prefijo.
+81. **Un filtro que no se puede escribir en SQL se resuelve como una lista de ids.** PostgREST no hace `ilike` sobre un uuid ni `or` entre la tabla y un recurso embebido, y el total de una orden no es columna (sale de sus paquetes). El repo hace consultas baratas que solo traen `id`, calcula en Python y le pasa la lista al `select_con_total` con un `in`: así el `count` sigue siendo exacto y la paginación no miente.
 
 ## Cómo verificar una ruta
 
@@ -236,8 +244,8 @@ Dependencias de plataforma ya abstraídas (patrón `x.ts` / `x.web.ts` + alias e
 **Ninguna.** Todas las rutas que van a las dos plataformas ya están migradas.
 
 Fuera de alcance por decisión del usuario:
-- **`(protected)/admin/categorias`**: se queda **solo en web**, con su `page.tsx` original (usa `@/components/ui/Boton` y `@/components/ui/ModalConfirmacion`, o sea que esos dos no se pueden borrar en la limpieza final sin apuntar la página a `@akindo/ui`). El botón "Administración" del `Header` compartido ya está limitado a web (`Platform.OS === "web"`), porque en nativo caía en "Unmatched Route".
-- **`sobrenosotros`** y **`(public)/distribuidores`**: el usuario las va a eliminar.
+- **`(protected)/admin/categorias`**: se queda **solo en web**, pero ya usa el `Boton` y el `ModalConfirmacion` compartidos (el `Boton` es un `Pressable`, así que el submit del `<form>` lo dispara `crear()` desde `onClick`; el `<form>` se queda para que Enter siga enviando). El botón "Administración" del `Header` compartido está limitado a web (`Platform.OS === "web"`), porque en nativo caía en "Unmatched Route".
+- **`sobrenosotros`** y **`(public)/distribuidores`**: eliminadas. Con ellas se fueron `components/titles.tsx` y `components/ui/{Badge,Boton,ModalConfirmacion,Revelar,Tarjeta}.tsx`. En `apps/web/src/components` quedan solo `layout/Sidebar.tsx` y `icons/NavigationIcons.tsx`, los dos solo de web; el Sidebar ahora toma `Parrafo` de `@akindo/ui/components/titles` (con `peso="normal"`, porque una clase no le gana a la tipografía por `style`).
 
 **Sesiones para probar**: cuando una ruta necesita una sesión de cliente o de distribuidor, hay que parar y pedirle al usuario que la cambie a mano en el simulador (pidió que se le avise). No se escriben contraseñas en los formularios, y **no se hacen escrituras reales** (aceptar/rechazar/cancelar/archivar/valorar) sin preguntarle antes.
 
@@ -279,6 +287,60 @@ Verificación de las cuatro rutas anteriores: en web, a 375 y 1280px contra una 
 
 **Falta**: agregar al carrito con una sesión real (en el simulador hay una sesión de verdad y no se tocó para no modificar su carrito).
 
+## Rediseño de órdenes de compra (2026-09-26)
+
+`screens/ordenes.tsx` se rehizo con el diseño nuevo: tabla desde `md` y tarjetas
+abajo de `md`, con el mismo dato (regla 80). Lo que trae:
+
+- **Tarjetas de resumen** en una fila que scrollea con snap
+  (`components/ui/TarjetasResumen.tsx`). Los datos vienen de
+  `@akindo/shared/resumen-ordenes-context`, que **hoy devuelve un mock**: el
+  provider entrega una lista y cada objeto se pinta según su `tipo` (`monto`,
+  `alerta`, `proceso`, `conteo`). Cuando exista el endpoint se le pasa el loader
+  por prop y la pantalla no cambia.
+- **Barra de filtros** reutilizable (`components/ui/BarraFiltros.tsx`),
+  documentada en [`BARRA-FILTROS.md`](./BARRA-FILTROS.md). Sirve igual para
+  pedidos.
+- **Exportación contable** (`components/ui/ExportacionMasiva.tsx` +
+  `@akindo/shared/exportacion-context`): el provider decide qué formatos se
+  ofrecen. Hoy `xlsx` está implementado de punta a punta y `pdf` se muestra
+  apagado.
+- **Filtros de verdad en la API**: `GET /pedidos/mis-ordenes` acepta `q` (id de
+  la orden o nombre de producto), `distribuidor_id`, `monto_min`, `monto_max` y
+  `orden` (`desc`/`asc` por fecha de emisión), además de `estado` y la
+  paginación (regla 81). `GET /pedidos/mis-ordenes/exportar` devuelve el libro
+  de Excel con esos mismos filtros y en el mismo orden (`openpyxl`, una fila por
+  partida).
+- **Sin folios "PO"**: la orden se identifica con su id, tal cual. El diseño
+  mostraba `PO-XXXXXXXX`, que era el uuid recortado y no existe en la base.
+- **Un botón por estado**, con la tabla `ACCIONES` de la pantalla: pendiente →
+  cancelar; aceptada sin pagar → pagar; aceptada ya pagada → ver el detalle del
+  pedido; rechazada o cancelada → descargar documento (la exportación filtrada a
+  esa orden). Los botones secundarios de íconos del diseño no se implementaron.
+  Para linkear al pedido, `OrdenPedidoListItem` trae ahora `pedido_id`: sale de
+  la relación inversa `pedido(id)` embebida en la misma consulta del listado
+  (`pedido.orden_id`), así que no cuesta un viaje extra. Viene en `null`
+  mientras la orden no se haya pagado.
+
+Del diseño **no** se copió lo que la API no tiene: el breadcrumb fiscal, los
+badges PRIORITARIA / CONTRATO MARCO, las vigencias ("Vence en 48 hrs"), el SLA
+y los estados comerciales ("EN FIRMA", "COMPLETADA"). Los estados que se pintan
+son los reales: pendiente, aceptada, rechazada y cancelada.
+
+**Probado en el simulador** (iPhone 17, sesión de cliente, contra la API local):
+el listado con datos reales, los badges de estado y de pre pago, la paginación
+(«Mostrando 10 de 16», página 2 trae otras órdenes), el buscador —que filtró de
+16 a 4 con "acelga", con el debounce del `Buscador`— y "Exportar Lotes", que
+abre la hoja de compartir con `ordenes-de-compra-<fecha>.xlsx` (6 KB, se ve la
+miniatura de la hoja). **No se canceló ni se pagó ninguna orden.**
+
+⚠️ **Mobile tiene que apuntar a una API con este código.** `apps/mobile/.env.local`
+estaba en `https://akindo-api.onrender.com`, que corre el código viejo (su
+OpenAPI no tiene ni la paginación ni `/exportar`), y por eso la pantalla salía
+vacía: la llamada falla y el cliente devuelve el listado vacío. Quedó apuntando
+a `http://127.0.0.1:8000`; la línea de la API desplegada está comentada arriba.
+Hay que desplegar la API para volver a usarla.
+
 ## Pendientes conocidos (no bloquean)
 
 - **Preorden sin probar con una sesión real de cliente**: web y el simulador se verificaron con datos falsos y una acción que devuelve error; falta abrir `/carrito/preorden` desde un carrito real (y no se creó ninguna orden).
@@ -291,13 +353,13 @@ Verificación de las cuatro rutas anteriores: en web, a 375 y 1280px contra una 
 
 - **Crear/editar producto sin probar de punta a punta**: publicar, guardar borrador, guardar cambios y subir la imagen no se ejecutaron (escrituras reales). Conviene probar uno en cada plataforma y archivarlo después.
 - **El desplegable del detalle de pedido del distribuidor cambió de aspecto**: ahora es el del `Selector` de web (fondo blanco, borde crema, opción elegida dorada con fondo `#FDF2E3`) en vez del que tenía el selector simple. La caja cerrada es la misma (`claseCaja`).
-- **`Selector` en nativo no se cierra al tocar afuera** (no hay documento): se cierra volviendo a tocar la caja o al elegir en modo simple. En web sigue el `mousedown` del original.
+- ~~**`Selector` en nativo no se cierra al tocar afuera**~~ **Arreglado**: en nativo la lista va en un `Modal` transparente anclado con `measureInWindow` y el fondo cierra al tocarlo (regla 76). En web sigue el `mousedown` del original.
 - **Campos numéricos en web**: dejaron de ser `type="number"` (sin las flechitas del navegador); react-native-web los pinta con `inputMode` numérico/decimal.
 - ~~**Rutas del distribuidor sin guardia de tipo en mobile**~~ **Arreglado**: `apps/mobile/app/(protected)/distribuidor/_layout.tsx` redirige a `/login` si el tipo no es `distribuidor` (el equivalente del `sesionRequerida("distribuidor")` de cada `page.tsx` de web). Cubre todas las rutas del grupo.
-- En nativo el teclado puede tapar los campos de abajo del form (no hay `KeyboardAvoidingView`); el `ScrollView` deja scrollear igual.
+- ~~En nativo el teclado puede tapar los campos de abajo del form~~ **Arreglado**: `ContenedorPantalla` envuelve el `ScrollView` en un `KeyboardAvoidingView` (`behavior="padding"` solo en iOS; en Android el sistema ya reajusta la ventana). El pie fijo, que vive fuera del contenedor, sigue sin moverse.
 - ~~**`Boton`: el orden de `w-fit`/`w-full` está al revés que en web.**~~ **Arreglado**: en `components/button.tsx` el `h-fit w-fit` de la base pasó a ir **antes** de la variante, así que el `w-full` de `primario` gana, como en el CSS de web (`.w-full` se declara después de `.w-fit`). Los `className="w-full"` que compensaban quedaron redundantes, no molestan. **Faltaba medir**: los botones `primario` sin ancho propio que cambian son los de `RegistrarProductoForm` (562, 587), `ModalConfirmacion` (114), `distribuidor-orden-detalle` (181), `distribuidor-pedidos` (99, 294), `inventario` (192), `perfil` (391), `producto-detalle` (324) y `tienda` (487).
 - ~~**`screens/distribuidor-pedidos.tsx` todavía tiene su propio `SelectorEstado`**~~ **Arreglado**: usa el `Selector` compartido en `modo="simple"`, con `claseCaja="p-3 bg-white border border-stone-200 rounded-xl"`. El desplegable ahora se ve como el del detalle del pedido (fondo blanco, opción elegida dorada con `#FDF2E3`) en vez del que tenía el selector propio.
-- **El panel del distribuidor perdió el streaming por sección**: el original pintaba resumen, órdenes, pedidos y alertas por separado con `Suspense`; ahora las cuatro llamadas van juntas y las secciones aparecen a la vez.
+- ~~**El panel del distribuidor perdió el streaming por sección**~~ **Arreglado**: la pantalla recibe `secciones` con las cuatro promesas sin resolver y pinta cada bloque en su propio `Suspense` con su esqueleto (regla 74). En web las crea el Server Component sin `await`; en mobile, la ruta en un `useMemo`.
 - `apps/mobile/app/_layout.tsx`: el `contentStyle` rojo pasó a blanco (web no pinta fondo en el body, así que en un navegador se ve el blanco del canvas). Sigue el `SafeAreaView` raíz: el fondo de `(auth)` no llega a cubrir la barra de estado.
 - **Home público en web**: antes, sin sesión, `/` mandaba a `/login` porque el `CarritoProvider` del layout llamaba a `obtenerIdsCarrito`, que exige sesión (pasaba igual en `main`). Se arregló en `cargarIdsCarrito` (`tieneCarrito` de `layoutsBehaviors/public`), a pedido del usuario.
 - ~~**Caché del carrito**~~ **Arreglado**: `carrito-context` exporta `invalidarIdsCarrito()`, que tira la caché y avisa a los providers montados para que pidan los ids de nuevo (en web el layout se repinta pero `cargarIds` es la misma referencia, así que el `useEffect` no volvía a correr). La llaman la pantalla de login al entrar y el `Header` al cerrar sesión. La promesa rechazada ya no queda guardada.
@@ -306,20 +368,20 @@ Verificación de las cuatro rutas anteriores: en web, a 375 y 1280px contra una 
 - **El Header con sesión de distribuidor se desarma en pantallas angostas**: "Administrar negocio" y "Cerrar sesión" no caben junto al logo y se van a dos renglones encima de él (el header mide 115px). Pasa igual en web a 375px, así que es de antes de la migración, pero en el teléfono se ve peor.
 - `Avatar` ahora vuelve a la foto anterior si la subida falla, y el perfil avisa con `useAviso`. Antes la vista previa se quedaba puesta y el error no se veía en ninguna parte (el original de web también ignoraba el resultado).
 - El checkbox del formulario de direcciones ahora es el `Checkbox` compartido (13px, dorado) y no el del navegador (16px, azul): la etiqueta empieza 3px antes que en el original.
-- **El pie fijo del carrito tapa el BottomNav en web** (pantallas chicas): el `FooterFijo` es `fixed bottom-0`, igual que en el original. En nativo, donde `fixed` no existe, queda pegado al fondo de la pantalla y el BottomNav se ve abajo.
+- ~~**El pie fijo del carrito tapa el BottomNav en web**~~ **Arreglado**: el `FooterFijo` usa `web:bottom-14` (los 56px del BottomNav) y vuelve a `web:md:bottom-0` desde `md`, donde el layout esconde el BottomNav. En nativo sigue en `bottom-0`.
 - En el simulador, después de un Fast Refresh del paquete compartido, una vez se fue a `/login` al tocar una tab desde el carrito. No se volvió a repetir (ni al reabrir la ruta ni al tocar la misma tab): parece cosa del recargado en caliente, pero conviene mirarlo si aparece con la app ya compilada.
-- `apps/mobile/.env.local` quedó con `localhost` en vez de `127.0.0.1`. No era la causa del bug del registro (en el simulador de iOS las dos llegan a la Mac) y no cambia nada; en un emulador de Android haría falta `10.0.2.2` o la IP de la Mac.
+- ~~`apps/mobile/.env.local` quedó con `localhost`~~ Hoy apunta a la API desplegada; la línea comentada de la API local quedó con `127.0.0.1` y la nota de Android (`10.0.2.2`). El fallback de `packages/shared/src/constants.ts` ya era `127.0.0.1`.
 - `min-h-screen` en las páginas de mercado: el contenido mide siempre el alto de la ventana, así que dentro del `<main>` (que ya es más bajo por el Header y el BottomNav) siempre sobra un poco de scroll. Venía del original; en nativo pasa igual.
 - La barra de categorías usaba `sticky top-[49px]`. Desde que el scroll está en el `<main>`, eso dejaba 49px de hueco bajo el Header (y en nativo `stickyHeaderIndices` no admite desplazamiento), así que la compartida usa `top-0`.
 - `BarraBusquedaFiltros` hacía `router.push("/mercado/productos?q=…")` incluso cuando la página ya manejaba la búsqueda con `onBuscar`. En distribuidores ese push chocaba con el `replace` de la página y la dejaba cargando para siempre; en nativo habría apilado una pantalla por búsqueda. Ahora solo navega cuando nadie maneja la búsqueda (el buscador del home y de mercado).
-- En nativo, el `/kg` del precio de las tarjetas queda pegado al importe: el `ml-0.5` es un margen en un `Text` anidado, y eso no existe en React Native. Además iOS corta la línea después de la barra.
+- ~~En nativo, el `/kg` del precio de las tarjetas queda pegado al importe~~ **Arreglado**: en nativo la separación la hace un espacio duro (el `ml-0.5` sigue para web, donde sí aplica) y un `\u2060` entre la barra y la unidad evita que iOS corte la línea ahí.
 - `grayscale` (producto no disponible) es un filtro de CSS: en nativo solo se ve la opacidad.
 - Badge del hero: cuando el texto está vacío mide 8px de alto en web (solo el padding); en nativo un `Text` vacío podría medir una línea. No afecta el layout (la tarjeta tiene `min-h`).
-- Diferencia entre el MVP (Tailwind v4, rama `main`) y web hoy (v3): `input { font-size: 17px }` de `globals.css` dejó de aplicar, porque ahora `text-xs` le gana por especificidad. Los inputs miden 12px en web y en mobile; en el MVP medían 17px.
+- ~~Los inputs miden 12px (en el MVP, con Tailwind v4, medían 17px: `input { font-size: 17px }` de `globals.css` dejó de aplicar porque `text-xs` le gana por especificidad)~~ **Arreglado**: los 14 `TextInput` de `packages/ui` llevan `text-[17px] leading-6` (regla 77) y vuelven a 17px en las dos plataformas. El recuadro de descripción de crear producto pasó de `h-[70px]` a `h-[94px]` para que sigan entrando tres renglones. **Los `Selector` (los que reemplazan a un `<select>`) siguen en 12/14px.**
 - El preset de nativewind reemplaza `boxShadow`, así que `shadow-sm`/`md`/`lg` no son los de Tailwind. Pasa igual en las dos apps.
 - `import "@akindo/ui/nativewind-init"` en el `layout.tsx` de web quedó redundante. No molesta.
 - Android no se probó (`elevation-[50]` de `VentanaEmergente`).
-- **Login en producción (web)**: `_login` es una Server Action y lanza el error de la API. En build de producción Next lo reemplaza por un mensaje genérico, así que "Credenciales inválidas" no llegaría al usuario. Arreglo posible: que `_login` devuelva el error como valor en vez de lanzarlo, o llamar al núcleo `login` desde el cliente y usar la Server Action solo para `createSesion`.
+- ~~**Login en producción (web)**~~ **Arreglado**: `_login` devuelve `ResultadoLogin` (`{ ok }` / `{ ok: false, error }`) en vez de lanzar, en las dos plataformas, y la pantalla de login pinta `resultado.error` (regla 75).
 - Registro de cliente: `pb-18` no existe en Tailwind v3, así que no aplica en ninguna de las dos apps. En el MVP (v4) eran 72px de padding abajo. Se dejó igual a la web actual.
 - El botón de volver de registro de cliente no tiene acción, igual que en el original.
 - Registro de distribuidor: el volver del paso 1 ahora lleva a `/login` (el original iba a `/registro`, que da 404). Con `push` en mobile se apila un login nuevo en vez de volver al anterior. Si molesta, cambiar a `router.back()`.

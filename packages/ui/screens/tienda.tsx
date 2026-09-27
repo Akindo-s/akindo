@@ -449,7 +449,7 @@ export default function Tienda({
                         {editandoDesc ? (
                             <TextInput
                                 multiline
-                                className="w-full text-xs p-2 border border-stone-200 rounded-lg min-h-[80px] text-stone-600 mb-4"
+                                className="w-full text-[17px] leading-6 p-2 border border-stone-200 rounded-lg min-h-[80px] text-stone-600 mb-4"
                                 value={nuevaDesc}
                                 onChangeText={setNuevaDesc}
                                 placeholder="Describe tu negocio, tu especialidad, experiencia..."

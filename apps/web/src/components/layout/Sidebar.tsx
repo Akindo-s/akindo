@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon, ShoppingCartIcon } from "../icons/NavigationIcons";
 import { MessageSquare } from "lucide-react";
-import { Parrafo } from "../titles";
+import { Parrafo } from "@akindo/ui/components/titles";
 
 const links = [
     { label: "Inicio", href: "/", Icon: HomeIcon, condition: () => true },
@@ -109,7 +109,9 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                 </p>
                 {akindoMiembros.map((a,index) => ( //no hay necesidad, pudiste escribirlos birote, eh!
 
-                    <Parrafo key={`${a}-${index}`} className="text-xs text-stone-400 font-normal tracking-wider uppercase">
+                    // El peso va por `peso` y no por `font-normal`: en el compartido
+                    // la tipografía es un `style` y una clase no le gana (TIPOGRAFIA.md).
+                    <Parrafo key={`${a}-${index}`} peso="normal" className="text-xs text-stone-400 tracking-wider uppercase">
                         {a}
                     </Parrafo>
                 ))}

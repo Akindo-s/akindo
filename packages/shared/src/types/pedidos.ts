@@ -80,7 +80,41 @@ export interface OrdenPedidoListItem {
   distribuidor_nombre: string | null;
   distribuidor_imagen: string | null;
   created_at: string | null;
+  /** El pedido que salió de esta orden, si ya se pagó. */
+  pedido_id: string | null;
   paquetes: PaquetePedidoResponse[];
+}
+
+/** Filtros del listado de órdenes. Todos opcionales y combinables. */
+export interface FiltrosOrdenes {
+  /** Estado exacto. `null` o ausente = todos. */
+  estado?: EstadoOrden | null;
+  /** Busca por el id de la orden (basta con el principio) o por producto. */
+  q?: string;
+  distribuidorId?: string | null;
+  montoMin?: number | null;
+  montoMax?: number | null;
+  /** Por fecha de emisión: `desc` (lo más nuevo primero) o `asc`. */
+  orden?: "asc" | "desc";
+  /** 1-based, como el endpoint. */
+  pagina?: number;
+  cantidad?: number;
+}
+
+/**
+ * Lo que devuelve `GET /pedidos/mis-ordenes`: la página de órdenes más la
+ * metadata de paginación. Misma forma que el catálogo de productos y el de
+ * distribuidores.
+ */
+export interface ListadoOrdenes {
+  total_ordenes: number;
+  total_paginas: number;
+  pagina_actual: number;
+  tiene_siguiente: boolean;
+  tiene_anterior: boolean;
+  siguiente_url: string | null;
+  anterior_url: string | null;
+  ordenes: OrdenPedidoListItem[];
 }
 
 // ── Pedido ────────────────────────────────────────────────────────────────────

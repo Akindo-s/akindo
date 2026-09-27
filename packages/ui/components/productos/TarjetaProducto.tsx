@@ -85,7 +85,8 @@ export function TarjetaProducto({ children, producto, className = "" }: TarjetaP
         <View className="flex flex-row items-end justify-between mt-1 flex-wrap">
           <P peso="bold" className="text-lg text-[#DAA520] shrink">
             ${producto.costo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {MONEDA}
-            <Span className="text-xs text-stone-400"> /{producto.unidad}</Span>
+            {/* `\u2060`: sin eso iOS corta la línea justo después de la barra. */}
+            <Span className="text-xs text-stone-400"> /{"\u2060"}{producto.unidad}</Span>
           </P>
 
           {children}

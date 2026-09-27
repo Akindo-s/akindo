@@ -2,7 +2,7 @@
 
 import * as core from "@akindo/shared/api/pedidos";
 import { conSesion, sesionRequerida } from "@/lib/sesion";
-import type { EstadoPedido } from "@akindo/shared/types/pedidos";
+import type { EstadoPedido, FiltrosOrdenes } from "@akindo/shared/types/pedidos";
 
 export type { DatosCrearOrden } from "@akindo/shared/api/pedidos";
 
@@ -33,9 +33,23 @@ export async function pagarOrden(ordenId: string) {
   return conSesion(() => core.pagarOrden(ordenId, token));
 }
 
-export async function obtenerMisOrdenes(estado?: string) {
+/** Devuelve el listado paginado (`{ …metadata, ordenes }`), no la lista suelta. */
+export async function obtenerMisOrdenes(filtros: FiltrosOrdenes = {}) {
   const token = await tokenCliente();
-  return conSesion(() => core.obtenerMisOrdenes(estado, token));
+  return conSesion(() => core.obtenerMisOrdenes(filtros, token));
+}
+
+/**
+ * El archivo de la exportación contable, en base64.
+ *
+ * Es una Server Action porque el token es una cookie httpOnly: la llamada sale
+ * del servidor. Quien lo convierte en descarga es `@akindo/ui/descargar` en el
+ * navegador.
+ */
+export async function exportarOrdenes(formato: "xlsx" | "pdf" | "csv", filtros: FiltrosOrdenes = {}) {
+  if (formato !== "xlsx") throw new Error("Por ahora solo se puede exportar a Excel");
+  const token = await tokenCliente();
+  return conSesion(() => core.exportarOrdenes(filtros, token));
 }
 
 export async function cancelarOrden(ordenId: string) {

@@ -471,7 +471,7 @@ export default function RegistrarProductoForm({
                 onFocus={() => setDescripcionEnfocada(true)}
                 onBlur={() => setDescripcionEnfocada(false)}
                 style={fuente()}
-                className={`w-full h-[70px] bg-[#FCF8F4] border ${descripcionEnfocada ? "border-[#DAA520]" : "border-[#E8DEC1]/60"} rounded-xl px-3 py-2.5 text-xs leading-4 text-stone-800 outline-none`}
+                className={`w-full h-[94px] bg-[#FCF8F4] border ${descripcionEnfocada ? "border-[#DAA520]" : "border-[#E8DEC1]/60"} rounded-xl px-3 py-2.5 text-[17px] leading-6 text-stone-800 outline-none`}
               />
             </View>
           </Tarjeta>

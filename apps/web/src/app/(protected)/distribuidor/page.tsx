@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 import { Metadata } from "next";
 import DistribuidorDashboard from "@akindo/ui/screens/distribuidor-dashboard";
 import { obtenerResumenMensual, obtenerPedidosActivos, obtenerProductosPocasExistencias } from "@/lib/api/distribuidor";
@@ -11,47 +10,9 @@ export const metadata: Metadata = {
     title: "Panel de Distribuidor",
 };
 
-async function DashboardContent() {
-    const [resumen, ordenesPendientes, pedidosActivos, alertas] = await Promise.all([
-        obtenerResumenMensual(),
-        obtenerOrdenesDistribuidor("pendiente"),
-        obtenerPedidosActivos(),
-        obtenerProductosPocasExistencias(),
-    ]);
-
-    async function archivarAction(productoId: string) {
-        "use server";
-        return archivarProducto(productoId);
-    }
-
-    return (
-        <DistribuidorDashboard
-            datos={{ resumen, ordenesPendientes, pedidosActivos, alertas }}
-            archivarAction={archivarAction}
-        />
-    );
-}
-
-function DashboardSkeleton() {
-    return (
-        <div className="flex flex-col w-full max-w-2xl mx-auto pb-10 animate-pulse px-4 pt-6">
-            <div className="h-6 w-48 bg-stone-200 rounded mb-2" />
-            <div className="h-4 w-64 bg-stone-200 rounded mb-6" />
-            <div className="h-32 bg-stone-200 rounded-2xl mb-3" />
-            <div className="flex gap-3 mb-6">
-                <div className="flex-1 h-28 bg-stone-200 rounded-2xl" />
-                <div className="flex-1 h-28 bg-stone-200 rounded-2xl" />
-            </div>
-            <div className="flex gap-3 mb-8">
-                <div className="h-10 w-36 bg-stone-200 rounded-full" />
-                <div className="h-10 w-40 bg-stone-200 rounded-full" />
-                <div className="h-10 w-28 bg-stone-200 rounded-full" />
-            </div>
-            <div className="h-6 w-48 bg-stone-200 rounded mb-4" />
-            <div className="h-24 bg-stone-200 rounded-2xl mb-3" />
-            <div className="h-24 bg-stone-200 rounded-2xl" />
-        </div>
-    );
+async function archivarAction(productoId: string) {
+    "use server";
+    return archivarProducto(productoId);
 }
 
 export default async function DistribuidorPage() {
@@ -62,9 +23,20 @@ export default async function DistribuidorPage() {
     if (!token) redirect("/login");
     if (tipoUsuario !== "distribuidor") redirect("/");
 
-    return (
-        <Suspense fallback={<DashboardSkeleton />}>
-            <DashboardContent />
-        </Suspense>
-    );
+    // Sin `await`: las cuatro promesas se le pasan a la pantalla, que pinta cada
+    // sección con su propio `Suspense` y su esqueleto. Next va mandando cada
+    // bloque cuando su promesa resuelve (es el streaming por sección que tenía
+    // el original con cuatro Server Components).
+    //
+    // El `catch` es obligatorio: una promesa rechazada dentro de un `Suspense`
+    // rompería la página entera. `conSesion` ya redirige a /login antes de eso
+    // cuando el problema es la sesión.
+    const secciones = {
+        resumen: obtenerResumenMensual().catch(() => null),
+        ordenesPendientes: obtenerOrdenesDistribuidor("pendiente").catch(() => []),
+        pedidosActivos: obtenerPedidosActivos().catch(() => []),
+        alertas: obtenerProductosPocasExistencias().catch(() => []),
+    };
+
+    return <DistribuidorDashboard secciones={secciones} archivarAction={archivarAction} />;
 }

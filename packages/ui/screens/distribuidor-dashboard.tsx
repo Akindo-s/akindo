@@ -1,7 +1,7 @@
 /** @jsxImportSource nativewind */
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, use, useState } from "react";
 import { Image, ScrollView, View } from "react-native";
 import {
   PlusCircle,
@@ -23,7 +23,6 @@ import { Tarjeta } from "@akindo/ui/components/ui/Tarjeta";
 import { Badge } from "@akindo/ui/components/ui/Badge";
 import { HeaderSticky } from "@akindo/ui/components/ui/HeaderSticky";
 import { ContenedorPantalla } from "@akindo/ui/components/ui/ContenedorPantalla";
-import { Spinner } from "@akindo/ui/components/ui/Animaciones";
 import { ModalConfirmacion } from "@akindo/ui/components/ui/ModalConfirmacion";
 import { useAviso } from "@akindo/ui/components/ui/Avisos";
 import { AllInboxIcon } from "@akindo/ui/icons/NavigationIcons";
@@ -255,6 +254,77 @@ function AlertasExistencias({
   );
 }
 
+// ── Esqueletos por sección ────────────────────────────────────────────────────
+// Los del original de web (`ResumenStatsSkeleton`, `OrdenesPendientesSkeleton`,
+// …), que se perdieron al juntar las cuatro llamadas en una sola.
+
+function Bloque({ className }: { className: string }) {
+  return <View className={`bg-stone-200 rounded-2xl ${className}`} />;
+}
+
+function ResumenSkeleton() {
+  return (
+    <Section className="px-4 flex flex-col gap-3 mb-6">
+      <Bloque className="h-[120px] w-full" />
+      <View className="flex flex-row gap-3">
+        <Bloque className="flex-1 h-[100px]" />
+        <Bloque className="flex-1 h-[100px]" />
+      </View>
+    </Section>
+  );
+}
+
+/** El de órdenes, pedidos y alertas: un título y dos o tres tarjetas. */
+function ListaSkeleton({ anchoTitulo, altos }: { anchoTitulo: string; altos: string[] }) {
+  return (
+    <Section className="px-4 mb-8">
+      <View className="flex flex-row justify-between items-end mb-4">
+        <View className={`h-6 bg-stone-200 rounded ${anchoTitulo}`} />
+      </View>
+      <View className="flex flex-col gap-3">
+        {altos.map((alto, i) => <Bloque key={i} className={`${alto} w-full`} />)}
+      </View>
+    </Section>
+  );
+}
+
+/**
+ * Lee el dato de una sección. Cada una puede llegar ya resuelta o como promesa:
+ * web pasa las promesas sin `await` desde el Server Component (Next las va
+ * mandando a medida que resuelven) y mobile las crea en la ruta. `use` puede
+ * llamarse condicionalmente, a diferencia de los hooks.
+ */
+function valorDe<T>(entrada: T | Promise<T>): T {
+  return entrada instanceof Promise ? use(entrada) : entrada;
+}
+
+function SeccionResumen({ entrada }: { entrada: ResumenMensual | null | Promise<ResumenMensual | null> }) {
+  return <ResumenStats resumen={valorDe(entrada)} />;
+}
+
+function SeccionOrdenes({ entrada }: { entrada: OrdenPedidoListItem[] | Promise<OrdenPedidoListItem[]> }) {
+  return <OrdenesPendientes ordenes={valorDe(entrada)} />;
+}
+
+function SeccionPedidos({ entrada }: { entrada: PedidoActivo[] | Promise<PedidoActivo[]> }) {
+  return <PedidosActivos pedidos={valorDe(entrada)} />;
+}
+
+function SeccionAlertas({
+  entrada,
+  archivados,
+  onPedirArchivar,
+}: {
+  entrada: AlertaExistencia[] | Promise<AlertaExistencia[]>;
+  archivados: string[];
+  onPedirArchivar: (productoId: string) => void;
+}) {
+  // Los archivados se filtran acá: el original hacía `router.refresh()`, que en
+  // nativo no existe.
+  const productos = valorDe(entrada).filter((p) => !archivados.includes(p.producto_id));
+  return <AlertasExistencias productos={productos} onPedirArchivar={onPedirArchivar} />;
+}
+
 // ── Pantalla ──────────────────────────────────────────────────────────────────
 
 export interface DatosDashboard {
@@ -264,75 +334,51 @@ export interface DatosDashboard {
   alertas: AlertaExistencia[];
 }
 
+/**
+ * Lo mismo que `DatosDashboard`, pero cada sección puede venir como promesa sin
+ * resolver. Así vuelve el streaming por sección del original: el encabezado, el
+ * "Resumen" y los chips se pintan enseguida y cada bloque aparece cuando llega
+ * su llamada, con su esqueleto mientras tanto.
+ *
+ * Las promesas tienen que estar creadas antes de pintar y no cambiar de
+ * identidad entre renders (web: en el Server Component; mobile: en un `useMemo`
+ * de la ruta), y ninguna debe rechazar: quien la crea le pone su `.catch`.
+ */
+export type SeccionesDashboard = {
+  [K in keyof DatosDashboard]: DatosDashboard[K] | Promise<DatosDashboard[K]>;
+};
+
 interface DistribuidorDashboardProps {
-  /** Datos ya cargados. Web los trae del servidor; mobile pasa `null`. */
-  datos: DatosDashboard | null;
-  /** Solo mobile: los pide al montar, porque no hay servidor que los precargue. */
-  cargarDatos?: () => Promise<DatosDashboard>;
+  /** Las cuatro secciones, ya resueltas o como promesas. */
+  secciones: SeccionesDashboard;
   /** Archiva un producto de las alertas. Necesita la sesión (regla 13). */
   archivarAction: (productoId: string) => Promise<boolean>;
 }
 
-export default function DistribuidorDashboard({ datos: datosIniciales, cargarDatos, archivarAction }: DistribuidorDashboardProps) {
+export default function DistribuidorDashboard({ secciones, archivarAction }: DistribuidorDashboardProps) {
   const avisar = useAviso();
-  const [datos, setDatos] = useState<DatosDashboard | null>(datosIniciales);
-  const [errorCarga, setErrorCarga] = useState(false);
-  const [intento, setIntento] = useState(0);
   // La confirmación de archivar vive acá y no en el menú de la tarjeta: en
   // nativo un `absolute` adentro de la tarjeta taparía solo la tarjeta (regla 54).
   const [productoAArchivar, setProductoAArchivar] = useState<string | null>(null);
   const [archivando, setArchivando] = useState(false);
-
-  useEffect(() => {
-    if (datosIniciales || !cargarDatos) return;
-    let vigente = true;
-    setErrorCarga(false);
-    cargarDatos().then(
-      (recibidos) => { if (vigente) setDatos(recibidos); },
-      () => { if (vigente) setErrorCarga(true); },
-    );
-    return () => { vigente = false; };
-  }, [intento]);
+  // Lo que se archivó en esta visita. El original hacía `router.refresh()`; acá
+  // se filtra en la sección, que es lo que se vería al recargar.
+  const [archivados, setArchivados] = useState<string[]>([]);
 
   const confirmarArchivar = async () => {
     if (!productoAArchivar) return;
     setArchivando(true);
     const ok = await archivarAction(productoAArchivar);
     setArchivando(false);
+    const archivado = productoAArchivar;
     setProductoAArchivar(null);
     if (!ok) {
       // El `alert()` del original no existe en nativo.
       avisar("Error al archivar el producto");
       return;
     }
-    // El original hacía `router.refresh()`: acá la pantalla saca el producto de
-    // la lista, que es lo que se vería al recargar.
-    setDatos((actuales) =>
-      actuales ? { ...actuales, alertas: actuales.alertas.filter((p) => p.producto_id !== productoAArchivar) } : actuales,
-    );
+    setArchivados((actuales) => [...actuales, archivado]);
   };
-
-  if (!datos) {
-    return (
-      <ContenedorPantalla key="dashboard-cargando" indiceFijo={0} className="flex flex-col w-full max-w-2xl lg:max-w-4xl mx-auto pb-10 bg-[#FAF7F2] md:bg-transparent min-h-screen">
-        <HeaderSticky titulo="Administración" />
-        {errorCarga ? (
-          <Section className="px-4 pt-6">
-            <Tarjeta>
-              <P className="text-sm text-stone-500 text-center">No se pudo cargar el panel.</P>
-              <Boton variante="secundario" className="mt-3 w-full" onClick={() => setIntento((n) => n + 1)}>
-                Volver a intentar
-              </Boton>
-            </Tarjeta>
-          </Section>
-        ) : (
-          <View className="flex items-center justify-center py-20">
-            <Spinner tamano={32} />
-          </View>
-        )}
-      </ContenedorPantalla>
-    );
-  }
 
   return (
     <>
@@ -351,7 +397,11 @@ export default function DistribuidorDashboard({ datos: datosIniciales, cargarDat
         <P className="text-sm text-stone-500">Cifras de ventas de este último mes.</P>
       </Section>
 
-      <ResumenStats resumen={datos.resumen} />
+      {/* Un `Suspense` por sección, como el original: cada bloque aparece cuando
+          llega su llamada, no las cuatro juntas. */}
+      <Suspense fallback={<ResumenSkeleton />}>
+        <SeccionResumen entrada={secciones.resumen} />
+      </Suspense>
 
       {/* Acciones rápidas */}
       <Section className="px-4 mb-8">
@@ -366,9 +416,15 @@ export default function DistribuidorDashboard({ datos: datosIniciales, cargarDat
         </ScrollView>
       </Section>
 
-      <OrdenesPendientes ordenes={datos.ordenesPendientes} />
-      <PedidosActivos pedidos={datos.pedidosActivos} />
-      <AlertasExistencias productos={datos.alertas} onPedirArchivar={setProductoAArchivar} />
+      <Suspense fallback={<ListaSkeleton anchoTitulo="w-56" altos={["h-[76px]", "h-[76px]"]} />}>
+        <SeccionOrdenes entrada={secciones.ordenesPendientes} />
+      </Suspense>
+      <Suspense fallback={<ListaSkeleton anchoTitulo="w-48" altos={["h-[76px]", "h-[76px]"]} />}>
+        <SeccionPedidos entrada={secciones.pedidosActivos} />
+      </Suspense>
+      <Suspense fallback={<ListaSkeleton anchoTitulo="w-48" altos={["h-[60px]", "h-[80px]", "h-[80px]"]} />}>
+        <SeccionAlertas entrada={secciones.alertas} archivados={archivados} onPedirArchivar={setProductoAArchivar} />
+      </Suspense>
     </ContenedorPantalla>
 
     {/* El modal, fuera del ContenedorPantalla (regla 54). */}

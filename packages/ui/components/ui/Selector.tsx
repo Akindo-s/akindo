@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Platform, ScrollView, View } from "react-native";
+import { Modal, Platform, ScrollView, View } from "react-native";
 import { ChevronDown, X } from "lucide-react-native";
 import { twMerge } from "tailwind-merge";
 import { Pressable, Span } from "../html-elements";
@@ -101,8 +101,9 @@ function Chip({ etiqueta, onQuitar }: { etiqueta: string; onQuitar: () => void }
  * regla 54). La raíz sube a `z-40` mientras está abierto.
  *
  * Cerrar al tocar afuera: en web con un listener de `mousedown` en el
- * documento, como el original; en nativo no hay documento, así que se cierra
- * al volver a tocar la caja o al elegir (en `"simple"`).
+ * documento, como el original; en nativo no hay documento, así que la lista se
+ * pinta dentro de un `Modal` transparente, anclada a la caja con
+ * `measureInWindow`, y el fondo del modal cierra al tocarlo.
  */
 export function Selector<T extends string>(props: SelectorProps<T>) {
   const {
@@ -117,6 +118,10 @@ export function Selector<T extends string>(props: SelectorProps<T>) {
   } = props;
   const [abierto, setAbierto] = useState(false);
   const contenedorRef = useRef<View>(null);
+  // Solo nativo: dónde está el selector en la pantalla, para anclarle la lista
+  // dentro del modal (es la misma referencia que el `top-full` de web: el
+  // borde de abajo del contenedor, etiqueta incluida).
+  const [caja, setCaja] = useState<{ x: number; y: number; ancho: number; alto: number } | null>(null);
 
   // Cerrar al hacer click fuera (solo web: en react-native-web el ref es el nodo del DOM).
   useEffect(() => {
@@ -151,9 +156,45 @@ export function Selector<T extends string>(props: SelectorProps<T>) {
     }
   };
 
+  const alternar = () => {
+    if (abierto) { setAbierto(false); return; }
+    if (Platform.OS === "web") { setAbierto(true); return; }
+    // `measureInWindow` es asíncrono: se abre recién cuando se sabe dónde va la
+    // lista, para que no aparezca un frame en la esquina.
+    contenedorRef.current?.measureInWindow((x, y, ancho, alto) => {
+      setCaja({ x, y, ancho, alto });
+      setAbierto(true);
+    });
+  };
+
   const handleRemoverChip = (valor: T) => {
     if (props.modo === "multiple") props.onChange(props.valor.filter((v) => v !== valor));
   };
+
+  // La sombra va en el View de afuera y el recorte en el de adentro: en iOS un
+  // `overflow-hidden` (o un ScrollView) recorta su propia sombra (regla 18).
+  const lista = (
+    <View className="bg-white border border-[#E8DEC1] rounded-xl shadow-lg">
+      <View className="rounded-xl overflow-hidden">
+        <ScrollView className="max-h-[190px]" nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          {opciones.map((opcion) => (
+            <OpcionLista
+              key={opcion.valor}
+              etiqueta={opcion.etiqueta}
+              seleccionado={valores.includes(opcion.valor)}
+              conCheck={props.modo === "multiple"}
+              onPress={() => handleSeleccionar(opcion)}
+            />
+          ))}
+          {opciones.length === 0 && (
+            <View className="px-3 py-2.5">
+              <Span className="text-sm leading-5 text-stone-400 text-center">Sin opciones</Span>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    </View>
+  );
 
   return (
     <View ref={contenedorRef} className={twMerge("flex flex-col gap-1 w-full relative", abierto ? "z-40" : "", className)}>
@@ -167,7 +208,7 @@ export function Selector<T extends string>(props: SelectorProps<T>) {
       <Pressable
         role="button"
         accessibilityLabel={accessibilityLabel ?? label}
-        onPress={() => setAbierto((v) => !v)}
+        onPress={alternar}
         className={twMerge(
           "w-full flex flex-row items-center justify-between bg-[#FCF8F4] border rounded-xl px-3 py-2.5 cursor-pointer",
           abierto ? "border-[#DAA520]" : "border-[#E8DEC1]/60",
@@ -186,30 +227,22 @@ export function Selector<T extends string>(props: SelectorProps<T>) {
         </View>
       </Pressable>
 
-      {/* Dropdown. La sombra va en el View de afuera y el recorte en el de
-          adentro: en iOS un `overflow-hidden` (o un ScrollView) recorta su
-          propia sombra (regla 18). */}
-      {abierto && (
-        <View className="absolute top-full left-0 right-0 z-40 elevation-[40] mt-1 bg-white border border-[#E8DEC1] rounded-xl shadow-lg">
-          <View className="rounded-xl overflow-hidden">
-            <ScrollView className="max-h-[190px]" nestedScrollEnabled keyboardShouldPersistTaps="handled">
-              {opciones.map((opcion) => (
-                <OpcionLista
-                  key={opcion.valor}
-                  etiqueta={opcion.etiqueta}
-                  seleccionado={valores.includes(opcion.valor)}
-                  conCheck={props.modo === "multiple"}
-                  onPress={() => handleSeleccionar(opcion)}
-                />
-              ))}
-              {opciones.length === 0 && (
-                <View className="px-3 py-2.5">
-                  <Span className="text-sm leading-5 text-stone-400 text-center">Sin opciones</Span>
-                </View>
-              )}
-            </ScrollView>
-          </View>
-        </View>
+      {/* Dropdown */}
+      {abierto && Platform.OS === "web" && <View className="absolute top-full left-0 right-0 z-40 elevation-[40] mt-1">{lista}</View>}
+
+      {/* Nativo: la lista va en un modal transparente, anclada a la caja. Así
+          se puede cerrar tocando afuera (no hay documento al que escucharle) y
+          además no la recorta el ScrollView de la pantalla. */}
+      {Platform.OS !== "web" && (
+        <Modal transparent visible={abierto} animationType="none" onRequestClose={() => setAbierto(false)}>
+          <Pressable className="flex-1" accessibilityLabel="Cerrar" onPress={() => setAbierto(false)}>
+            {caja && (
+              <View style={{ position: "absolute", top: caja.y + caja.alto + 4, left: caja.x, width: caja.ancho }}>
+                {lista}
+              </View>
+            )}
+          </Pressable>
+        </Modal>
       )}
 
       {/* Chips de selección múltiple */}

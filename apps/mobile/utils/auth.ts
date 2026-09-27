@@ -1,4 +1,5 @@
 import {login,registrarCliente,RegistrarClienteDatos} from "@akindo/shared/auth";
+import type { ResultadoLogin } from "@akindo/ui/screens/login";
 import { guardarSesion, borrarSesion } from "./session";
 
 interface Storage{
@@ -6,14 +7,20 @@ interface Storage{
     delete(key:string):Promise<void>,
 }
 
-export async function _login(email:string,password:string):Promise<void>{
-    const {access_token,tipo_usuario} = await login({email:email,password:password});
-    if (!access_token) throw Error("No response in login action");
+/** Mismo contrato que el `_login` de web: el error viaja como valor. */
+export async function _login(email:string,password:string):Promise<ResultadoLogin>{
+    try {
+        const {access_token,tipo_usuario} = await login({email:email,password:password});
+        if (!access_token) return { ok:false, error:"No se recibio el token de la API" };
 
-    // Equivalente movil de `createSesion` en web: alla son cookies httpOnly,
-    // aca AsyncStorage. El nucleo compartido no conoce ninguno de los dos.
-    // `guardarSesion` ademas avisa al layout, que vuelve a pintar el Header.
-    await guardarSesion(access_token,tipo_usuario);
+        // Equivalente movil de `createSesion` en web: alla son cookies httpOnly,
+        // aca AsyncStorage. El nucleo compartido no conoce ninguno de los dos.
+        // `guardarSesion` ademas avisa al layout, que vuelve a pintar el Header.
+        await guardarSesion(access_token,tipo_usuario);
+        return { ok:true };
+    } catch (error) {
+        return { ok:false, error: error instanceof Error ? error.message : "Ocurrio un error al iniciar sesion" };
+    }
 }
 
 /** Cierra la sesion. Contraparte de `_login`, espejo del `_logout` de web. */

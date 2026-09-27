@@ -85,7 +85,7 @@ function ActualizarEstadoModal({
             multiline
             placeholder="Mensaje para el cliente (ej. Tu pedido va en camino por DHL...)"
             placeholderTextColor="#A8A29E"
-            className="w-full p-3 bg-white border border-stone-200 rounded-xl text-sm min-h-[80px]"
+            className="w-full p-3 bg-white border border-stone-200 rounded-xl text-[17px] leading-6 min-h-[80px]"
           />
         </View>
 

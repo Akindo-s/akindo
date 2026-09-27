@@ -10,8 +10,17 @@ import { Titulo, Link, Input, Boton, VentanaEmergente } from "@akindo/ui/compone
 import { H2, Header, P, Section, Span } from "@akindo/ui/html";
 import { EmailIcon, PasswordIcon } from "@akindo/ui/icons/AuthIcons";
 
+/**
+ * Resultado del login. Es un valor y no una excepción: en web `_login` es una
+ * Server Action y, en build de producción, Next reemplaza el mensaje de
+ * cualquier error que la action lance por uno genérico ("An error occurred in
+ * the Server Components render"). Devolviéndolo, "Credenciales inválidas" llega
+ * igual al usuario en producción.
+ */
+export type ResultadoLogin = { ok: true } | { ok: false; error: string };
+
 type LoginFormProps = {
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<ResultadoLogin>;
 };
 
 export default function LoginForm({ login }: LoginFormProps) {
@@ -31,13 +40,18 @@ export default function LoginForm({ login }: LoginFormProps) {
     if (!password) { setError("Por favor ingresa tu contraseña"); setLoading(false); return; }
 
     try {
-      await login(email, password);
+      const resultado = await login(email, password);
+      if (!resultado.ok) {
+        setError(resultado.error || "Ocurrió un error al iniciar sesión");
+        return;
+      }
       // Los ids del carrito son de la sesión: si la caché se llenó sin sesión
       // (lista vacía), el badge se quedaba en 0 hasta recargar la app.
       invalidarIdsCarrito();
       router.push("/");
     } catch (err: any) {
-      setError(err.message || "Ocurrió un error al iniciar sesión");
+      // Red caída o un error que no es de la API.
+      setError(err?.message || "Ocurrió un error al iniciar sesión");
     } finally {
       setLoading(false);
     }

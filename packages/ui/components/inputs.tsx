@@ -157,7 +157,7 @@ export function Input({
           onChangeText={onChangeText}
           value={value}
           editable={editable}
-          className={`flex-1 bg-transparent text-stone-800 text-xs  placeholder-stone-400 outline-none w-full py-1 ${claseInput}`}
+          className={`flex-1 bg-transparent text-stone-800 text-[17px] leading-6  placeholder-stone-400 outline-none w-full py-1 ${claseInput}`}
         />
         {isPassword && (
           <Pressable

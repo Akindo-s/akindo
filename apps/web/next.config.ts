@@ -28,6 +28,7 @@ const nextConfig: NextConfig = withExpo({
       "@akindo/ui/router": "@akindo/ui/router.web",
       "@akindo/ui/image-picker": "@akindo/ui/image-picker.web",
       "@akindo/ui/confirmar": "@akindo/ui/confirmar.web",
+      "@akindo/ui/descargar": "@akindo/ui/descargar.web",
     },
     resolveExtensions: [
       ".web.js",

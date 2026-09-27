@@ -1,354 +1,567 @@
 /** @jsxImportSource nativewind */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Image, View } from "react-native";
 import {
   Clock,
   CheckCircle2,
   XCircle,
-  ShoppingBag,
-  ChevronDown,
-  ChevronUp,
-  AlertCircle,
+  Ban,
+  ChevronLeft,
+  ChevronRight,
   Package2,
+  FileText,
+  Upload,
+  Plus,
+  BadgeCheck,
+  ArrowLeft,
 } from "lucide-react-native";
 import type {
   EstadoOrden,
+  FiltrosOrdenes,
+  ListadoOrdenes,
   OrdenPedidoListItem,
   OrdenPedidoResponse,
   PedidoActionResult,
 } from "@akindo/shared/types/pedidos";
+import type { ArchivoExportado } from "@akindo/shared/api/pedidos";
+import { MONEDA } from "@akindo/shared/constants";
+import { ResumenOrdenesProvider } from "@akindo/shared/resumen-ordenes-context";
+import { ExportacionProvider, type FormatoExportacion } from "@akindo/shared/exportacion-context";
 import { H1, H2, Header, P, Pressable, Section, Span } from "@akindo/ui/html";
-import { Boton } from "@akindo/ui/components";
-import { Tarjeta } from "@akindo/ui/components/ui/Tarjeta";
+import { Boton, Link } from "@akindo/ui/components";
 import { EncabezadoPagina } from "@akindo/ui/components/ui/EncabezadoPagina";
 import { ModalConfirmacion } from "@akindo/ui/components/ui/ModalConfirmacion";
 import { ContenedorPantalla } from "@akindo/ui/components/ui/ContenedorPantalla";
 import { Spinner } from "@akindo/ui/components/ui/Animaciones";
+import { TarjetasResumen } from "@akindo/ui/components/ui/TarjetasResumen";
+import { BarraFiltros, type DesplegableFiltro, type PestanaFiltro } from "@akindo/ui/components/ui/BarraFiltros";
+import type { OpcionSelector } from "@akindo/ui/components/ui/Selector";
+import { ExportacionMasiva } from "@akindo/ui/components/ui/ExportacionMasiva";
+import { descargarArchivo } from "@akindo/ui/descargar";
+import { HR } from "@expo/html-elements";
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
 
 function formatMoney(v: number) {
-  return v.toLocaleString("es-MX", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  return v.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function formatFecha(iso: string | null) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("es-MX", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return new Date(iso).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
 }
 
-// ── Estado config ─────────────────────────────────────────────────────────────
+/**
+ * El identificador que ve el usuario: el id de la orden, tal cual. Se pinta
+ * con `numberOfLines={1}`, así que en las columnas angostas se recorta solo.
+ */
+function idDe(orden: OrdenPedidoListItem) {
+  return String(orden.id);
+}
+
+/** El título de la fila: el primer producto de la orden. */
+function descripcionDe(orden: OrdenPedidoListItem) {
+  const primero = orden.paquetes[0];
+  const nombre = primero?.nombre_producto ?? primero?.medida_snapshot?.nombre;
+  return nombre ?? "Orden de compra";
+}
+
+function partidasDe(orden: OrdenPedidoListItem) {
+  const n = orden.paquetes.length;
+  return `${n} ${n === 1 ? "partida" : "partidas"}`;
+}
+
+// ── Estados ───────────────────────────────────────────────────────────────────
 
 type EstadoConfig = {
   label: string;
-  description: string;
-  color: string;
-  /** El mismo color del texto, para los íconos: en nativo no hay currentColor. */
+  /** Color del texto y del punto del badge. */
   hex: string;
   bg: string;
   border: string;
+  texto: string;
   Icon: React.ComponentType<{ size?: number; color?: string }>;
 };
 
-// `accentBar` del original no se usa en ningún elemento, así que no se copió.
 const ESTADO_CONFIG: Record<EstadoOrden, EstadoConfig> = {
   pendiente: {
-    label: "Esperando respuesta",
-    description: "El distribuidor aún no ha revisado tu orden.",
-    color: "text-amber-700",
+    label: "Pendiente",
     hex: "#B45309",
     bg: "bg-amber-50",
     border: "border-amber-200",
+    texto: "text-amber-700",
     Icon: Clock,
   },
   aceptada: {
     label: "Aceptada",
-    description: "El distribuidor aceptó tu orden. Se está procesando.",
-    color: "text-emerald-700",
     hex: "#047857",
     bg: "bg-emerald-50",
     border: "border-emerald-200",
+    texto: "text-emerald-700",
     Icon: CheckCircle2,
   },
   rechazada: {
     label: "Rechazada",
-    description: "El distribuidor no pudo procesar tu orden.",
-    color: "text-red-600",
     hex: "#DC2626",
     bg: "bg-red-50",
     border: "border-red-200",
+    texto: "text-red-600",
     Icon: XCircle,
   },
   cancelada: {
     label: "Cancelada",
-    description: "Has cancelado esta orden de compra.",
-    color: "text-stone-500",
-    hex: "#78716C",
-    bg: "bg-stone-50",
+    hex: "#57534E",
+    bg: "bg-stone-100",
     border: "border-stone-200",
-    Icon: XCircle,
+    texto: "text-stone-600",
+    Icon: Ban,
   },
 };
 
-/** El texto explicativo del pie, según el estado. */
-function ExplicacionEstado({ estado }: { estado: EstadoOrden }) {
-  if (estado === "pendiente") {
-    return (
-      <P className="text-xs text-stone-600 shrink">
-        Tu orden está en cola. El tiempo promedio de respuesta es de{" "}
-        <Span peso="bold" className="text-xs text-stone-600">1-2 días hábiles</Span>.
-      </P>
-    );
-  }
-  const textos: Record<Exclude<EstadoOrden, "pendiente">, string> = {
-    aceptada: "¡Tu orden fue aceptada! Se generó un pedido de envío. Puedes seguirlo en la sección de pedidos.",
-    rechazada: "El distribuidor no pudo procesar tu orden. Puedes crear una nueva orden o contactar directamente.",
-    cancelada: "Has cancelado esta orden. Si fue un error, deberás agregar los productos al carrito nuevamente.",
-  };
-  return <P className="text-xs text-stone-600 shrink">{textos[estado]}</P>;
+/** Las pestañas de la barra de filtros: los estados que devuelve la API. */
+const PESTANAS: PestanaFiltro[] = [
+  { valor: null, etiqueta: "Todas" },
+  { valor: "pendiente", etiqueta: "Pendientes" },
+  { valor: "aceptada", etiqueta: "Aceptadas" },
+  { valor: "rechazada", etiqueta: "Rechazadas" },
+  { valor: "cancelada", etiqueta: "Canceladas" },
+];
+
+/** Opciones del desplegable de fecha. */
+const ORDEN_FECHA: OpcionSelector[] = [
+  { valor: "desc", etiqueta: "Más recientes" },
+  { valor: "asc", etiqueta: "Más antiguas" },
+];
+
+/** Rangos del desplegable de monto, en pesos. */
+const RANGOS_MONTO: Record<string, { min?: number; max?: number }> = {
+  todos: {},
+  "0-1000": { max: 1000 },
+  "1000-10000": { min: 1000, max: 10000 },
+  "10000+": { min: 10000 },
+};
+
+// ── Acción principal por estado ───────────────────────────────────────────────
+
+/**
+ * Qué botón ve el usuario en cada estado. Una entrada por estado, y el valor
+ * es la función que decide la acción con la orden en la mano (hace falta
+ * porque una orden aceptada ya pagada —`pre_autorizado`— no se vuelve a pagar).
+ */
+interface AccionOrden {
+  etiqueta: string;
+  /** `peligro` pinta el botón rojo de borde; `primario`, el dorado. */
+  variante: "primario" | "secundario" | "peligro";
+  /** Navega, en vez de ejecutar algo. */
+  href?: string;
+  onPress?: () => void;
 }
 
-// ── OrdenCard ─────────────────────────────────────────────────────────────────
-
-function OrdenCard({
-  orden,
-  error,
-  onPedirCancelar,
-}: {
+interface ContextoAccion {
   orden: OrdenPedidoListItem;
-  /** El error de la última cancelación de esta orden, si falló. */
-  error?: string;
-  /** Abre la confirmación. El modal vive en la pantalla, no en la tarjeta. */
-  onPedirCancelar: (orden: OrdenPedidoListItem) => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  // Los hover de color de texto van por estado, no por clases (regla 5).
-  const [cancelarEnHover, setCancelarEnHover] = useState(false);
-  const [verEnHover, setVerEnHover] = useState(false);
+  pedirCancelar: (orden: OrdenPedidoListItem) => void;
+  pagar: (orden: OrdenPedidoListItem) => void;
+  descargar: (orden: OrdenPedidoListItem) => void;
+}
 
-  const cfg = ESTADO_CONFIG[orden.estado] ?? ESTADO_CONFIG.pendiente;
-  const Icon = cfg.Icon;
+const ACCIONES: Record<EstadoOrden, (ctx: ContextoAccion) => AccionOrden> = {
+  pendiente: ({ orden, pedirCancelar }) => ({
+    etiqueta: "Cancelar orden",
+    variante: "peligro",
+    onPress: () => pedirCancelar(orden),
+  }),
+  aceptada: ({ orden, pagar }) => {
+    // Si ya se pagó hay pedido, y el botón lleva a su detalle. Una orden pre
+    // autorizada se pagó al crearla, así que normalmente trae `pedido_id`; si
+    // por lo que sea no viene, el botón cae en la lista de pedidos.
+    if (orden.pedido_id) {
+      return { etiqueta: "Ver pedido", variante: "secundario", href: `/pedidos/${orden.pedido_id}` };
+    }
+    if (orden.pre_autorizado) {
+      return { etiqueta: "Ver pedido", variante: "secundario", href: "/pedidos" };
+    }
+    return { etiqueta: "Pagar", variante: "primario", onPress: () => pagar(orden) };
+  },
+  rechazada: ({ orden, descargar }) => ({
+    etiqueta: "Descargar documento",
+    variante: "secundario",
+    onPress: () => descargar(orden),
+  }),
+  cancelada: ({ orden, descargar }) => ({
+    etiqueta: "Descargar documento",
+    variante: "secundario",
+    onPress: () => descargar(orden),
+  }),
+};
 
+// ── Piezas compartidas entre la tabla y las tarjetas ──────────────────────────
+
+function BadgeEstado({ estado }: { estado: EstadoOrden }) {
+  const cfg = ESTADO_CONFIG[estado];
   return (
-    // `flex-1`: el grid del original estiraba todas las tarjetas de una fila a
-    // la altura de la más alta, y una fila que envuelve (regla 26) no lo hace
-    // sola; con esto la tarjeta llena la celda, que sí se estira.
-    <View className={`rounded-2xl border overflow-hidden transition-all bg-white shadow-sm flex-1 ${cfg.border}`}>
-      {/* Fila principal — siempre visible */}
-      <View className="p-4">
-        {/* Distribuidor */}
-        <View className="flex flex-row items-center gap-2.5 mb-3">
-          <View className="w-9 h-9 rounded-full bg-amber-100 overflow-hidden flex items-center justify-center shrink-0">
-            {orden.distribuidor_imagen ? (
-              <Image
-                source={{ uri: orden.distribuidor_imagen }}
-                accessibilityLabel={orden.distribuidor_nombre ?? "Distribuidor"}
-                resizeMode="cover"
-                className="w-full h-full"
-              />
-            ) : (
-              <Span peso="bold" className="text-sm text-amber-700">
-                {orden.distribuidor_nombre?.charAt(0) ?? "D"}
-              </Span>
-            )}
-          </View>
-          <View className="flex-1 min-w-0 shrink">
-            <P peso="bold" numberOfLines={1} className="text-xs text-stone-800 leading-tight">
-              {orden.distribuidor_nombre ?? "Distribuidor"}
-            </P>
-            <P className="text-[10px] leading-normal text-stone-400">
-              {formatFecha(orden.created_at)}
-            </P>
-          </View>
-          {/* Badge del estado */}
-          <View className={`flex flex-row items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0 ${cfg.bg}`}>
-            <Icon size={11} color={cfg.hex} />
-            <Span peso="bold" className={`text-[11px] leading-normal ${cfg.color}`}>{cfg.label}</Span>
-          </View>
-        </View>
+    <View className={`flex flex-row items-center gap-1.5 px-2.5 py-1 rounded-full border ${cfg.bg} ${cfg.border} w-fit native:w-auto`}>
+      <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cfg.hex }} />
+      <Span peso="semibold" numberOfLines={1} className={`text-[10px] leading-4 uppercase tracking-[0.4px] ${cfg.texto}`}>
+        {cfg.label}
+      </Span>
+    </View>
+  );
+}
 
-        {/* Descripción del estado */}
-        <P peso="medium" className={`text-xs ${cfg.color}`}>{cfg.description}</P>
+/** El sello de "pre autorizado", que sí existe en la API. */
+function BadgePreAutorizado() {
+  return (
+    <View className="flex flex-row items-center gap-1 px-2 py-0.5 rounded-md bg-[#FDF2E3] border border-[#E8DEC1] w-fit native:w-auto">
+      <BadgeCheck size={11} color="#9A7B24" />
+      <Span peso="semibold" className="text-[9px] leading-4 uppercase tracking-[0.4px] text-[#9A7B24]">
+        Pre pagada
+      </Span>
+    </View>
+  );
+}
 
-        {/* Pie: total + desplegar + cancelar */}
-        <View className="flex flex-row items-center justify-between mt-3 pt-3 border-t border-stone-100">
-          <View className="flex-1">
-            <P peso="semibold" className="text-[10px] leading-normal uppercase tracking-[0.25px] text-stone-400">
-              Total de la orden
-            </P>
-            <P peso="extrabold" className="text-lg text-stone-900">
-              ${formatMoney(orden.total)} <Span className="text-xs text-stone-400">MXN</Span>
-            </P>
-          </View>
-
-          <View className="flex flex-row items-center gap-2">
-            {orden.estado === "pendiente" && (
-              <Pressable
-                role="button"
-                onPress={() => onPedirCancelar(orden)}
-                onHoverIn={() => setCancelarEnHover(true)}
-                onHoverOut={() => setCancelarEnHover(false)}
-                className="px-3 py-1.5 rounded-lg transition-colors hover:bg-red-50"
-              >
-                <Span peso="bold" className={`text-[11px] leading-normal ${cancelarEnHover ? "text-red-600" : "text-red-500"}`}>
-                  Cancelar
-                </Span>
-              </Pressable>
-            )}
-            <Pressable
-              role="button"
-              onPress={() => setExpanded((e) => !e)}
-              onHoverIn={() => setVerEnHover(true)}
-              onHoverOut={() => setVerEnHover(false)}
-              className="flex flex-row items-center gap-1 transition-colors py-1.5 px-3 rounded-lg hover:bg-stone-100"
-            >
-              <Span peso="semibold" className={`text-xs ${verEnHover ? "text-stone-800" : "text-stone-500"}`}>
-                {expanded ? "Ocultar" : "Ver productos"}
-              </Span>
-              {expanded ? (
-                <ChevronUp size={14} color={verEnHover ? "#292524" : "#78716C"} />
-              ) : (
-                <ChevronDown size={14} color={verEnHover ? "#292524" : "#78716C"} />
-              )}
-            </Pressable>
-          </View>
-        </View>
-
-        {error && (
-          <P peso="medium" className="text-[10px] leading-normal text-red-500 mt-2">{error}</P>
+function Distribuidor({ orden }: { orden: OrdenPedidoListItem }) {
+  return (
+    <View className="flex flex-row items-center gap-2 shrink">
+      <View className="w-7 h-7 rounded-full bg-stone-100 overflow-hidden flex items-center justify-center shrink-0">
+        {orden.distribuidor_imagen ? (
+          <Image
+            source={{ uri: orden.distribuidor_imagen }}
+            accessibilityLabel={orden.distribuidor_nombre ?? "Distribuidor"}
+            resizeMode="cover"
+            className="w-full h-full"
+          />
+        ) : (
+          <Package2 size={14} color="#A8A29E" />
         )}
       </View>
+      <View className="shrink">
+        <P peso="semibold" numberOfLines={1} className="text-xs leading-5 text-stone-800">
+          {orden.distribuidor_nombre ?? "Distribuidor"}
+        </P>
+      </View>
+    </View>
+  );
+}
 
-      {/* Desplegado: lista de productos + explicación del estado */}
-      {expanded && (
-        <View className={`border-t ${cfg.border}`}>
-          {orden.paquetes.length > 0 && (
-            <View>
-              {orden.paquetes.map((p, i) => {
-                const nombre = p.nombre_producto ?? p.medida_snapshot?.nombre ?? "Producto";
-                const imagen = p.imagen_producto ?? null;
-                const unidad = p.medida_snapshot?.unidad ?? "pz";
-                return (
-                  // El `divide-y` del original: nativewind no lo tiene, así que
-                  // el borde lo pone cada fila menos la primera (regla 44).
-                  <View
-                    key={String(p.producto_id)}
-                    className={`flex flex-row items-center gap-3 px-4 py-3 ${i > 0 ? "border-t border-stone-100" : ""}`}
-                  >
-                    <View className="w-10 h-10 rounded-lg bg-stone-100 overflow-hidden flex items-center justify-center shrink-0">
-                      {imagen ? (
-                        <Image
-                          source={{ uri: imagen }}
-                          accessibilityLabel={nombre}
-                          resizeMode="cover"
-                          className="w-full h-full"
-                        />
-                      ) : (
-                        <Package2 size={20} color="#A8A29E" />
-                      )}
-                    </View>
-                    <View className="flex-1 min-w-0 shrink">
-                      <P peso="semibold" numberOfLines={1} className="text-sm text-stone-800">{nombre}</P>
-                      <P className="text-xs text-stone-400">
-                        {p.cantidad} {unidad} x ${p.costo_unitario}MXN/{unidad}
-                      </P>
-                    </View>
-                    <P peso="bold" className="text-sm text-stone-900 shrink-0">
-                      ${formatMoney(p.subtotal)}
-                    </P>
-                  </View>
-                );
-              })}
-            </View>
-          )}
+function BotonAccion({ accion, className = "" }: { accion: AccionOrden; className?: string }) {
+  return (
+    <Boton
+      variante={accion.variante}
+      href={accion.href}
+      onClick={accion.onPress}
+      claseTexto="text-xs leading-5"
+      className={`py-2 px-4 rounded-xl ${className}`}
+    >
+      {accion.etiqueta}
+    </Boton>
+  );
+}
 
-          {/* Pie explicativo */}
-          <View className={`${cfg.bg} px-4 py-3 flex flex-row items-start gap-2`}>
-            <View className="mt-0.5 shrink-0">
-              <AlertCircle size={14} color={cfg.hex} />
-            </View>
-            <ExplicacionEstado estado={orden.estado} />
-          </View>
+// ── Fila de la tabla (desde md) ───────────────────────────────────────────────
+
+const COLUMNAS = [
+  { etiqueta: "Orden & descripción", clase: "flex-[2.2]" },
+  { etiqueta: "Distribuidor", clase: "flex-1" },
+  { etiqueta: "Emisión", clase: "flex-1" },
+  { etiqueta: "Monto total", clase: "flex-1" },
+  { etiqueta: "Estado", clase: "flex-1" },
+  { etiqueta: "Acción", clase: "flex-1" },
+];
+
+function CabeceraTabla() {
+  return (
+    <View className="hidden md:flex flex-row items-center gap-3 px-5 py-3 border-b border-stone-100">
+      {COLUMNAS.map((c) => (
+        <View key={c.etiqueta} className={c.clase}>
+          <Span peso="semibold" className="text-[10px] leading-4 uppercase tracking-[0.6px] text-stone-400">
+            {c.etiqueta}
+          </Span>
         </View>
+      ))}
+    </View>
+  );
+}
+
+function FilaOrden({ orden, accion, error }: { orden: OrdenPedidoListItem; accion: AccionOrden; error?: string }) {
+  return (
+    <View className="hidden md:flex flex-col border-b border-stone-100">
+      <View className="flex flex-row items-center gap-3 px-5 py-4">
+        <View className="flex-[2.2] shrink">
+          <View className="flex flex-row items-center gap-2 flex-wrap">
+            <Span peso="bold" numberOfLines={1} className="text-[11px] leading-5 text-stone-500 shrink">{idDe(orden)}</Span>
+            {orden.pre_autorizado && <BadgePreAutorizado />}
+          </View>
+          <P peso="semibold" numberOfLines={1} className="text-sm leading-6 text-stone-800 mt-0.5">
+            {descripcionDe(orden)}
+          </P>
+          <P numberOfLines={1} className="text-[10px] leading-4 text-stone-400">{partidasDe(orden)}</P>
+        </View>
+
+        <View className="flex-1 shrink"><Distribuidor orden={orden} /></View>
+
+        <View className="flex-1 shrink">
+          <P className="text-xs leading-5 text-stone-600">{formatFecha(orden.created_at)}</P>
+        </View>
+
+        <View className="flex-1 shrink">
+          <P peso="bold" className="text-sm leading-6 text-stone-900">
+            ${formatMoney(orden.total)}
+            <Span className="text-[10px] leading-4 text-stone-400"> {MONEDA}</Span>
+          </P>
+        </View>
+
+        <View className="flex-1 shrink"><BadgeEstado estado={orden.estado} /></View>
+
+        <View className="flex-1 shrink"><BotonAccion accion={accion} /></View>
+      </View>
+      {error && (
+        <P peso="medium" className="text-[11px] leading-4 text-red-600 px-5 pb-3">{error}</P>
       )}
     </View>
   );
 }
 
-// ── Pantalla ──────────────────────────────────────────────────────────────────
+// ── Tarjeta (hasta md) ────────────────────────────────────────────────────────
 
-interface OrdenesProps {
-  /** Datos ya cargados. Web los trae del servidor; mobile pasa `null`. */
-  ordenes: OrdenPedidoListItem[] | null;
-  /** Solo mobile: las pide al montar, porque no hay servidor que las precargue. */
-  cargarOrdenes?: () => Promise<OrdenPedidoListItem[]>;
-  /** Cancela una orden. Necesita la sesión, así que la inyecta la app (regla 13). */
-  cancelarAction: (ordenId: string) => Promise<PedidoActionResult<OrdenPedidoResponse>>;
+function TarjetaOrden({ orden, accion, error }: { orden: OrdenPedidoListItem; accion: AccionOrden; error?: string }) {
+  return (
+    <View className="md:hidden bg-white border border-stone-100 rounded-2xl p-4 drop-shadow-sm">
+      <View className="flex flex-row items-start justify-between gap-2 flex-wrap">
+        <View className="flex flex-row items-center gap-2 shrink flex-wrap">
+          <Span peso="bold" numberOfLines={1} className="text-[11px] leading-5 text-stone-500 shrink">{idDe(orden)}</Span>
+          {orden.pre_autorizado && <BadgePreAutorizado />}
+        </View>
+        <BadgeEstado estado={orden.estado} />
+      </View>
+
+      <P peso="semibold" numberOfLines={2} className="text-base leading-6 text-stone-900 mt-2">
+        {descripcionDe(orden)}
+      </P>
+      <P className="text-xs leading-5 text-stone-400">{partidasDe(orden)}</P>
+
+      <View className="bg-[#FAF7F2] rounded-xl px-3 py-2.5 mt-3 flex flex-row items-center justify-between gap-3">
+        <View className="shrink">
+          <Span peso="semibold" className="text-[9px] leading-4 uppercase tracking-[0.5px] text-stone-400">Distribuidor</Span>
+          <Distribuidor orden={orden} />
+        </View>
+        <View className="shrink items-end">
+          <Span peso="semibold" className="text-[9px] leading-4 uppercase tracking-[0.5px] text-stone-400">Emisión</Span>
+          <P className="text-xs leading-5 text-stone-700">{formatFecha(orden.created_at)}</P>
+        </View>
+      </View>
+
+      <View className="flex flex-row items-end justify-between gap-3 mt-3 flex-wrap">
+        <View className="shrink">
+          <Span peso="semibold" className="text-[9px] leading-4 uppercase tracking-[0.5px] text-stone-400">Monto total</Span>
+          <P peso="bold" className="text-lg leading-7 text-stone-900">
+            ${formatMoney(orden.total)}
+            <Span className="text-[10px] leading-4 text-stone-400"> {MONEDA}</Span>
+          </P>
+        </View>
+        <BotonAccion accion={accion} />
+      </View>
+
+      {error && <P peso="medium" className="text-[11px] leading-4 text-red-600 mt-2">{error}</P>}
+    </View>
+  );
 }
 
-export default function Ordenes({ ordenes: ordenesIniciales, cargarOrdenes, cancelarAction }: OrdenesProps) {
-  const [ordenes, setOrdenes] = useState<OrdenPedidoListItem[] | null>(ordenesIniciales);
+// ── Paginación ────────────────────────────────────────────────────────────────
+
+function Paginador({
+  listado,
+  onPagina,
+}: {
+  listado: ListadoOrdenes;
+  onPagina: (pagina: number) => void;
+}) {
+  const { pagina_actual, total_paginas, total_ordenes, ordenes } = listado;
+  if (total_ordenes === 0) return null;
+
+  // Como mucho cinco números, centrados en la página actual.
+  const desde = Math.max(1, Math.min(pagina_actual - 2, total_paginas - 4));
+  const paginas = Array.from({ length: Math.min(5, total_paginas) }, (_, i) => desde + i);
+
+  return (
+    <View className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-5 py-4">
+      <P className="text-xs leading-5 text-stone-400 text-center md:text-left">
+        Mostrando <Span peso="semibold" className="text-xs leading-5 text-stone-600">{ordenes.length}</Span> de{" "}
+        <Span peso="semibold" className="text-xs leading-5 text-stone-600">{total_ordenes}</Span> órdenes registradas
+      </P>
+
+      <View className="flex flex-row items-center justify-center gap-1.5">
+        <Flecha Icono={ChevronLeft} etiqueta="Página anterior" activa={listado.tiene_anterior} onPress={() => onPagina(pagina_actual - 1)} />
+        {paginas.map((n) => (
+          <Pressable
+            key={n}
+            role="button"
+            accessibilityLabel={`Página ${n}`}
+            onPress={() => onPagina(n)}
+            style={{ backgroundColor: n === pagina_actual ? "#DAA520" : "#FFFFFF", borderColor: n === pagina_actual ? "#DAA520" : "#E7E5E4" }}
+            className="w-8 h-8 rounded-lg border flex items-center justify-center cursor-pointer"
+          >
+            <Span peso="semibold" className="text-xs leading-5" style={{ color: n === pagina_actual ? "#FFFFFF" : "#57534E" }}>
+              {n}
+            </Span>
+          </Pressable>
+        ))}
+        <Flecha Icono={ChevronRight} etiqueta="Página siguiente" activa={listado.tiene_siguiente} onPress={() => onPagina(pagina_actual + 1)} />
+      </View>
+    </View>
+  );
+}
+
+function Flecha({
+  Icono,
+  etiqueta,
+  activa,
+  onPress,
+}: {
+  Icono: React.ComponentType<{ size?: number; color?: string }>;
+  etiqueta: string;
+  activa: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      role="button"
+      accessibilityLabel={etiqueta}
+      disabled={!activa}
+      onPress={onPress}
+      style={{ opacity: activa ? 1 : 0.4 }}
+      className="w-8 h-8 rounded-lg border border-stone-200 bg-white flex items-center justify-center cursor-pointer"
+    >
+      <Icono size={14} color="#57534E" />
+    </Pressable>
+  );
+}
+
+// ── Pantalla ──────────────────────────────────────────────────────────────────
+
+export interface OrdenesProps {
+  /** Primera página ya cargada. Web la trae del servidor; mobile pasa `null`. */
+  listado: ListadoOrdenes | null;
+  /** Vuelve a pedir el listado cuando cambian los filtros o la página. */
+  cargarOrdenes: (filtros: FiltrosOrdenes) => Promise<ListadoOrdenes>;
+  /** Cancela una orden. Necesita la sesión, así que la inyecta la app (regla 13). */
+  cancelarAction: (ordenId: string) => Promise<PedidoActionResult<OrdenPedidoResponse>>;
+  /** Paga una orden aceptada. */
+  pagarAction: (ordenId: string) => Promise<PedidoActionResult<OrdenPedidoResponse>>;
+  /** Genera el archivo de la exportación contable con los filtros de la pantalla. */
+  exportarAction: (formato: FormatoExportacion, filtros: FiltrosOrdenes) => Promise<ArchivoExportado>;
+}
+
+const POR_PAGINA = 10;
+
+export default function Ordenes(props: OrdenesProps) {
+  // Los providers van acá y no en cada ruta: son parte de esta pantalla y así
+  // web y mobile la montan igual, con un solo componente.
+  return (
+    <ResumenOrdenesProvider>
+      <PantallaOrdenes {...props} />
+    </ResumenOrdenesProvider>
+  );
+}
+
+function PantallaOrdenes({ listado: listadoInicial, cargarOrdenes, cancelarAction, pagarAction, exportarAction }: OrdenesProps) {
+  const [listado, setListado] = useState<ListadoOrdenes | null>(listadoInicial);
+  const [cargando, setCargando] = useState(listadoInicial === null);
   const [errorCarga, setErrorCarga] = useState(false);
+
+  const [estado, setEstado] = useState<EstadoOrden | null>(null);
+  const [busqueda, setBusqueda] = useState("");
+  const [distribuidorId, setDistribuidorId] = useState("todos");
+  const [rangoMonto, setRangoMonto] = useState("todos");
+  const [orden, setOrden] = useState<"asc" | "desc">("desc");
+  const [pagina, setPagina] = useState(1);
   const [intento, setIntento] = useState(0);
-  // La confirmación de cancelar vive acá y no en la tarjeta: en nativo un
-  // `absolute` se mide contra el ancestro posicionado más cercano (taparía solo
-  // la tarjeta), y en web cada View de react-native-web es `position: relative`
-  // con `z-index: 0`, así que es un contexto de apilamiento y el `z-50` del
-  // modal quedaba encerrado en su tarjeta: las tarjetas siguientes se pintaban
-  // encima.
+
   const [ordenACancelar, setOrdenACancelar] = useState<OrdenPedidoListItem | null>(null);
   const [cancelando, setCancelando] = useState(false);
-  const [erroresCancelar, setErroresCancelar] = useState<Record<string, string>>({});
+  const [erroresFila, setErroresFila] = useState<Record<string, string>>({});
 
+  const filtros = useMemo<FiltrosOrdenes>(() => {
+    const rango = RANGOS_MONTO[rangoMonto] ?? {};
+    return {
+      estado,
+      q: busqueda,
+      distribuidorId: distribuidorId === "todos" ? null : distribuidorId,
+      montoMin: rango.min ?? null,
+      montoMax: rango.max ?? null,
+      orden,
+      pagina,
+      cantidad: POR_PAGINA,
+    };
+  }, [estado, busqueda, distribuidorId, rangoMonto, orden, pagina]);
+
+  // La primera carga de web ya viene del servidor: solo se vuelve a pedir
+  // cuando el usuario toca un filtro o la paginación.
+  const primeraCarga = useRef(listadoInicial !== null);
   useEffect(() => {
-    if (ordenesIniciales || !cargarOrdenes) return;
+    if (primeraCarga.current) {
+      primeraCarga.current = false;
+      return;
+    }
     let vigente = true;
+    setCargando(true);
     setErrorCarga(false);
-    cargarOrdenes().then(
-      (recibidas) => { if (vigente) setOrdenes(recibidas); },
-      () => { if (vigente) setErrorCarga(true); },
+    cargarOrdenes(filtros).then(
+      (recibido) => { if (vigente) { setListado(recibido); setCargando(false); } },
+      () => { if (vigente) { setErrorCarga(true); setCargando(false); } },
     );
     return () => { vigente = false; };
-  }, [intento]);
+  }, [filtros, intento]);
 
-  if (!ordenes) {
-    // El encabezado va también acá: si no, en mobile no habría cómo volver
-    // mientras carga. `key` propia para que React no reutilice el nodo del
-    // ContenedorPantalla entre las dos ramas (regla 37).
-    return (
-      <ContenedorPantalla key="ordenes-cargando" indiceFijo={0} className="mx-auto w-full max-w-6xl pb-24">
-        <EncabezadoPagina titulo="Órdenes de Compra" href="/pedidos" />
-        <Section className="px-4 pt-6">
-          {errorCarga ? (
-            <Tarjeta>
-              <P className="text-sm text-stone-500 text-center">No se pudieron cargar tus órdenes.</P>
-              <Boton variante="secundario" className="mt-3 w-full" onClick={() => setIntento((n) => n + 1)}>
-                Volver a intentar
-              </Boton>
-            </Tarjeta>
-          ) : (
-            <View className="flex items-center justify-center py-20">
-              <Spinner tamano={32} />
-            </View>
-          )}
-        </Section>
-      </ContenedorPantalla>
-    );
-  }
+  /**
+   * Un filtro recorta el listado, así que la página en la que estabas deja de
+   * tener sentido y se vuelve a la 1. Los desplegables de orden (`tipo:
+   * "orden"`) no: reordenan lo mismo y respetan la página actual.
+   */
+  const cambiarFiltro = useCallback((aplicar: () => void, reiniciarPagina = true) => {
+    if (reiniciarPagina) setPagina(1);
+    aplicar();
+  }, []);
 
-  // El original reordena: primero las pendientes y después el resto.
-  const pendientes = ordenes.filter((o) => o.estado === "pendiente");
-  const otras = ordenes.filter((o) => o.estado !== "pendiente");
+  // Los distribuidores del desplegable salen de lo que hay en la página: la
+  // API todavía no expone "mis distribuidores".
+  const desplegables: DesplegableFiltro[] = useMemo(() => {
+    const vistos = new Map<string, string>();
+    for (const o of listado?.ordenes ?? []) {
+      if (o.distribuidor_nombre) vistos.set(o.distribuidor_nombre, o.distribuidor_nombre);
+    }
+    return [
+      {
+        id: "distribuidor",
+        valor: distribuidorId,
+        className: "md:w-52",
+        opciones: [
+          { valor: "todos", etiqueta: "Todos los distribuidores" },
+          ...[...vistos.keys()].map((n) => ({ valor: n, etiqueta: n })),
+        ],
+      },
+      {
+        id: "monto",
+        valor: rangoMonto,
+        className: "md:w-44",
+        opciones: [
+          { valor: "todos", etiqueta: "Cualquier monto" },
+          { valor: "0-1000", etiqueta: "Hasta $1,000" },
+          { valor: "1000-10000", etiqueta: "$1,000 – $10,000" },
+          { valor: "10000+", etiqueta: "Más de $10,000" },
+        ],
+      },
+      { id: "fecha", tipo: "orden", valor: orden, className: "md:w-40", opciones: ORDEN_FECHA },
+    ];
+  }, [listado, distribuidorId, rangoMonto, orden]);
+
+  const pestanas = useMemo<PestanaFiltro[]>(
+    // El conteo solo se sabe del filtro activo: es lo que devuelve el endpoint.
+    () => PESTANAS.map((p) => ({ ...p, cantidad: p.valor === estado ? listado?.total_ordenes ?? null : null })),
+    [estado, listado],
+  );
 
   async function confirmarCancelar() {
     if (!ordenACancelar) return;
@@ -357,58 +570,171 @@ export default function Ordenes({ ordenes: ordenesIniciales, cargarOrdenes, canc
     const res = await cancelarAction(id);
     setCancelando(false);
     if (!res.ok) {
-      setErroresCancelar((previos) => ({ ...previos, [id]: res.error ?? "No se pudo cancelar la orden" }));
+      setErroresFila((previos) => ({ ...previos, [id]: res.error || "No se pudo cancelar la orden" }));
       return;
     }
     setOrdenACancelar(null);
-    setErroresCancelar(({ [id]: _, ...resto }) => resto);
-    // El original hacía `router.refresh()` para que el servidor devolviera la
-    // orden ya cancelada; acá lo resuelve la pantalla, que es la que tiene la
-    // lista (en nativo no hay servidor que la vuelva a pintar).
-    setOrdenes((actuales) =>
-      (actuales ?? []).map((o) => (o.id === id ? { ...o, estado: "cancelada" as EstadoOrden } : o)),
-    );
+    setErroresFila(({ [id]: _, ...resto }) => resto);
+    setIntento((n) => n + 1);
   }
 
+  async function pagar(orden: OrdenPedidoListItem) {
+    const res = await pagarAction(orden.id);
+    if (!res.ok) {
+      setErroresFila((previos) => ({ ...previos, [orden.id]: res.error || "No se pudo pagar la orden" }));
+      return;
+    }
+    setIntento((n) => n + 1);
+  }
+
+  /** El documento de una sola orden: la exportación filtrada por su folio. */
+  async function descargarOrden(orden: OrdenPedidoListItem) {
+    try {
+      await descargarArchivo(await exportarAction("xlsx", { q: idDe(orden) }));
+    } catch (e) {
+      const mensaje = e instanceof Error ? e.message : "No se pudo generar el documento";
+      setErroresFila((previos) => ({ ...previos, [orden.id]: mensaje }));
+    }
+  }
+
+  const accionDe = (orden: OrdenPedidoListItem) =>
+    ACCIONES[orden.estado]({ orden, pedirCancelar: setOrdenACancelar, pagar, descargar: descargarOrden });
+
+  const exportar = useCallback(
+    async (formato: FormatoExportacion) => {
+      const archivo = await exportarAction(formato, filtros);
+      await descargarArchivo(archivo);
+      return archivo.nombre;
+    },
+    [exportarAction, filtros],
+  );
+
+  const ordenes = listado?.ordenes ?? [];
+
   return (
-    <>
-    {/* indiceFijo 0: el encabezado. */}
-    <ContenedorPantalla key="ordenes" indiceFijo={0} className="mx-auto w-full max-w-6xl pb-24">
+    <ExportacionProvider onDescargar={exportar}>
+    {/* indiceFijo 0: el primer hijo queda fijo arriba al scrollear. Con el
+        `EncabezadoPagina` comentado, ese hijo es el `Header` de abajo, y por eso
+        lleva fondo propio: si no, en nativo las tarjetas se ven pasar por
+        debajo del título. */}
+    <ContenedorPantalla key="ordenes" indiceFijo={0} className="mx-auto w-full px-0 lg:px-16 lg:pt-8 pb-24 bg-[#FAF7F2] md:bg-[#FAF7F2] min-h-screen">
+      {/* <EncabezadoPagina titulo="Órdenes de Compra" href="/pedidos" /> */}
 
-      
-        {/* Sin órdenes el original no pintaba nada (devolvía null), solo queda
-            el encabezado. */}
-        
-          <Header className="p-6 flex flex-row justify-between items-end gap-4 max-w-full flex-wrap">
-            {/* Encabezado de la sección */}
-            <View className="flex flex-cols gap-2 w-fit items-start ">
+      <Header className="px-4 pt-5 pb-4 bg-[#FAF7F2] flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <View className="shrink">
+          <Link href="/pedidos"   className="text-sm flex items-center my-4 gap-2 text-[#DAA520]"> <ArrowLeft size={12}/>  Pedidos</Link>
+          <H1 peso="bold" className="text-2xl md:text-3xl leading-9 text-stone-900">Órdenes de Compra</H1>
+          <P className="text-xs md:text-sm leading-5 text-stone-500 mt-1">
+            Administra órdenes comerciales, confirmación de pedidos y liquidación con trazabilidad.
+          </P>
+        </View>
+        <View className="flex flex-col md:flex-row gap-2 md:gap-3 shrink-0">
+          <Boton Icono={Plus} iconoSize={16} href="/mercado" claseTexto="text-xs leading-5" className="py-2.5 px-4 rounded-xl w-full md:w-auto">
+            Nueva Orden
+          </Boton>
+          {/* `border-solid`: la variante trae `border-none` y las dos clases
+              sobreviven al twMerge, porque son grupos distintos. */}
+          <Boton
+            variante="secundario"
+            Icono={Upload}
+            iconoSize={16}
+            onClick={() => exportar("xlsx")}
+            claseTexto="text-xs leading-5"
+            className="py-2.5 px-4 rounded-xl border-solid border border-stone-200 w-full md:w-auto"
+          >
+            Exportar Lotes
+          </Boton>
+        </View>
+      </Header>
+      <HR className="my-8 w-full"/>
+      {/* Resumen: cuántas tarjetas y de qué tipo lo decide el provider. */}
+      <Section className="mt-5">
+        <TarjetasResumen />
+      </Section>
 
-              <H1 peso="bold" className="text-xl text-stone-700 uppercase tracking-[0.7px]">
-                Órdenes de Compra
-              </H1>
-              <P>
-                Manejo de ordenes de compra, confirmacion de los pedidos.
+      <Section className="px-4 mt-5">
+        <View className="bg-white border border-stone-100 rounded-2xl drop-shadow-sm">
+          {/* `z-20`: en react-native-web cada View es `position: relative` con
+              `z-index: 0`, o sea un contexto de apilamiento, así que el `z-40`
+              del desplegable no puede salirse de su padre y las filas de abajo
+              (que van después en el DOM) lo tapaban. Se levanta el bloque
+              entero de filtros. */}
+          <View className="p-4 md:p-5 border-b border-stone-100 z-20">
+            <BarraFiltros
+              placeholder="Filtrar por ID de orden o ítem..."
+              busqueda={busqueda}
+              onBuscar={(q) => cambiarFiltro(() => setBusqueda(q))}
+              pestanas={pestanas}
+              pestanaActiva={estado}
+              onPestana={(valor) => cambiarFiltro(() => setEstado(valor as EstadoOrden | null))}
+              desplegables={desplegables}
+              onDesplegable={(id, valor) =>
+                cambiarFiltro(
+                  () => {
+                    if (id === "distribuidor") setDistribuidorId(valor);
+                    else if (id === "monto") setRangoMonto(valor);
+                    else setOrden(valor as "asc" | "desc");
+                  },
+                  desplegables.find((d) => d.id === id)?.tipo !== "orden",
+                )
+              }
+            />
+          </View>
+
+          <CabeceraTabla />
+
+          {cargando ? (
+            <View className="flex items-center justify-center py-16">
+              <Spinner tamano={32} />
+            </View>
+          ) : errorCarga ? (
+            <View className="flex items-center justify-center py-16 px-5">
+              <P className="text-sm leading-6 text-stone-500 text-center">No se pudieron cargar tus órdenes.</P>
+              <Boton variante="secundario" className="mt-3" onClick={() => setIntento((n) => n + 1)}>
+                Volver a intentar
+              </Boton>
+            </View>
+          ) : ordenes.length === 0 ? (
+            <View className="flex items-center justify-center py-16 px-5">
+              <View className="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center mb-3">
+                <FileText size={24} color="#A8A29E" />
+              </View>
+              <H2 peso="semibold" className="text-base leading-6 text-stone-700 text-center">Sin órdenes que mostrar</H2>
+              <P className="text-xs leading-5 text-stone-400 text-center mt-1">
+                Prueba con otro filtro o crea una orden desde el mercado.
               </P>
             </View>
-            <View className="flex flex-row gap-2 flex-wrap w-fit">
-              <Boton claseTexto="text-[12px]" className="w-fit">Crear Órden de compra</Boton>
-              <Boton claseTexto="text-xs" className="w-fit">Crear Órden de compra</Boton>
-            </View>  
-            
-          </Header>
-
-          
-            <View className="flex flex-row flex-wrap -m-2">
-              {[...pendientes, ...otras].map((o) => (
-                <View key={o.id} className="w-full md:w-1/2 xl:w-1/3 p-2">
-                  <OrdenCard orden={o} error={erroresCancelar[o.id]} onPedirCancelar={setOrdenACancelar} />
-                </View>
+          ) : (
+            <>
+              {/* Tabla desde md, tarjetas abajo de md: el mismo dato, dos
+                  formas. Las dos ramas se pintan siempre y se esconde una con
+                  `hidden md:flex` / `md:hidden` (regla 28). */}
+              {ordenes.map((o) => (
+                <FilaOrden key={`fila-${o.id}`} orden={o} accion={accionDe(o)} error={erroresFila[o.id]} />
               ))}
-            </View>
-        
-      
+              <View className="md:hidden flex flex-col gap-3 p-4">
+                {ordenes.map((o) => (
+                  <TarjetaOrden key={`tarjeta-${o.id}`} orden={o} accion={accionDe(o)} error={erroresFila[o.id]} />
+                ))}
+              </View>
+            </>
+          )}
+
+          {listado && !cargando && !errorCarga && (
+            <Paginador listado={listado} onPagina={(n) => setPagina(Math.max(1, n))} />
+          )}
+        </View>
+      </Section>
+
+      <Section className="px-4 mt-5">
+        <ExportacionMasiva
+          className="md:max-w-md"
+          descripcion="Descarga libros auxiliares de compras B2B con validación fiscal del SAT, retenciones desglosadas y conciliación bancaria directa."
+        />
+      </Section>
     </ContenedorPantalla>
 
+    {/* El modal, fuera del ContenedorPantalla (regla 54). */}
     <ModalConfirmacion
       isOpen={ordenACancelar !== null}
       onClose={() => !cancelando && setOrdenACancelar(null)}
@@ -419,6 +745,6 @@ export default function Ordenes({ ordenes: ordenesIniciales, cargarOrdenes, canc
       textoCancelar="No, mantener"
       isConfirming={cancelando}
     />
-    </>
+    </ExportacionProvider>
   );
 }

@@ -94,7 +94,7 @@ function ValoracionForm({ onSubmit, loading }: { onSubmit: (p: number, c: string
               multiline
               placeholder="¿Qué te pareció el pedido?"
               placeholderTextColor="#A8A29E"
-              className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-xl text-sm min-h-[80px]"
+              className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-xl text-[17px] leading-6 min-h-[80px]"
             />
           </View>
           <Boton variante="primario" className="w-full py-2.5" onClick={() => onSubmit(puntuacion, comentario)} loading={loading}>
