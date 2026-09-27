@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Image, View } from "react-native";
+import { FlatList, Image, ScrollView, View } from "react-native";
 import {
   Clock,
   CheckCircle2,
@@ -326,9 +326,10 @@ function FilaOrden({ orden, accion, error }: { orden: OrdenPedidoListItem; accio
 
 // ── Tarjeta (hasta md) ────────────────────────────────────────────────────────
 
-function TarjetaOrden({ orden, accion, error }: { orden: OrdenPedidoListItem; accion: AccionOrden; error?: string }) {
+function TarjetaOrden({ orden, accion, error, classNameBox }: { orden: OrdenPedidoListItem; accion: AccionOrden; error?: string, classNameBox?: string }) {
   return (
-    <View className="md:hidden bg-white border border-stone-100 rounded-2xl p-4 drop-shadow-sm">
+    <View className={`md:hidden bg-white border border-stone-100 rounded-2xl p-4 shadow shadow-black/10 ${classNameBox}`}>
+
       <View className="flex flex-row items-start justify-between gap-2 flex-wrap">
         <View className="flex flex-row items-center gap-2 shrink flex-wrap">
           <Span peso="bold" numberOfLines={1} className="text-[11px] leading-5 text-stone-500 shrink">{idDe(orden)}</Span>
@@ -386,7 +387,7 @@ function Paginador({
   const paginas = Array.from({ length: Math.min(5, total_paginas) }, (_, i) => desde + i);
 
   return (
-    <View className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-5 py-4">
+    <View className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-5 py-4`}>
       <P className="text-xs leading-5 text-stone-400 text-center md:text-left">
         Mostrando <Span peso="semibold" className="text-xs leading-5 text-stone-600">{ordenes.length}</Span> de{" "}
         <Span peso="semibold" className="text-xs leading-5 text-stone-600">{total_ordenes}</Span> órdenes registradas
@@ -610,141 +611,162 @@ function PantallaOrdenes({ listado: listadoInicial, cargarOrdenes, cancelarActio
   );
 
   const ordenes = listado?.ordenes ?? [];
+  // horizontal scroll
+  const ITEM_MARGIN = 12;
+  const SNAP_INTERVAL = 300 + ITEM_MARGIN;
+  const snapOffsets = ordenes.map((_, i) => i * SNAP_INTERVAL);
 
   return (
     <ExportacionProvider onDescargar={exportar}>
-    {/* indiceFijo 0: el primer hijo queda fijo arriba al scrollear. Con el
-        `EncabezadoPagina` comentado, ese hijo es el `Header` de abajo, y por eso
-        lleva fondo propio: si no, en nativo las tarjetas se ven pasar por
-        debajo del título. */}
-    <ContenedorPantalla key="ordenes" indiceFijo={0} className="mx-auto w-full px-0 lg:px-16 lg:pt-8 pb-24 bg-[#FAF7F2] md:bg-[#FAF7F2] min-h-screen">
-      {/* <EncabezadoPagina titulo="Órdenes de Compra" href="/pedidos" /> */}
+      {/* Sin `indiceFijo` no hay hijo fijo: toda la pantalla scrollea. Si se
+        vuelve a poner, el hijo que quede fijo necesita fondo propio o las
+        tarjetas se ven pasar por debajo en nativo. */}
+      <ContenedorPantalla key="ordenes" className="mx-auto w-full px-0 lg:px-16 lg:pt-8 pb-24 bg-[#FAF7F2] md:bg-[#FAF7F2] min-h-screen">
+        {/* <EncabezadoPagina titulo="Órdenes de Compra" href="/pedidos" /> */}
 
-      <Header className="px-4 pt-5 pb-4 bg-[#FAF7F2] flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-        <View className="shrink">
-          <Link href="/pedidos"   className="text-sm flex items-center my-4 gap-2 text-[#DAA520]"> <ArrowLeft size={12}/>  Pedidos</Link>
-          <H1 peso="bold" className="text-2xl md:text-3xl leading-9 text-stone-900">Órdenes de Compra</H1>
-          <P className="text-xs md:text-sm leading-5 text-stone-500 mt-1">
-            Administra órdenes comerciales, confirmación de pedidos y liquidación con trazabilidad.
-          </P>
-        </View>
-        <View className="flex flex-col md:flex-row gap-2 md:gap-3 shrink-0">
-          <Boton Icono={Plus} iconoSize={16} href="/mercado" claseTexto="text-xs leading-5" className="py-2.5 px-4 rounded-xl w-full md:w-auto">
-            Nueva Orden
-          </Boton>
-          {/* `border-solid`: la variante trae `border-none` y las dos clases
+        <Header className="px-4 pt-5 pb-4 bg-[#FAF7F2] flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <View className="shrink">
+            <Link href="/pedidos" className="text-sm flex items-center my-4 gap-2 text-[#DAA520]"> <ArrowLeft size={12} />  Pedidos</Link>
+            <H1 peso="bold" className="text-2xl md:text-3xl leading-9 text-stone-900">Órdenes de Compra</H1>
+            <P className="text-xs md:text-sm leading-5 text-stone-500 mt-1">
+              Administra órdenes comerciales, confirmación de pedidos y liquidación con trazabilidad.
+            </P>
+          </View>
+          <View className="flex flex-col md:flex-row gap-2 md:gap-3 shrink-0">
+            <Boton Icono={Plus} iconoSize={16} href="/mercado" claseTexto="text-xs leading-5" className="py-2.5 px-4 rounded-xl w-full md:w-auto">
+              Nueva Orden
+            </Boton>
+            {/* `border-solid`: la variante trae `border-none` y las dos clases
               sobreviven al twMerge, porque son grupos distintos. */}
-          <Boton
-            variante="secundario"
-            Icono={Upload}
-            iconoSize={16}
-            onClick={() => exportar("xlsx")}
-            claseTexto="text-xs leading-5"
-            className="py-2.5 px-4 rounded-xl border-solid border border-stone-200 w-full md:w-auto"
-          >
-            Exportar Lotes
-          </Boton>
-        </View>
-      </Header>
-      <HR className="my-8 w-full"/>
-      {/* Resumen: cuántas tarjetas y de qué tipo lo decide el provider. */}
-      <Section className="mt-5">
-        <TarjetasResumen />
-      </Section>
+            <Boton
+              variante="secundario"
+              Icono={Upload}
+              iconoSize={16}
+              onClick={() => exportar("xlsx")}
+              claseTexto="text-xs leading-5"
+              className="py-2.5 px-4 rounded-xl border-solid border border-stone-200 w-full md:w-auto bg-white"
+            >
+              Exportar Lotes
+            </Boton>
+          </View>
+        </Header>
+        <HR className="my-8 w-full" />
+        {/* Resumen: cuántas tarjetas y de qué tipo lo decide el provider. */}
+        <Section className="mt-5">
+          <TarjetasResumen />
+        </Section>
 
-      <Section className="px-4 mt-5">
-        <View className="bg-white border border-stone-100 rounded-2xl drop-shadow-sm">
-          {/* `z-20`: en react-native-web cada View es `position: relative` con
+        <Section className="px-4 mt-5">
+          <View className="bg-white border border-stone-100 rounded-2xl drop-shadow-sm">
+            {/* `z-20`: en react-native-web cada View es `position: relative` con
               `z-index: 0`, o sea un contexto de apilamiento, así que el `z-40`
               del desplegable no puede salirse de su padre y las filas de abajo
               (que van después en el DOM) lo tapaban. Se levanta el bloque
               entero de filtros. */}
-          <View className="p-4 md:p-5 border-b border-stone-100 z-20">
-            <BarraFiltros
-              placeholder="Filtrar por ID de orden o ítem..."
-              busqueda={busqueda}
-              onBuscar={(q) => cambiarFiltro(() => setBusqueda(q))}
-              pestanas={pestanas}
-              pestanaActiva={estado}
-              onPestana={(valor) => cambiarFiltro(() => setEstado(valor as EstadoOrden | null))}
-              desplegables={desplegables}
-              onDesplegable={(id, valor) =>
-                cambiarFiltro(
-                  () => {
-                    if (id === "distribuidor") setDistribuidorId(valor);
-                    else if (id === "monto") setRangoMonto(valor);
-                    else setOrden(valor as "asc" | "desc");
-                  },
-                  desplegables.find((d) => d.id === id)?.tipo !== "orden",
-                )
-              }
-            />
-          </View>
-
-          <CabeceraTabla />
-
-          {cargando ? (
-            <View className="flex items-center justify-center py-16">
-              <Spinner tamano={32} />
+            <View className="p-4 md:p-5 border-b border-stone-100 z-20">
+              <BarraFiltros
+                placeholder="Filtrar por ID de orden o producto..."
+                busqueda={busqueda}
+                onBuscar={(q) => cambiarFiltro(() => setBusqueda(q))}
+                pestanas={pestanas}
+                pestanaActiva={estado}
+                onPestana={(valor) => cambiarFiltro(() => setEstado(valor as EstadoOrden | null))}
+                desplegables={desplegables}
+                onDesplegable={(id, valor) =>
+                  cambiarFiltro(
+                    () => {
+                      if (id === "distribuidor") setDistribuidorId(valor);
+                      else if (id === "monto") setRangoMonto(valor);
+                      else setOrden(valor as "asc" | "desc");
+                    },
+                    desplegables.find((d) => d.id === id)?.tipo !== "orden",
+                  )
+                }
+              />
             </View>
-          ) : errorCarga ? (
-            <View className="flex items-center justify-center py-16 px-5">
-              <P className="text-sm leading-6 text-stone-500 text-center">No se pudieron cargar tus órdenes.</P>
-              <Boton variante="secundario" className="mt-3" onClick={() => setIntento((n) => n + 1)}>
-                Volver a intentar
-              </Boton>
-            </View>
-          ) : ordenes.length === 0 ? (
-            <View className="flex items-center justify-center py-16 px-5">
-              <View className="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center mb-3">
-                <FileText size={24} color="#A8A29E" />
+
+            <CabeceraTabla />
+
+            {cargando ? (
+              <View className="flex items-center justify-center py-16">
+                <Spinner tamano={32} />
               </View>
-              <H2 peso="semibold" className="text-base leading-6 text-stone-700 text-center">Sin órdenes que mostrar</H2>
-              <P className="text-xs leading-5 text-stone-400 text-center mt-1">
-                Prueba con otro filtro o crea una orden desde el mercado.
-              </P>
-            </View>
-          ) : (
-            <>
-              {/* Tabla desde md, tarjetas abajo de md: el mismo dato, dos
+            ) : errorCarga ? (
+              <View className="flex items-center justify-center py-16 px-5">
+                <P className="text-sm leading-6 text-stone-500 text-center">No se pudieron cargar tus órdenes.</P>
+                <Boton variante="secundario" className="mt-3" onClick={() => setIntento((n) => n + 1)}>
+                  Volver a intentar
+                </Boton>
+              </View>
+            ) : ordenes.length === 0 ? (
+              <View className="flex items-center justify-center py-16 px-5">
+                <View className="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center mb-3">
+                  <FileText size={24} color="#A8A29E" />
+                </View>
+                <H2 peso="semibold" className="text-base leading-6 text-stone-700 text-center">Sin órdenes que mostrar</H2>
+                <P className="text-xs leading-5 text-stone-400 text-center mt-1">
+                  Prueba con otro filtro o crea una orden desde el mercado.
+                </P>
+              </View>
+            ) : (
+              <>
+                {/* Tabla desde md, tarjetas abajo de md: el mismo dato, dos
                   formas. Las dos ramas se pintan siempre y se esconde una con
                   `hidden md:flex` / `md:hidden` (regla 28). */}
-              {ordenes.map((o) => (
-                <FilaOrden key={`fila-${o.id}`} orden={o} accion={accionDe(o)} error={erroresFila[o.id]} />
-              ))}
-              <View className="md:hidden flex flex-col gap-3 p-4">
+                {ordenes.map((o) => (
+                  <FilaOrden key={`fila-${o.id}`} orden={o} accion={accionDe(o)} error={erroresFila[o.id]} />
+                ))}
+
+                <FlatList
+                  data={ordenes}
+                  keyExtractor={(item) => `anuncio-${item.id}`}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  snapToInterval={SNAP_INTERVAL}
+                  snapToAlignment="start"
+                  decelerationRate="fast"
+                  disableIntervalMomentum
+                  snapToOffsets={snapOffsets}
+                  className="md:hidden  p-2 w-full max-w-full"
+                  renderItem={({ item, index }) => (
+                    <TarjetaOrden key={`tarjeta-${item.id}`} orden={item} accion={accionDe(item)} error={erroresFila[item.id]} classNameBox="w-[300px] mr-[12px]" />
+                  )}
+                />
+
+
+                {/* <View className="md:hidden flex flex-col gap-3 p-4">
                 {ordenes.map((o) => (
                   <TarjetaOrden key={`tarjeta-${o.id}`} orden={o} accion={accionDe(o)} error={erroresFila[o.id]} />
                 ))}
-              </View>
-            </>
-          )}
+              </View> */}
+              </>
+            )}
 
-          {listado && !cargando && !errorCarga && (
-            <Paginador listado={listado} onPagina={(n) => setPagina(Math.max(1, n))} />
-          )}
-        </View>
-      </Section>
+            {listado && !cargando && !errorCarga && (
+              <Paginador listado={listado} onPagina={(n) => setPagina(Math.max(1, n))} />
+            )}
+          </View>
+        </Section>
 
-      <Section className="px-4 mt-5">
-        <ExportacionMasiva
-          className="md:max-w-md"
-          descripcion="Descarga libros auxiliares de compras B2B con validación fiscal del SAT, retenciones desglosadas y conciliación bancaria directa."
-        />
-      </Section>
-    </ContenedorPantalla>
+        <Section className="px-4 mt-5">
+          <ExportacionMasiva
+            className="md:max-w-md"
+            descripcion="Descarga libros auxiliares de compras B2B con validación fiscal del SAT, retenciones desglosadas y conciliación bancaria directa."
+          />
+        </Section>
+      </ContenedorPantalla>
 
-    {/* El modal, fuera del ContenedorPantalla (regla 54). */}
-    <ModalConfirmacion
-      isOpen={ordenACancelar !== null}
-      onClose={() => !cancelando && setOrdenACancelar(null)}
-      onConfirm={confirmarCancelar}
-      titulo="Cancelar Orden"
-      mensaje="¿Estás seguro de que deseas cancelar esta orden de compra? Esta acción no se puede deshacer."
-      textoConfirmar="Sí, cancelar orden"
-      textoCancelar="No, mantener"
-      isConfirming={cancelando}
-    />
+      {/* El modal, fuera del ContenedorPantalla (regla 54). */}
+      <ModalConfirmacion
+        isOpen={ordenACancelar !== null}
+        onClose={() => !cancelando && setOrdenACancelar(null)}
+        onConfirm={confirmarCancelar}
+        titulo="Cancelar Orden"
+        mensaje="¿Estás seguro de que deseas cancelar esta orden de compra? Esta acción no se puede deshacer."
+        textoConfirmar="Sí, cancelar orden"
+        textoCancelar="No, mantener"
+        isConfirming={cancelando}
+      />
     </ExportacionProvider>
   );
 }

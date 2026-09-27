@@ -35,7 +35,7 @@ pestanas?: PestanaFiltro[]      // { valor, etiqueta, cantidad? }; valor null = 
 pestanaActiva?: string | null
 onPestana?: (valor: string | null) => void
 
-desplegables?: DesplegableFiltro[]  // { id, valor, opciones, className? }
+desplegables?: DesplegableFiltro[]  // { id, valor, opciones, tipo?, className? }
 onDesplegable?: (id: string, valor: string) => void
 
 className?: string
@@ -44,6 +44,25 @@ className?: string
 `cantidad` es opcional y se pinta al lado de la etiqueta ("Todas 17"). Si el
 backend solo sabe contar el filtro activo —que es el caso hoy en órdenes—, se
 manda `cantidad` únicamente en la pestaña activa y el resto va en `null`.
+
+**`tipo` distingue filtrar de ordenar.** Un desplegable `"filtro"` (el default)
+recorta el listado, así que al cambiarlo la pantalla debería volver a la página
+1: la página en la que estabas ya no significa lo mismo. Uno `"orden"` reordena
+las mismas órdenes, así que la página actual se respeta.
+
+```tsx
+const cambiarFiltro = (aplicar: () => void, reiniciarPagina = true) => {
+  if (reiniciarPagina) setPagina(1);
+  aplicar();
+};
+
+onDesplegable={(id, valor) =>
+  cambiarFiltro(
+    () => { /* … */ },
+    desplegables.find((d) => d.id === id)?.tipo !== "orden",
+  )
+}
+```
 
 `onDesplegable` recibe el `id` del desplegable, así una sola función atiende a
 todos:
