@@ -1,4 +1,4 @@
-import RegistroClienteForm from "@/components/auth/RegistroClienteForm";
+import RegistroClienteForm from "@akindo/ui/components/auth/RegistroClienteForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

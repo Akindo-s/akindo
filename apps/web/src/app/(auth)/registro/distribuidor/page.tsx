@@ -1,4 +1,4 @@
-import RegistroDistribuidorForm from "@/components/auth/RegistroDistribuidorForm";
+import RegistroDistribuidorForm from "@akindo/ui/components/auth/RegistroDistribuidorForm";
 
 export const metadata = {
   title: "Registro Distribuidor",

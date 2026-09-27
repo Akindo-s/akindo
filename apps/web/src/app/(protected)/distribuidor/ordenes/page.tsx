@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerOrdenesDistribuidor, aceptarOrden, rechazarOrden } from "@/lib/api/pedidos";
 import { Suspense } from "react";
-import OrdenesCompraView from "@/components/distribuidor/OrdenesCompraView";
+import DistribuidorOrdenes from "@akindo/ui/screens/distribuidor-ordenes";
 
 export const metadata: Metadata = {
   title: "Órdenes de Compra",
@@ -26,10 +26,8 @@ async function OrdenesContent() {
   }
 
   return (
-    <OrdenesCompraView
-      pendientes={pendientes}
-      aceptadas={aceptadas}
-      rechazadas={rechazadas}
+    <DistribuidorOrdenes
+      datos={{ pendientes, aceptadas, rechazadas }}
       aceptarAction={aceptarAction}
       rechazarAction={rechazarAction}
     />

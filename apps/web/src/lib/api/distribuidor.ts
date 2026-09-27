@@ -21,7 +21,7 @@ export async function obtenerResumenMensual(umbral_stock: number = 67) {
     return conSesion(() => core.obtenerResumenMensual(token, umbral_stock));
 }
 
-export async function actualizarImagenNegocio(distribuidorId: string, file: File) {
+export async function actualizarImagenNegocio(distribuidorId: string, file: Blob) {
     const token = await tokenRequerido();
     return conSesion(() => core.actualizarImagenNegocio(distribuidorId, file, token));
 }

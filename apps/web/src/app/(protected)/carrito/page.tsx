@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import CarritoView from "@/components/carrito/CarritoView";
+import Carrito from "@akindo/ui/screens/carrito";
 import {
   actualizarCantidadCarrito,
   eliminarItemCarrito,
@@ -49,7 +49,7 @@ export default async function CarritoPage() {
   }
 
   return (
-    <CarritoView
+    <Carrito
       initialData={initialData}
       actualizarCantidadAction={actualizarCantidadAction}
       eliminarItemAction={eliminarItemAction}

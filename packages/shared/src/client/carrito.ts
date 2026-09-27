@@ -12,6 +12,9 @@ export interface AddToCartResult {
   error?: string;
 }
 
+/** Aviso cuando alguien sin sesión intenta agregar al carrito. Lo usan web y mobile. */
+export const MENSAJE_CARRITO_SIN_SESION = "Inicia sesión para agregar productos al carrito";
+
 export interface AddToCartOptions {
   /**
    * Endpoint que recibe la peticion. Por defecto la route handler de Next

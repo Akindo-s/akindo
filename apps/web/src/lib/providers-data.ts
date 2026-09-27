@@ -2,6 +2,8 @@
 
 import { obtenerCategoriasProductos, obtenerCategoriasDistribuidores } from "@/lib/api/categorias";
 import { obtenerIdsCarrito } from "@/lib/api/carrito";
+import { sesionOpcional } from "@/lib/sesion";
+import { estadoLayoutPublico } from "@akindo/shared/layoutsBehaviors/public";
 
 /**
  * Loaders que los providers compartidos (`@akindo/shared/*-context`) reciben por
@@ -19,5 +21,7 @@ export async function cargarCategorias() {
 }
 
 export async function cargarIdsCarrito(): Promise<string[]> {
+  // Sin esto `obtenerIdsCarrito` redirigia a /login y el home no se podia ver sin sesion.
+  if (!estadoLayoutPublico(await sesionOpcional()).tieneCarrito) return [];
   return obtenerIdsCarrito();
 }

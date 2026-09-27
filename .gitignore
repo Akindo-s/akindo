@@ -106,6 +106,7 @@ Thumbs.db
 !.vscode/extensions.json
 !.vscode/settings.json
 !.vscode/launch.json
+MIG
 
 # JetBrains IDEs
 .idea/

@@ -5,9 +5,12 @@ Maneja: órdenes de compra (cliente crea, distribuidor gestiona) y pedidos activ
 
 from uuid import UUID
 from typing import Optional
+from datetime import datetime
+from io import BytesIO
 import logging
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi.responses import StreamingResponse
 
 from app.core.dependencies import get_current_cliente, get_current_distribuidor, get_current_user, get_db
 from app.infrastructure.database import DatabaseSession
@@ -16,6 +19,7 @@ from app.models.cliente import Cliente
 from app.models.distribuidor import Distribuidor
 from app.schemas.orden_pedido import (
     CrearOrdenRequest,
+    ListadoOrdenesResponse,
     RechazarOrdenRequest,
     OrdenPedidoResponse,
     OrdenPedidoListItem,
@@ -96,17 +100,68 @@ async def pagar_orden(
 
 @router.get(
     "/mis-ordenes",
-    response_model=list[OrdenPedidoListItem],
+    response_model=ListadoOrdenesResponse,
     summary="Cliente: listar mis órdenes de compra",
 )
 async def listar_mis_ordenes(
+    request: Request,
     estado: Optional[str] = Query(None, description="pendiente | aceptada | rechazada | cancelada"),
+    cantidad_pagina: int = Query(10, ge=1, description="Número de órdenes a mostrar por página"),
+    numero_pagina: int = Query(1, ge=1, description="Número de la página a mostrar"),
+    q: Optional[str] = Query(None, description="Busca por id de la orden o por nombre de producto"),
+    distribuidor_id: Optional[UUID] = Query(None, description="Solo las órdenes de ese distribuidor"),
+    monto_min: Optional[float] = Query(None, ge=0, description="Total mínimo de la orden"),
+    monto_max: Optional[float] = Query(None, ge=0, description="Total máximo de la orden"),
+    orden: str = Query("desc", pattern="^(asc|desc)$", description="Por fecha de emisión: desc (recientes primero) o asc"),
     cliente: Cliente = Depends(get_current_cliente),
     db: DatabaseSession = Depends(get_db),
 ):
     """Lista todas las órdenes de compra del cliente autenticado."""
     service = OrdenPedidoService(db)
-    return await service.listar_ordenes_cliente(cliente.id, estado)
+    response = await service.listar_ordenes_cliente(
+        cliente.id, estado, cantidad_pagina, numero_pagina, q, distribuidor_id, monto_min, monto_max, orden
+    )
+
+    # Mismo armado que en distribuidores y productos.
+    if response.tiene_siguiente:
+        response.siguiente_url = str(request.url.include_query_params(numero_pagina=numero_pagina + 1))
+    if response.tiene_anterior:
+        response.anterior_url = str(request.url.include_query_params(numero_pagina=numero_pagina - 1))
+
+    return response
+
+
+@router.get(
+    "/mis-ordenes/exportar",
+    summary="Cliente: exportar mis órdenes de compra a Excel",
+    response_class=StreamingResponse,
+)
+async def exportar_mis_ordenes(
+    estado: Optional[str] = Query(None, description="pendiente | aceptada | rechazada | cancelada"),
+    q: Optional[str] = Query(None, description="Busca por id de la orden o por nombre de producto"),
+    distribuidor_id: Optional[UUID] = Query(None, description="Solo las órdenes de ese distribuidor"),
+    monto_min: Optional[float] = Query(None, ge=0, description="Total mínimo de la orden"),
+    monto_max: Optional[float] = Query(None, ge=0, description="Total máximo de la orden"),
+    orden: str = Query("desc", pattern="^(asc|desc)$", description="Por fecha de emisión: desc (recientes primero) o asc"),
+    cliente: Cliente = Depends(get_current_cliente),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Libro de Excel con una fila por partida, con los mismos filtros que el
+    listado: se exporta lo que el usuario está viendo."""
+    service = OrdenPedidoService(db)
+    contenido = await service.exportar_ordenes_cliente(
+        cliente.id, estado, q, distribuidor_id, monto_min, monto_max, orden
+    )
+    nombre = f"ordenes-de-compra-{datetime.now().strftime('%Y-%m-%d')}.xlsx"
+    return StreamingResponse(
+        BytesIO(contenido),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="{nombre}"',
+            # Sin esto el front no puede leer el nombre del archivo desde JS.
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
 
 
 @router.patch(

@@ -3,6 +3,8 @@ import type {
   PreOrdenResponse,
   OrdenPedidoResponse,
   OrdenPedidoListItem,
+  ListadoOrdenes,
+  FiltrosOrdenes,
   PedidoResponse,
   PedidoListItem,
   PedidoActionResult,
@@ -81,18 +83,109 @@ export async function pagarOrden(
   }
 }
 
-export async function obtenerMisOrdenes(
-  estado?: string,
-  token?: string
-): Promise<OrdenPedidoListItem[]> {
-  try {
-    const params = estado ? `?estado=${estado}` : "";
-    const res = await fetchWithAuth(`/pedidos/mis-ordenes${params}`, { method: "GET" }, token);
-    if (!res.ok) return [];
-    return await res.json() as OrdenPedidoListItem[];
-  } catch {
-    return [];
+const LISTADO_ORDENES_VACIO: ListadoOrdenes = {
+  total_ordenes: 0,
+  total_paginas: 0,
+  pagina_actual: 1,
+  tiene_siguiente: false,
+  tiene_anterior: false,
+  siguiente_url: null,
+  anterior_url: null,
+  ordenes: [],
+};
+
+/** Los filtros, tal como los espera el endpoint. */
+function paramsOrdenes(filtros: FiltrosOrdenes, conPaginacion: boolean): URLSearchParams {
+  const params = new URLSearchParams();
+  if (conPaginacion) {
+    params.set("numero_pagina", String(filtros.pagina ?? 1));
+    params.set("cantidad_pagina", String(filtros.cantidad ?? 10));
   }
+  if (filtros.estado) params.set("estado", filtros.estado);
+  if (filtros.q?.trim()) params.set("q", filtros.q.trim());
+  if (filtros.distribuidorId) params.set("distribuidor_id", filtros.distribuidorId);
+  if (filtros.montoMin != null) params.set("monto_min", String(filtros.montoMin));
+  if (filtros.montoMax != null) params.set("monto_max", String(filtros.montoMax));
+  if (filtros.orden) params.set("orden", filtros.orden);
+  return params;
+}
+
+/**
+ * Página de órdenes del cliente. El endpoint devuelve el objeto con la
+ * metadata de paginación, no la lista suelta: quien solo quiera las órdenes
+ * usa `.ordenes`.
+ */
+export async function obtenerMisOrdenes(
+  filtros: FiltrosOrdenes = {},
+  token?: string
+): Promise<ListadoOrdenes> {
+  try {
+    const params = paramsOrdenes(filtros, true);
+    const res = await fetchWithAuth(`/pedidos/mis-ordenes?${params.toString()}`, { method: "GET" }, token);
+    if (!res.ok) return LISTADO_ORDENES_VACIO;
+    const datos = await res.json() as Partial<ListadoOrdenes>;
+    return { ...LISTADO_ORDENES_VACIO, ...datos, ordenes: datos.ordenes ?? [] };
+  } catch {
+    return LISTADO_ORDENES_VACIO;
+  }
+}
+
+/** Un archivo ya generado por la API, listo para guardarse o compartirse. */
+export interface ArchivoExportado {
+  nombre: string;
+  /**
+   * El contenido en base64.
+   *
+   * No es un `Blob` porque en web esto viaja por una Server Action (el token es
+   * una cookie httpOnly, así que la llamada sale del servidor) y por ahí solo
+   * pasan valores serializables. Quien lo convierte en archivo es
+   * `@akindo/ui/descargar`, que tiene una versión por plataforma.
+   */
+  base64: string;
+  tipo: string;
+}
+
+const ALFABETO_B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+/** Base64 sin depender de `Buffer` (Node) ni de `btoa` (navegador). */
+function aBase64(bytes: Uint8Array): string {
+  let salida = "";
+  for (let i = 0; i < bytes.length; i += 3) {
+    const a = bytes[i];
+    const b = bytes[i + 1];
+    const c = bytes[i + 2];
+    salida += ALFABETO_B64[a >> 2];
+    salida += ALFABETO_B64[((a & 3) << 4) | ((b ?? 0) >> 4)];
+    salida += b === undefined ? "=" : ALFABETO_B64[((b & 15) << 2) | ((c ?? 0) >> 6)];
+    salida += c === undefined ? "=" : ALFABETO_B64[c & 63];
+  }
+  return salida;
+}
+
+const TIPO_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+/**
+ * Pide el libro de Excel de las órdenes con los mismos filtros del listado.
+ *
+ * Devuelve el contenido y no una URL porque el endpoint pide `Authorization`:
+ * un `<a href>` o un `Linking.openURL` no llevarían el token.
+ */
+export async function exportarOrdenes(
+  filtros: FiltrosOrdenes = {},
+  token?: string
+): Promise<ArchivoExportado> {
+  const params = paramsOrdenes(filtros, false);
+  const res = await fetchWithAuth(`/pedidos/mis-ordenes/exportar?${params.toString()}`, { method: "GET" }, token);
+  if (!res.ok) throw new Error("No se pudo generar la exportación");
+
+  // El nombre lo manda el servidor en el Content-Disposition; si el header no
+  // viaja (CORS), se arma uno con la fecha.
+  const disposicion = res.headers.get("Content-Disposition") ?? "";
+  const nombre = /filename="?([^";]+)"?/.exec(disposicion)?.[1]
+    ?? `ordenes-de-compra-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  return { nombre, base64: aBase64(bytes), tipo: res.headers.get("Content-Type") ?? TIPO_XLSX };
 }
 
 export async function cancelarOrden(

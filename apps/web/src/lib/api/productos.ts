@@ -71,7 +71,7 @@ export async function guardarBorradorProducto(datos: core.DatosCrearProducto) {
 /**
  * Sube una imagen para un producto existente.
  */
-export async function subirImagenProducto(productoId: string, file: File) {
+export async function subirImagenProducto(productoId: string, file: Blob) {
     const token = await tokenRequerido();
     return conSesion(() => core.subirImagenProducto(productoId, file, token));
 }

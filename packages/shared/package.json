@@ -11,6 +11,8 @@
     "./eventos": "./src/eventos.ts",
     "./carrito-context": "./src/carrito-context.tsx",
     "./categorias-context": "./src/categorias-context.tsx",
+    "./resumen-ordenes-context": "./src/resumen-ordenes-context.tsx",
+    "./exportacion-context": "./src/exportacion-context.tsx",
     "./api/carrito": "./src/api/carrito.ts",
     "./api/categorias": "./src/api/categorias.ts",
     "./api/distribuidor": "./src/api/distribuidor.ts",
@@ -20,7 +22,9 @@
     "./api/usuario": "./src/api/usuario.ts",
     "./client/carrito": "./src/client/carrito.ts",
     "./types/carrito": "./src/types/carrito.ts",
-    "./types/pedidos": "./src/types/pedidos.ts"
+    "./types/pedidos": "./src/types/pedidos.ts",
+    "./types/anuncios":"./src/types/anuncios.ts",
+    "./layoutsBehaviors/*": "./src/layoutsBehaviors/*.ts"
   },
   "peerDependencies": {
     "react": ">=18"

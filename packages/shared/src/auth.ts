@@ -1,4 +1,5 @@
 import { API_URL } from "./constants";
+import type { TipoUsuario } from "./sesion";
 
 export interface RegistrarClienteDatos {
   nombre: string;
@@ -29,6 +30,13 @@ export interface LoginDatos {
   password: string;
 }
 
+/** Lo que devuelve `POST /auth/token`. Quien persiste el token es el glue de cada plataforma. */
+export interface LoginRespuesta {
+  access_token: string;
+  token_type: string;
+  tipo_usuario: TipoUsuario;
+}
+
 interface ApiErrorBody {
   detail?: unknown;
   error?: unknown;
@@ -46,7 +54,7 @@ async function extraerMensajeError(response: Response, fallback: string): Promis
 }
 
 export async function registrarCliente(datos: RegistrarClienteDatos): Promise<unknown> {
-  const response = await fetch(`${API_URL}/clientes`, {
+  const response = await fetch(`${API_URL}/clientes/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -62,7 +70,7 @@ export async function registrarCliente(datos: RegistrarClienteDatos): Promise<un
 }
 
 export async function registrarDistribuidor(datos: RegistrarDistribuidorDatos): Promise<unknown> {
-  const response = await fetch(`${API_URL}/distribuidores`, {
+  const response = await fetch(`${API_URL}/distribuidores/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -77,8 +85,8 @@ export async function registrarDistribuidor(datos: RegistrarDistribuidorDatos): 
   return response.json();
 }
 
-export async function login(datos: LoginDatos): Promise<unknown> {
-  const response = await fetch(`/api/auth/login`, {
+export async function login(datos: LoginDatos): Promise<LoginRespuesta> {
+  const response = await fetch(`${API_URL}/auth/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

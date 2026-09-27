@@ -1,8 +1,18 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import PerfilCliente from "@/components/perfil/PerfilCliente";
-import { obtenerInformacionPerfil, obtenerPerfilDistribuidor } from "@/lib/api/usuario";
+import Perfil from "@akindo/ui/screens/perfil";
+import {
+    actualizarDireccion,
+    actualizarImagenPerfil,
+    actualizarPerfilCliente,
+    crearDireccion,
+    eliminarDireccion,
+    obtenerInformacionPerfil,
+    obtenerMisDirecciones,
+    obtenerPerfilDistribuidor,
+} from "@/lib/api/usuario";
+import { _logout } from "@/lib/auth";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -58,7 +68,18 @@ async function PerfilContent({ tipoUsuario }: { tipoUsuario: string | undefined 
         }
     } else {
         const cliente = await obtenerInformacionPerfil();
-        return <PerfilCliente cliente={cliente} />;
+        return (
+            <Perfil
+                cliente={cliente}
+                actualizarPerfil={actualizarPerfilCliente}
+                subirImagenPerfil={actualizarImagenPerfil}
+                cargarDirecciones={obtenerMisDirecciones}
+                crearDireccion={crearDireccion}
+                actualizarDireccion={actualizarDireccion}
+                eliminarDireccion={eliminarDireccion}
+                onLogout={_logout}
+            />
+        );
     }
 }
 

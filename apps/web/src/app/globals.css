@@ -1,4 +1,20 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Moved here from src/components/titles.css: in v3 `@layer` is a Tailwind
+   directive, so it only works in a file that also carries the `@tailwind`
+   directives. Staying in the components layer is what lets utility classes
+   (text-white, text-red-600, ...) still override these colors. */
+@layer components {
+  .titulo {
+    color: #1C1917;
+  }
+
+  .sub-titulo {
+    color: #201B12;
+  }
+}
 
 
 :root {

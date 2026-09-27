@@ -1,3 +1,4 @@
+// archivo movido a packages/ui/icons/NavigationIcons.tsx ; referenciado en otros componentes de web.
 import { SVGProps } from "react";
 
 interface IconProps extends SVGProps<SVGSVGElement> {

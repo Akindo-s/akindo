@@ -1,5 +1,5 @@
 import { API_URL } from "../constants";
-import { TokenExpiradoError } from "../sesion";
+import { notificarSesionInvalida, TokenExpiradoError } from "../sesion";
 
 /**
  * `RequestInit` mas la extension `next` que agrega Next.js para el ISR.
@@ -38,7 +38,6 @@ export async function fetchWithAuth(
   }
 
   const url = endpoint.startsWith("http") ? endpoint : `${API_URL}${endpoint}`;
-
   const init: RequestInitConCache = {
     ...options,
     headers,
@@ -50,7 +49,11 @@ export async function fetchWithAuth(
   const response = await fetch(url, init);
 
   if (response.status === 498) {
-    throw new TokenExpiradoError();
+    const error = new TokenExpiradoError();
+    // Web no registra manejador (redirige en `conSesion`); mobile sí, desde el
+    // layout raíz, porque acá el error muere en el `catch` de la pantalla.
+    notificarSesionInvalida(error);
+    throw error;
   }
 
   return response;

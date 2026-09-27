@@ -1,0 +1,16 @@
+diff --git a/dist/doctor.js b/dist/doctor.js
+index 98379be8dd4bc3cf639c743629b100ec463c6859..5268d7eb4fff276e3bb5fd82fd4a44a9c69e348e 100644
+--- a/dist/doctor.js
++++ b/dist/doctor.js
+@@ -7,7 +7,10 @@ const computedStyles = globalThis.window
+     ? globalThis.window.getComputedStyle(globalThis.window.document.documentElement)
+     : { getPropertyValue: () => "asdf" };
+ function verifyJSX() {
+-    return <react-native-css-interop-jsx-pragma-check /> === true;
++    // Patched for Turbopack/webpack builds: the raw-JSX pragma probe this used
++    // relies on Metro's babel JSX pragma, which never runs under those bundlers,
++    // so the check is meaningless there and always returns false.
++    return false;
+ }
+ function verifyFlag(name, value = "true") {
+     return globalThis.window

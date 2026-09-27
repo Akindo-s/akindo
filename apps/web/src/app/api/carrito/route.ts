@@ -5,6 +5,8 @@ import {
   vaciarCarritosCliente,
 } from "@/lib/api/carrito";
 import { obtenerProductoPublico } from "@/lib/api/productos";
+import { sesionOpcional } from "@/lib/sesion";
+import { MENSAJE_CARRITO_SIN_SESION } from "@akindo/shared/client/carrito";
 
 export async function GET() {
   try {
@@ -19,6 +21,11 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  // Sin esto `agregarProductoCarrito` llamaba a `redirect("/login")`, el catch
+  // de abajo lo atrapaba y la tarjeta mostraba "NEXT_REDIRECT".
+  if (!(await sesionOpcional()).token) {
+    return NextResponse.json({ detail: MENSAJE_CARRITO_SIN_SESION }, { status: 401 });
+  }
   try {
     const body = (await req.json()) as {
       distribuidor_id?: string;

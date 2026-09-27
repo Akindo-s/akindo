@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon, ShoppingCartIcon } from "../icons/NavigationIcons";
 import { MessageSquare } from "lucide-react";
-import { Parrafo } from "../titles";
+import { Parrafo } from "@akindo/ui/components/titles";
 
 const links = [
     { label: "Inicio", href: "/", Icon: HomeIcon, condition: () => true },
@@ -35,9 +35,11 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
     };
 
     return (
-        <aside className="hidden md:flex flex-col w-54 lg:w-64 shrink-0 border-r border-stone-100 bg-white h-fit sticky top-0">
+        // Ocupa el alto de la fila del layout (el body ya no scrollea); si no
+        // le alcanza, scrollea por su cuenta.
+        <aside className="hidden md:flex flex-col w-54 lg:w-64 shrink-0 border-r border-stone-100 bg-white overflow-y-auto">
             {/* Navegación principal */}
-            <nav className="flex flex-col gap-1 p-3 flex-1 min-h-[calc(100lvh-71px)]">
+            <nav className="flex flex-col gap-1 p-3 flex-1">
                 {links.map(({ label, href, altHref, Icon, condition }) => {
                     // Resolve dynamic href for distribuidor
                     const resolvedHref = (altHref && tipoUsuario === "distribuidor") ? altHref : href;
@@ -107,7 +109,9 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                 </p>
                 {akindoMiembros.map((a,index) => ( //no hay necesidad, pudiste escribirlos birote, eh!
 
-                    <Parrafo key={`${a}-${index}`} className="text-xs text-stone-400 font-normal tracking-wider uppercase">
+                    // El peso va por `peso` y no por `font-normal`: en el compartido
+                    // la tipografía es un `style` y una clase no le gana (TIPOGRAFIA.md).
+                    <Parrafo key={`${a}-${index}`} peso="normal" className="text-xs text-stone-400 tracking-wider uppercase">
                         {a}
                     </Parrafo>
                 ))}

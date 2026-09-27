@@ -73,10 +73,22 @@ class OrdenPedidoListItem(BaseModel):
     distribuidor_nombre: str | None = None
     distribuidor_imagen: str | None = None
     created_at: datetime | None
+    #: El pedido que salió de esta orden, si ya se pagó. Sirve para linkear al
+    #: detalle del pedido desde el listado.
+    pedido_id: UUID | None = None
     paquetes: list[PaquetePedidoResponse] = []
-
     model_config = {"from_attributes": True}
 
+class ListadoOrdenesResponse(BaseModel):
+    """Respuesta para listar órdenes de compra del cliente."""
+    total_ordenes: int
+    total_paginas: int
+    pagina_actual: int
+    tiene_siguiente: bool
+    tiene_anterior: bool
+    siguiente_url: str | None = None
+    anterior_url: str | None = None
+    ordenes: list[OrdenPedidoListItem]
 
 class PreOrdenProducto(BaseModel):
     """Producto snapshot para la pantalla de pre-orden."""

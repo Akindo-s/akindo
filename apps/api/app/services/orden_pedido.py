@@ -3,6 +3,7 @@ OrdenPedidoService — Lógica de negocio para órdenes de compra.
 """
 
 import uuid
+from io import BytesIO
 
 from rich.json import JSON
 from app.infrastructure.database import DatabaseSession
@@ -14,6 +15,7 @@ from app.models.orden_pedido import OrdenPedido, PaquetePedido, EstadoOrden
 from app.models.pedido import Pedido, EstadoPedido
 from app.schemas.orden_pedido import (
     CrearOrdenRequest,
+    ListadoOrdenesResponse,
     RechazarOrdenRequest,
     OrdenPedidoResponse,
     OrdenPedidoListItem,
@@ -525,10 +527,28 @@ class OrdenPedidoService:
         self,
         cliente_id: uuid.UUID,
         estado: str | None = None,
-    ) -> list[OrdenPedidoListItem]:
-        """Lista órdenes de compra del cliente."""
-        rows = await self.repo.listar_por_cliente(cliente_id, estado)
-        result = []
+        cantidad_pagina: int = 10,
+        numero_pagina: int = 1,
+        q: str | None = None,
+        distribuidor_id: uuid.UUID | None = None,
+        monto_min: float | None = None,
+        monto_max: float | None = None,
+        orden: str = "desc",
+    ) -> ListadoOrdenesResponse:
+        """Lista órdenes de compra del cliente.
+
+        `orden` ordena por fecha de emisión: `desc` (lo más nuevo primero, el
+        default) o `asc`.
+        """
+        limit = max(1, cantidad_pagina)
+        offset = max(0, (numero_pagina - 1) * limit)
+
+        rows, total_ordenes = await self.repo.listar_por_cliente_paginado(
+            cliente_id, estado, limit, offset, q, distribuidor_id, monto_min, monto_max,
+            descendente=(orden != "asc"),
+        )
+
+        result: list[OrdenPedidoListItem] = []
         for row in rows:
             # distribuidor join returns nombre_negocio directly; imagen_perfil is on nested usuario
             dist_data = row.get("distribuidor") or {}
@@ -563,6 +583,13 @@ class OrdenPedidoService:
                 )
                 for p in paquetes_raw
             ]
+            # `pedido` es la relación inversa: llega como dict, como lista de
+            # uno o como None si la orden todavía no se pagó.
+            pedido_data = row.get("pedido") or {}
+            if isinstance(pedido_data, list):
+                pedido_data = pedido_data[0] if pedido_data else {}
+            pedido_id = pedido_data.get("id")
+
             result.append(OrdenPedidoListItem(
                 id=uuid.UUID(row["id"]) if isinstance(row["id"], str) else row["id"],
                 estado=row["estado"],
@@ -571,7 +598,112 @@ class OrdenPedidoService:
                 distribuidor_nombre=dist_data.get("nombre_negocio"),
                 distribuidor_imagen=dist_user_data.get("imagen_perfil"),
                 created_at=row.get("created_at"),
+                pedido_id=uuid.UUID(pedido_id) if isinstance(pedido_id, str) else pedido_id,
                 paquetes=paquetes,
             ))
-        return result
+        # `siguiente_url` / `anterior_url` los arma el router, que es el unico
+        # que conoce la URL real del endpoint.
+        return ListadoOrdenesResponse(
+            total_ordenes=total_ordenes,
+            total_paginas=(total_ordenes + limit - 1) // limit if limit > 0 else 1,
+            pagina_actual=numero_pagina,
+            tiene_siguiente=(offset + limit) < total_ordenes,
+            tiene_anterior=offset > 0,
+            siguiente_url=None,
+            anterior_url=None,
+            ordenes=result
+        )
 
+
+    # ── Exportación contable ──────────────────────────────────────────────
+
+    #: Formatos que el front puede pedir. Mientras uno no esté acá, la pantalla
+    #: lo muestra deshabilitado en vez de ofrecer una descarga que falla.
+    FORMATOS_EXPORTACION = ("xlsx",)
+
+    ENCABEZADOS_EXPORTACION = (
+        "ID de la orden",
+        "Fecha de emisión",
+        "Distribuidor",
+        "Estado",
+        "Pre autorizado",
+        "Partidas",
+        "Producto",
+        "Cantidad",
+        "Unidad",
+        "Costo unitario",
+        "Subtotal",
+        "Total de la orden",
+    )
+
+    async def exportar_ordenes_cliente(
+        self,
+        cliente_id: uuid.UUID,
+        estado: str | None = None,
+        q: str | None = None,
+        distribuidor_id: uuid.UUID | None = None,
+        monto_min: float | None = None,
+        monto_max: float | None = None,
+        orden: str = "desc",
+    ) -> bytes:
+        """Arma el libro de Excel con las órdenes del cliente (una fila por
+        partida) y lo devuelve en memoria, listo para que el router lo sirva.
+
+        Respeta los mismos filtros que el listado: lo que se exporta es lo que
+        el usuario está viendo, no toda su historia.
+        """
+        from openpyxl import Workbook
+
+        filas = await self.repo.listar_todas_por_cliente(
+            cliente_id, estado, q, distribuidor_id, monto_min, monto_max,
+            descendente=(orden != "asc"),
+        )
+
+        libro = Workbook()
+        hoja = libro.active
+        hoja.title = "Órdenes de compra"
+        hoja.append(list(self.ENCABEZADOS_EXPORTACION))
+
+        for row in filas:
+            paquetes = row.get("paquete_pedido") or []
+            total = sum(float(p["costo_unitario"]) * int(p["cantidad"]) for p in paquetes)
+            dist = row.get("distribuidor") or {}
+            if isinstance(dist, list):
+                dist = dist[0] if dist else {}
+            identificador = str(row["id"])
+            fecha = str(row.get("created_at") or "")[:10]
+
+            if not paquetes:
+                hoja.append([identificador, fecha, dist.get("nombre_negocio"), row.get("estado"),
+                             bool(row.get("pre_autorizado")), 0, None, None, None, None, None, total])
+                continue
+
+            for p in paquetes:
+                producto = p.get("producto") or {}
+                if isinstance(producto, list):
+                    producto = producto[0] if producto else {}
+                medida = p.get("medida_snapshot") or {}
+                cantidad = int(p["cantidad"])
+                costo = float(p["costo_unitario"])
+                hoja.append([
+                    identificador,
+                    fecha,
+                    dist.get("nombre_negocio"),
+                    row.get("estado"),
+                    bool(row.get("pre_autorizado")),
+                    len(paquetes),
+                    producto.get("nombre") or medida.get("nombre"),
+                    cantidad,
+                    medida.get("unidad"),
+                    costo,
+                    cantidad * costo,
+                    total,
+                ])
+
+        # Un ancho fijo por columna: openpyxl no mide el texto solo.
+        for columna, ancho in zip(hoja.columns, (38, 16, 26, 14, 14, 10, 34, 10, 10, 16, 14, 18)):
+            hoja.column_dimensions[columna[0].column_letter].width = ancho
+
+        buffer = BytesIO()
+        libro.save(buffer)
+        return buffer.getvalue()

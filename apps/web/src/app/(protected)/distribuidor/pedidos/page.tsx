@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { obtenerPedidosDistribuidor, enviarActualizacionPedido } from "@/lib/api/pedidos";
 import { EstadoPedido } from "@akindo/shared/types/pedidos";
 import { Suspense } from "react";
-import PedidosDistribuidorView from "@/components/distribuidor/PedidosDistribuidorView";
+import PedidosDistribuidor from "@akindo/ui/screens/distribuidor-pedidos";
 
 export const metadata: Metadata = {
   title: "Gestión de Pedidos",
@@ -23,9 +23,11 @@ async function PedidosContent() {
   }
 
   return (
-    <PedidosDistribuidorView
-      activos={[...activos, ...enEnvio]}
-      historial={[...entregados, ...cancelados]}
+    <PedidosDistribuidor
+      datos={{
+        activos: [...activos, ...enEnvio],
+        historial: [...entregados, ...cancelados],
+      }}
       actualizarAction={actualizarAction}
     />
   );

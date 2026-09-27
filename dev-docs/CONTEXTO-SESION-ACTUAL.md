@@ -1,0 +1,69 @@
+# Contexto de sesión actual (2026-09-13)
+
+Migración de `apps/web` a `packages/ui` para que web (Next) y `apps/mobile` (Expo) compartan la UI. Branch `mobile-dev`.
+
+**El estado completo está en [`migracion-progreso.md`](./migracion-progreso.md)**: la tabla de rutas (hechas y pendientes), la lista de archivos ya movidos, las 73 reglas aprendidas, cómo se verifica cada ruta y los pendientes conocidos. Este archivo es solo el resumen para retomar. Complementarios: [`RUTAS-PROTEGIDAS.md`](./RUTAS-PROTEGIDAS.md) (quién entra a cada ruta), [`COMPONENTES-MULTIPLATAFORMA.md`](./COMPONENTES-MULTIPLATAFORMA.md), [`TIPOGRAFIA.md`](./TIPOGRAFIA.md) y [`migracion-ui-reglas.md`](./migracion-ui-reglas.md) (el proceso pedido por el usuario).
+
+## Cómo se trabaja (pedido del usuario)
+
+- **Una ruta a la vez.** No se empieza la siguiente hasta que la actual está terminada en las dos plataformas.
+- **Al terminar una ruta se para**, se reporta y el usuario prueba y commitea.
+- **No se borra nada de `apps/web`**: al archivo migrado se le agrega arriba `// archivo movido a … ; referenciado en otros componentes de web.`
+- **Sesiones**: cuando una ruta necesita sesión de cliente o de distribuidor, se para y se le pide al usuario que la cambie a mano en el simulador. No se escriben contraseñas en formularios.
+- **Escrituras reales** (aceptar, rechazar, cancelar, archivar, valorar, cambiar estado, crear o editar productos): no se hacen sin preguntarle antes. Hasta ahora solo se hizo una, con permiso: el pedido `#9e84ca5d` de `testuser` pasó de "pendiente de envío" a "en envío".
+
+## Qué está hecho
+
+Todo `(auth)` y todo `(public)`. De `(protected)`: el layout del grupo, `carrito`, `perfil`, `pedidos`, `pedidos/ordenes`, `pedidos/[pedidoId]` (las vistas de cliente y de distribuidor), y del distribuidor `pedidos`, `ordenes`, `ordenes/[ordenId]`, el panel `/distribuidor`, su inventario `distribuidor/productos`, **crear / editar producto** (`distribuidor/productos/crear` y `[id]/editar`, un solo form compartido) y **valoraciones y reportes** (`distribuidor/valoraciones` y `distribuidor/reportes`, hechas juntas a pedido del usuario). Del distribuidor ya no queda ninguna ruta. Del cliente también está **`carrito/preorden`**.
+
+Las últimas tandas (valoraciones, reportes y preorden) pueden estar **sin commitear**: mirar `git status`.
+
+## Qué falta
+
+**Ninguna ruta.** Ya está migrado todo lo que va a las dos plataformas.
+
+Fuera de alcance por decisión del usuario:
+- `(protected)/admin/categorias`: **solo web**, pero ya consume `@akindo/ui` (el `Boton` compartido no hace submit: lo dispara `crear()` desde `onClick`). El botón "Administración" del `Header` está limitado a web con `Platform.OS === "web"`.
+- `sobrenosotros` y `(public)/distribuidores`: **eliminadas**. En `apps/web/src/components` solo quedan `layout/Sidebar.tsx` y `icons/NavigationIcons.tsx`.
+
+En mobile ya no quedan links que caigan en "Unmatched Route".
+
+## Tanda de cierre (sin commitear todavía)
+
+Después de la última ruta se hicieron tres cosas fuera de "ruta por ruta":
+
+1. **Docs + admin solo en web**: el botón "Administración" del `Header` compartido se pinta solo con `Platform.OS === "web"`.
+2. **Limpieza de `apps/web`**: hecha. Se borraron 63 archivos de `apps/web/src/components` que ya no importaba ninguna ruta (los migrados con el comentario "archivo movido a …" más el código muerto), el duplicado `apps/web/src/lib/providers-data 2.ts`, los PNG de la plantilla de Expo de `apps/mobile/assets/images` y las carpetas vacías (`packages/shared/src/{api,client,types} 2`, `apps/web/public/iconos`, `apps/web/src/components/admin`). **Quedan a propósito** 8 archivos en `apps/web/src/components`: `layout/Sidebar.tsx` + `icons/NavigationIcons.tsx` (solo web, los usan los dos layouts), `ui/{Boton,ModalConfirmacion}.tsx` (los usa `admin/categorias`) y `titles.tsx` + `ui/{Badge,Tarjeta,Revelar}.tsx` (los usa `sobrenosotros`, que el usuario va a eliminar). Al borrar `sobrenosotros` se van esos cuatro; `Boton` se queda mientras admin lo use.
+
+   El `tsc` del build de web destapó un bug que hasta ahora nadie tipaba: `packages/ui/components/mercado/BarraBusquedaFiltros.tsx` pasaba `snapToOffsets={5}` (el `ScrollView` espera `number[]`, y el original de web no tenía snap). Se quitó esa prop.
+3. **Diferencias de comportamiento** (ver los tachados en los pendientes de `migracion-progreso.md`): aviso vacío, caché del carrito, token vencido en mobile, guardia de tipo del distribuidor en mobile, `SelectorEstado` → `Selector` compartido y el orden `w-fit`/`w-full` del `Boton`.
+
+4. **Los pendientes de código** (la lista que se le pasó al usuario): ya están los diez. Quedan los que dependen de probar escrituras reales (crear/editar producto, preorden con carrito real, valoraciones con datos, Android) y las diferencias que vienen del original, todo en los pendientes de `migracion-progreso.md`.
+5. **Campos de texto a 17px** (regla 77), a pedido del usuario. Los `Selector` siguen en 12/14px: si se quieren igualar, es su propia tanda.
+
+## Rediseño de órdenes de compra (lo último)
+
+`screens/ordenes.tsx` rehecha con el diseño nuevo (tabla desde `md`, tarjetas
+abajo), tarjetas de resumen con snap alimentadas por un provider con mock,
+barra de filtros reutilizable ([`BARRA-FILTROS.md`](./BARRA-FILTROS.md)) y
+exportación a Excel de punta a punta. En la API se agregaron los filtros `q`,
+`distribuidor_id`, `monto_min`/`monto_max` y el endpoint
+`/pedidos/mis-ordenes/exportar` (nueva dependencia: `openpyxl`). En mobile se
+agregó `expo-sharing`. El detalle está en `migracion-progreso.md`.
+
+⚠️ `apps/mobile/.env.local` quedó apuntando a `http://127.0.0.1:8000`: la API
+desplegada todavía no tiene el código nuevo (paginación, filtros y
+`/exportar`), y con ella la pantalla de órdenes sale vacía.
+
+## Cosas que conviene tener presentes
+
+- **`Boton` resuelve `w-fit`/`w-full` al revés que web** (ver pendientes en `migracion-progreso.md`): hoy se compensa poniendo `w-full` en cada instancia. Arreglar el componente toca todas las pantallas que usan `primario` y necesita su propia tanda.
+- **`tsc` no alcanza para validar JSX**: los comentarios `{/* … */}` entre atributos o justo después de un `&& (` compilan en TypeScript pero rompen en Next (SWC) y en Metro (Babel). Hay que abrir la página en el dev server y la pantalla en el simulador (regla 64).
+- **`components/ui/Selector.tsx` ahora tiene la API del `Selector` de web** (`modo` simple/múltiple, opciones con `etiqueta`, `claseCaja` para imitar un `<select>`). `screens/distribuidor-pedidos.tsx` sigue con su `SelectorEstado` propio.
+- Con HMR, un clic que "no hace nada" en web puede ser un chunk viejo: recargar la pestaña antes de buscar el bug (pasó con las opciones del Selector).
+
+## Estado del entorno de prueba
+
+- Simulador: iPhone 17 Pro, con **sesión de distribuidor** (`Dulcería el valle`) en el momento de escribir esto. La cuenta de cliente que se usó antes es `sergio9`.
+- La foto de perfil del cliente quedó con una imagen de muestra del simulador (una cascada), de cuando se probó la subida de imágenes.
+- El dev server de web (puerto 3000) se levanta con la configuración `web` de `.claude/launch.json`.
