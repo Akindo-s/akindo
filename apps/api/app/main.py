@@ -32,7 +32,7 @@ from app.events.pedido_suscriptores import (
     SolicitarValoracionPedido,
 )
 from app.infrastructure.database import DatabaseSession, get_db
-from app.routers import auth, clientes, distribuidores, pedidos, productos, usuarios, categorias, carrito
+from app.routers import auth, clientes, distribuidores, pedidos, productos, usuarios, categorias, carrito, entregas
 import logging
 
 logging.basicConfig(
@@ -77,6 +77,7 @@ app.include_router(pedidos.router)
 app.include_router(usuarios.router)
 app.include_router(categorias.router)
 app.include_router(carrito.router)
+app.include_router(entregas.router)
 
 # ── Suscriptores de eventos ────────────────────────────────────────
 event_bus.subscribe("cliente.registrado", EventoEnviarMensajeBienvenidaCliente())
