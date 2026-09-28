@@ -35,15 +35,21 @@ import {
   pagarOrden,
   obtenerDetalleOrden,
   obtenerMisPedidos,
+  obtenerResumenPedidos,
+  exportarPedidos,
   obtenerOrdenesDistribuidor,
+  obtenerResumenOrdenesDistribuidor,
   obtenerPedidosDistribuidor,
+  obtenerResumenPedidosDistribuidor,
+  exportarPedidosDistribuidor,
   obtenerValoracionesDistribuidor,
   rechazarOrden,
   obtenerPreOrden,
   crearOrden,
   type DatosCrearOrden,
 } from "@akindo/shared/api/pedidos";
-import type { EstadoPedido, FiltrosOrdenes } from "@akindo/shared/types/pedidos";
+import { obtenerEntregas, obtenerEntregasPorDia } from "@akindo/shared/api/entregas";
+import type { EstadoPedido, FiltrosOrdenes, FiltrosPedidos } from "@akindo/shared/types/pedidos";
 import type { FormatoExportacion } from "@akindo/shared/exportacion-context";
 import { MENSAJE_CARRITO_SIN_SESION, type AddToCartInput, type AddToCartResult } from "@akindo/shared/client/carrito";
 import { emitir } from "@akindo/shared/eventos";
@@ -219,18 +225,45 @@ export async function quitarDireccion(id: string) {
 // Espejo de `apps/web/src/lib/api/pedidos.ts` y de lo que arma el `page.tsx`
 // de web antes de pintar la pantalla.
 
-export async function cargarPedidos() {
+/**
+ * La información de entrega de varios pedidos, indexada por id. Espejo de
+ * `obtenerEntregas` de web.
+ */
+export async function cargarEntregasPedidos(pedidoIds: string[]) {
   const { token } = await sesionActual();
-  const [activosEnEnvio, pendientes, entregados, cancelados, ordenes] = await Promise.all([
-    obtenerMisPedidos("en envio", token),
-    obtenerMisPedidos("pendiente de envio", token),
-    obtenerMisPedidos("entregado", token),
-    obtenerMisPedidos("cancelado", token),
-    obtenerMisOrdenes({}, token),
-  ]);
-  // `obtenerMisOrdenes` devuelve el listado paginado; la pantalla de pedidos
-  // solo muestra las órdenes de la primera página.
-  return { activos: [...pendientes, ...activosEnEnvio], entregados, cancelados, ordenes: ordenes.ordenes };
+  return obtenerEntregas(pedidoIds, token);
+}
+
+/** El listado paginado de pedidos del cliente, con sus filtros. */
+export async function cargarPedidos(filtros: FiltrosPedidos = {}) {
+  const { token } = await sesionActual();
+  return obtenerMisPedidos(filtros, token);
+}
+
+/** Las entregas por día de la gráfica de cumplimiento. */
+export async function cargarEntregasPorDia(hasta: string | null = null, dias = 7) {
+  const { token } = await sesionActual();
+  return obtenerEntregasPorDia(dias, hasta, token);
+}
+
+/** Cuántos pedidos hay en cada estado, con los filtros vigentes. */
+export async function cargarResumenPedidos(filtros: FiltrosPedidos = {}) {
+  const { token } = await sesionActual();
+  return obtenerResumenPedidos(filtros, token);
+}
+
+/** El manifiesto de pedidos (por ahora solo Excel). */
+export async function exportarPedidosCliente(formato: FormatoExportacion, filtros: FiltrosPedidos = {}) {
+  if (formato !== "xlsx") throw new Error("Por ahora solo se puede exportar a Excel");
+  const { token } = await sesionActual();
+  return exportarPedidos(filtros, token);
+}
+
+/** Cuántas órdenes de compra están pendientes, para la insignia del acceso. */
+export async function contarOrdenesPendientes() {
+  const { token } = await sesionActual();
+  const listado = await obtenerMisOrdenes({ estado: "pendiente", cantidad: 1 }, token);
+  return listado.total_ordenes;
 }
 
 /** El listado paginado de órdenes de compra, con sus filtros. */
@@ -269,26 +302,42 @@ export async function valorarPedido(pedidoId: string, puntuacion: number, coment
 
 // ─── Pedidos del distribuidor ────────────────────────────────────────────────
 
-export async function cargarPedidosDistribuidor() {
+/** El listado paginado de pedidos del distribuidor, con sus filtros. */
+export async function cargarPedidosDistribuidor(filtros: FiltrosPedidos = {}) {
   const { token } = await sesionActual();
-  const [pendientes, enEnvio, entregados, cancelados] = await Promise.all([
-    obtenerPedidosDistribuidor("pendiente de envio", token),
-    obtenerPedidosDistribuidor("en envio", token),
-    obtenerPedidosDistribuidor("entregado", token),
-    obtenerPedidosDistribuidor("cancelado", token),
-  ]);
-  return { activos: [...pendientes, ...enEnvio], historial: [...entregados, ...cancelados] };
+  return obtenerPedidosDistribuidor(filtros, token);
 }
 
-/** Las órdenes de compra que le llegan al distribuidor. */
-export async function cargarOrdenesDistribuidor() {
+/** Cuántos pedidos del distribuidor hay en cada estado. */
+export async function cargarResumenPedidosDistribuidor(filtros: FiltrosPedidos = {}) {
   const { token } = await sesionActual();
-  const [pendientes, aceptadas, rechazadas] = await Promise.all([
-    obtenerOrdenesDistribuidor("pendiente", token),
-    obtenerOrdenesDistribuidor("aceptada", token),
-    obtenerOrdenesDistribuidor("rechazada", token),
-  ]);
-  return { pendientes, aceptadas, rechazadas };
+  return obtenerResumenPedidosDistribuidor(filtros, token);
+}
+
+/** El reporte de pedidos del distribuidor (por ahora solo Excel). */
+export async function exportarPedidosDistribuidorApp(formato: FormatoExportacion, filtros: FiltrosPedidos = {}) {
+  if (formato !== "xlsx") throw new Error("Por ahora solo se puede exportar a Excel");
+  const { token } = await sesionActual();
+  return exportarPedidosDistribuidor(filtros, token);
+}
+
+/** Cuántas órdenes de compra esperan la aprobación del distribuidor. */
+export async function contarOrdenesPendientesDistribuidor() {
+  const { token } = await sesionActual();
+  const listado = await obtenerOrdenesDistribuidor({ estado: "pendiente", cantidad: 1 }, token);
+  return listado.total_ordenes;
+}
+
+/** La bandeja paginada de órdenes del distribuidor, con sus filtros. */
+export async function cargarOrdenesDistribuidor(filtros: FiltrosOrdenes = {}) {
+  const { token } = await sesionActual();
+  return obtenerOrdenesDistribuidor(filtros, token);
+}
+
+/** Cuántas órdenes hay en cada estado, más cuántas se pueden surtir. */
+export async function cargarResumenOrdenesDistribuidor(filtros: FiltrosOrdenes = {}) {
+  const { token } = await sesionActual();
+  return obtenerResumenOrdenesDistribuidor(filtros, token);
 }
 
 /** Todo lo que pinta el panel de `/distribuidor`. */
@@ -302,7 +351,11 @@ export function seccionesDashboardDistribuidor() {
   const token = sesionActual().then((s) => s.token);
   return {
     resumen: token.then((t) => obtenerResumenMensual(t)).catch(() => null),
-    ordenesPendientes: token.then((t) => obtenerOrdenesDistribuidor("pendiente", t)).catch(() => []),
+    // El panel solo pinta las primeras: el listado ahora viene paginado, así
+    // que se le pasa `.ordenes`.
+    ordenesPendientes: token
+      .then((t) => obtenerOrdenesDistribuidor({ estado: "pendiente" }, t).then((l) => l.ordenes))
+      .catch(() => []),
     pedidosActivos: token.then((t) => obtenerPedidosActivos(t)).catch(() => []),
     alertas: token.then((t) => obtenerProductosPocasExistencias(t)).catch(() => []),
   };

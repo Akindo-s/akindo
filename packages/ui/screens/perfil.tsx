@@ -422,7 +422,7 @@ export default function Perfil({
         <Tarjeta conPadding={false} className="overflow-hidden flex flex-col">
           <ItemMenu Icono={List} label="Mis pedidos" href="/pedidos" borde />
           <ItemMenu Icono={Settings} label="Ajustes" href="/ajustes" borde />
-          <ItemMenu Icono={HelpCircle} label="Centro de ayuda" href="/ayuda" />
+          <ItemMenu Icono={HelpCircle} label="Centro de ayuda" href="/perfil/soporte" />
         </Tarjeta>
       </Section>
 

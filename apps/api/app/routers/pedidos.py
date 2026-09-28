@@ -18,6 +18,7 @@ from app.models.usuario import Usuario
 from app.models.cliente import Cliente
 from app.models.distribuidor import Distribuidor
 from app.schemas.orden_pedido import (
+    ResumenOrdenesResponse,
     CrearOrdenRequest,
     ListadoOrdenesResponse,
     RechazarOrdenRequest,
@@ -26,6 +27,8 @@ from app.schemas.orden_pedido import (
     PreOrdenResponse,
 )
 from app.schemas.pedido import (
+    ListadoPedidosResponse,
+    ResumenPedidosResponse,
     ActualizarEstadoPedidoRequest,
     CrearValoracionRequest,
     PedidoResponse,
@@ -185,17 +188,93 @@ async def cancelar_orden(
 
 @router.get(
     "/",
-    response_model=list[PedidoListItem],
+    response_model=ListadoPedidosResponse,
     summary="Cliente: listar mis pedidos",
 )
 async def listar_mis_pedidos(
+    request: Request,
     estado: Optional[str] = Query(None, description="pendiente de envio | en envio | entregado | cancelado"),
+    cantidad_pagina: int = Query(10, ge=1, description="Número de pedidos a mostrar por página"),
+    numero_pagina: int = Query(1, ge=1, description="Número de la página a mostrar"),
+    q: Optional[str] = Query(None, description="Busca por id del pedido o por nombre de producto"),
+    distribuidor_id: Optional[UUID] = Query(None, description="Solo los pedidos de ese distribuidor"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de confirmación (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de confirmación (ISO 8601)"),
+    orden: str = Query("desc", pattern="^(asc|desc)$", description="Por fecha de confirmación: desc (recientes primero) o asc"),
     cliente: Cliente = Depends(get_current_cliente),
     db: DatabaseSession = Depends(get_db),
 ):
-    """Lista todos los pedidos del cliente autenticado."""
+    """Lista los pedidos del cliente autenticado, paginados y filtrados."""
     service = PedidoService(db)
-    return await service.listar_mis_pedidos_cliente(cliente.id, estado)
+    response = await service.listar_mis_pedidos_cliente_paginado(
+        cliente.id, estado, cantidad_pagina, numero_pagina, q, distribuidor_id,
+        fecha_desde, fecha_hasta, orden,
+    )
+
+    # Mismo armado que en órdenes, distribuidores y productos.
+    if response.tiene_siguiente:
+        response.siguiente_url = str(request.url.include_query_params(numero_pagina=numero_pagina + 1))
+    if response.tiene_anterior:
+        response.anterior_url = str(request.url.include_query_params(numero_pagina=numero_pagina - 1))
+
+    return response
+
+
+# `/resumen` y `/exportar` van antes que `/{pedido_id}`: si no, FastAPI
+# intenta leer esas palabras como uuid y responde 422.
+@router.get(
+    "/resumen",
+    response_model=ResumenPedidosResponse,
+    summary="Cliente: cuántos pedidos tengo en cada estado",
+)
+async def resumen_mis_pedidos(
+    q: Optional[str] = Query(None, description="Busca por id del pedido o por nombre de producto"),
+    distribuidor_id: Optional[UUID] = Query(None, description="Solo los pedidos de ese distribuidor"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de confirmación (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de confirmación (ISO 8601)"),
+    cliente: Cliente = Depends(get_current_cliente),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Los conteos por estado, con los mismos filtros que el listado menos el
+    estado: es lo que alimenta las tarjetas del resumen y los contadores de
+    las pestañas."""
+    service = PedidoService(db)
+    return await service.resumen_pedidos_cliente(cliente.id, q, distribuidor_id, fecha_desde, fecha_hasta)
+
+
+# `/exportar` va antes que `/{pedido_id}`: si no, FastAPI intenta leer
+# "exportar" como uuid y responde 422.
+@router.get(
+    "/exportar",
+    summary="Cliente: exportar mis pedidos a Excel",
+    response_class=StreamingResponse,
+)
+async def exportar_mis_pedidos(
+    estado: Optional[str] = Query(None, description="pendiente de envio | en envio | entregado | cancelado"),
+    q: Optional[str] = Query(None, description="Busca por id del pedido o por nombre de producto"),
+    distribuidor_id: Optional[UUID] = Query(None, description="Solo los pedidos de ese distribuidor"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de confirmación (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de confirmación (ISO 8601)"),
+    orden: str = Query("desc", pattern="^(asc|desc)$", description="Por fecha de confirmación: desc (recientes primero) o asc"),
+    cliente: Cliente = Depends(get_current_cliente),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Manifiesto en Excel con una fila por partida, con los mismos filtros que
+    el listado: se exporta lo que el usuario está viendo."""
+    service = PedidoService(db)
+    contenido = await service.exportar_pedidos_cliente(
+        cliente.id, estado, q, distribuidor_id, fecha_desde, fecha_hasta, orden,
+    )
+    nombre = f"manifiesto-de-pedidos-{datetime.now().strftime('%Y-%m-%d')}.xlsx"
+    return StreamingResponse(
+        BytesIO(contenido),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="{nombre}"',
+            # Sin esto el front no puede leer el nombre del archivo desde JS.
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
 
 
 @router.get(
@@ -233,17 +312,61 @@ async def crear_valoracion(
 
 @router.get(
     "/distribuidor/ordenes",
-    response_model=list[OrdenPedidoListItem],
+    response_model=ListadoOrdenesResponse,
     summary="Distribuidor: listar órdenes de compra recibidas",
 )
 async def listar_ordenes_distribuidor(
-    estado: Optional[str] = Query(None, description="pendiente | aceptada | rechazada"),
+    request: Request,
+    estado: Optional[str] = Query(None, description="pendiente | aceptada | rechazada | cancelada"),
+    cantidad_pagina: int = Query(10, ge=1, description="Número de órdenes a mostrar por página"),
+    numero_pagina: int = Query(1, ge=1, description="Número de la página a mostrar"),
+    q: Optional[str] = Query(None, description="Busca por id de la orden o por nombre de producto"),
+    cliente_id: Optional[UUID] = Query(None, description="Solo las órdenes de ese cliente"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de emisión (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de emisión (ISO 8601)"),
+    orden: str = Query("desc", pattern="^(asc|desc)$", description="Por fecha de emisión: desc (recientes primero) o asc"),
     distribuidor: Distribuidor = Depends(get_current_distribuidor),
     db: DatabaseSession = Depends(get_db),
 ):
-    """Lista todas las órdenes de compra recibidas por el distribuidor."""
+    """La bandeja de órdenes del distribuidor, paginada y filtrada.
+
+    Cada orden pendiente llega con lo que el vendedor necesita para decidir:
+    si le alcanza el inventario (`cobertura` y `existencias` por partida), si
+    el cliente ya le compró antes y a dónde hay que entregar.
+    """
     service = OrdenPedidoService(db)
-    return await service.listar_ordenes_distribuidor(distribuidor.id, estado)
+    response = await service.listar_ordenes_distribuidor_paginado(
+        distribuidor.id, estado, cantidad_pagina, numero_pagina, q, cliente_id,
+        fecha_desde, fecha_hasta, orden,
+    )
+
+    if response.tiene_siguiente:
+        response.siguiente_url = str(request.url.include_query_params(numero_pagina=numero_pagina + 1))
+    if response.tiene_anterior:
+        response.anterior_url = str(request.url.include_query_params(numero_pagina=numero_pagina - 1))
+
+    return response
+
+
+# `/resumen` va antes que las rutas con `{orden_id}`: si no, FastAPI intenta
+# leer "resumen" como uuid y responde 422.
+@router.get(
+    "/distribuidor/ordenes/resumen",
+    response_model=ResumenOrdenesResponse,
+    summary="Distribuidor: cuántas órdenes tengo en cada estado",
+)
+async def resumen_ordenes_distribuidor(
+    q: Optional[str] = Query(None, description="Busca por id de la orden o por nombre de producto"),
+    cliente_id: Optional[UUID] = Query(None, description="Solo las órdenes de ese cliente"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de emisión (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de emisión (ISO 8601)"),
+    distribuidor: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Los conteos por estado, con los mismos filtros que el listado menos el
+    estado."""
+    service = OrdenPedidoService(db)
+    return await service.resumen_ordenes_distribuidor(distribuidor.id, q, cliente_id, fecha_desde, fecha_hasta)
 
 
 @router.patch(
@@ -281,17 +404,90 @@ async def rechazar_orden(
 
 @router.get(
     "/distribuidor/pedidos",
-    response_model=list[PedidoListItem],
+    response_model=ListadoPedidosResponse,
     summary="Distribuidor: listar sus pedidos",
 )
 async def listar_pedidos_distribuidor(
-    estado: Optional[str] = Query(None),
+    request: Request,
+    estado: Optional[str] = Query(None, description="pendiente de envio | en envio | entregado | cancelado"),
+    cantidad_pagina: int = Query(10, ge=1, description="Número de pedidos a mostrar por página"),
+    numero_pagina: int = Query(1, ge=1, description="Número de la página a mostrar"),
+    q: Optional[str] = Query(None, description="Busca por id del pedido o por nombre de producto"),
+    cliente_id: Optional[UUID] = Query(None, description="Solo los pedidos de ese cliente"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de confirmación (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de confirmación (ISO 8601)"),
+    orden: str = Query("desc", pattern="^(asc|desc)$", description="Por fecha de confirmación: desc (recientes primero) o asc"),
     distribuidor: Distribuidor = Depends(get_current_distribuidor),
     db: DatabaseSession = Depends(get_db),
 ):
-    """Lista todos los pedidos del distribuidor (activos y finalizados)."""
+    """Lista los pedidos del distribuidor, paginados y filtrados."""
     service = PedidoService(db)
-    return await service.listar_pedidos_distribuidor(distribuidor.id, estado)
+    response = await service.listar_pedidos_distribuidor_paginado(
+        distribuidor.id, estado, cantidad_pagina, numero_pagina, q, cliente_id,
+        fecha_desde, fecha_hasta, orden,
+    )
+
+    if response.tiene_siguiente:
+        response.siguiente_url = str(request.url.include_query_params(numero_pagina=numero_pagina + 1))
+    if response.tiene_anterior:
+        response.anterior_url = str(request.url.include_query_params(numero_pagina=numero_pagina - 1))
+
+    return response
+
+
+# `/resumen` y `/exportar` van antes que `/{pedido_id}`: si no, FastAPI intenta
+# leer esas palabras como uuid y responde 422.
+@router.get(
+    "/distribuidor/pedidos/exportar",
+    summary="Distribuidor: exportar mis pedidos a Excel",
+    response_class=StreamingResponse,
+)
+async def exportar_pedidos_distribuidor(
+    estado: Optional[str] = Query(None, description="pendiente de envio | en envio | entregado | cancelado"),
+    q: Optional[str] = Query(None, description="Busca por id del pedido o por nombre de producto"),
+    cliente_id: Optional[UUID] = Query(None, description="Solo los pedidos de ese cliente"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de confirmación (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de confirmación (ISO 8601)"),
+    orden: str = Query("desc", pattern="^(asc|desc)$", description="Por fecha de confirmación: desc (recientes primero) o asc"),
+    distribuidor: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Reporte en Excel con una fila por partida, con los mismos filtros que el
+    listado: se exporta lo que el distribuidor está viendo."""
+    service = PedidoService(db)
+    contenido = await service.exportar_pedidos_distribuidor(
+        distribuidor.id, estado, q, cliente_id, fecha_desde, fecha_hasta, orden,
+    )
+    nombre = f"reporte-de-pedidos-{datetime.now().strftime('%Y-%m-%d')}.xlsx"
+    return StreamingResponse(
+        BytesIO(contenido),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="{nombre}"',
+            # Sin esto el front no puede leer el nombre del archivo desde JS.
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
+
+
+@router.get(
+    "/distribuidor/pedidos/resumen",
+    response_model=ResumenPedidosResponse,
+    summary="Distribuidor: cuántos pedidos tengo en cada estado",
+)
+async def resumen_pedidos_distribuidor(
+    q: Optional[str] = Query(None, description="Busca por id del pedido o por nombre de producto"),
+    cliente_id: Optional[UUID] = Query(None, description="Solo los pedidos de ese cliente"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de confirmación (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de confirmación (ISO 8601)"),
+    distribuidor: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Los conteos por estado, con los mismos filtros que el listado menos el
+    estado: alimenta las tarjetas del resumen y los contadores de las
+    pestañas."""
+    service = PedidoService(db)
+    return await service.resumen_pedidos_distribuidor(distribuidor.id, q, cliente_id, fecha_desde, fecha_hasta)
 
 
 @router.patch(

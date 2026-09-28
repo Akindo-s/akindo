@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { obtenerMisPedidos, obtenerMisOrdenes } from "@/lib/api/pedidos";
+import { obtenerMisPedidos, obtenerMisOrdenes, exportarPedidos, obtenerEntregas, obtenerEntregasPorDia, obtenerResumenPedidos } from "@/lib/api/pedidos";
+import type { FiltrosPedidos } from "@akindo/shared/types/pedidos";
 import { Suspense } from "react";
 import Pedidos from "@akindo/ui/screens/pedidos";
 
@@ -11,25 +12,49 @@ export const metadata: Metadata = {
 };
 
 async function PedidosContent() {
-  const [pedidosActivos, pedidosPendientes, entregados, cancelados, ordenes] = await Promise.all([
-    obtenerMisPedidos("en envio"),
-    obtenerMisPedidos("pendiente de envio"),
-    obtenerMisPedidos("entregado"),
-    obtenerMisPedidos("cancelado"),
+  // La primera página se pinta en el servidor; a partir de ahí los filtros y
+  // la paginación los pide la pantalla con `cargarAction`.
+  const [listado, ordenes] = await Promise.all([
+    obtenerMisPedidos({ pagina: 1, cantidad: 10 }),
     obtenerMisOrdenes(),
   ]);
 
-  // `obtenerMisOrdenes` devuelve el listado paginado; esta pantalla solo
-  // muestra las órdenes de la primera página.
+  async function cargarAction(filtros: FiltrosPedidos) {
+    "use server";
+    return obtenerMisPedidos(filtros);
+  }
+
+  async function exportarAction(formato: "xlsx" | "pdf" | "csv", filtros: FiltrosPedidos) {
+    "use server";
+    return exportarPedidos(formato, filtros);
+  }
+
+  async function entregasAction(pedidoIds: string[]) {
+    "use server";
+    return obtenerEntregas(pedidoIds);
+  }
+
+  async function resumenAction(filtros: FiltrosPedidos) {
+    "use server";
+    return obtenerResumenPedidos(filtros);
+  }
+
+  async function entregasPorDiaAction(hasta: string | null) {
+    "use server";
+    return obtenerEntregasPorDia(hasta);
+  }
 
   return (
     <Pedidos
-      datos={{
-        activos: [...pedidosPendientes, ...pedidosActivos],
-        entregados,
-        cancelados,
-        ordenes: ordenes.ordenes,
-      }}
+      listado={listado}
+      cargarPedidos={cargarAction}
+      exportarAction={exportarAction}
+      cargarEntregas={entregasAction}
+      cargarResumen={resumenAction}
+      cargarEntregasPorDia={entregasPorDiaAction}
+      // Solo para la insignia del acceso a órdenes: el listado de órdenes vive
+      // en su propia pantalla.
+      ordenesPendientes={ordenes.ordenes.filter((o) => o.estado === "pendiente").length}
     />
   );
 }

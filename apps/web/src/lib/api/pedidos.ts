@@ -1,8 +1,9 @@
 "use server";
 
 import * as core from "@akindo/shared/api/pedidos";
+import * as coreEntregas from "@akindo/shared/api/entregas";
 import { conSesion, sesionRequerida } from "@/lib/sesion";
-import type { EstadoPedido, FiltrosOrdenes } from "@akindo/shared/types/pedidos";
+import type { EstadoPedido, FiltrosOrdenes, FiltrosPedidos } from "@akindo/shared/types/pedidos";
 
 export type { DatosCrearOrden } from "@akindo/shared/api/pedidos";
 
@@ -62,11 +63,48 @@ export async function obtenerDetalleOrden(ordenId: string) {
   return conSesion(() => core.obtenerDetalleOrden(ordenId, token));
 }
 
+// ── Entregas ──────────────────────────────────────────────────────────────────
+
+/**
+ * La información de entrega de varios pedidos (fecha aproximada,
+ * transportista y evidencias), indexada por id.
+ *
+ * `sesionRequerida()` sin tipo: el endpoint sirve igual al cliente y al
+ * distribuidor, y él mismo comprueba que el pedido sea del usuario.
+ */
+export async function obtenerEntregas(pedidoIds: string[]) {
+  const { token } = await sesionRequerida();
+  return conSesion(() => coreEntregas.obtenerEntregas(pedidoIds, token));
+}
+
+/** Las entregas por día de la gráfica de cumplimiento. */
+export async function obtenerEntregasPorDia(hasta: string | null = null, dias = 7) {
+  const { token } = await sesionRequerida();
+  return conSesion(() => coreEntregas.obtenerEntregasPorDia(dias, hasta, token));
+}
+
 // ── Pedidos — cliente ─────────────────────────────────────────────────────────
 
-export async function obtenerMisPedidos(estado?: EstadoPedido) {
+/** Devuelve el listado paginado (`{ …metadata, pedidos }`), no la lista suelta. */
+export async function obtenerMisPedidos(filtros: FiltrosPedidos = {}) {
   const token = await tokenCliente();
-  return conSesion(() => core.obtenerMisPedidos(estado, token));
+  return conSesion(() => core.obtenerMisPedidos(filtros, token));
+}
+
+/** Cuántos pedidos hay en cada estado, con los filtros vigentes. */
+export async function obtenerResumenPedidos(filtros: FiltrosPedidos = {}) {
+  const token = await tokenCliente();
+  return conSesion(() => core.obtenerResumenPedidos(filtros, token));
+}
+
+/**
+ * El manifiesto de pedidos, en base64. Server Action por lo mismo que la
+ * exportación de órdenes: el token es una cookie httpOnly.
+ */
+export async function exportarPedidos(formato: "xlsx" | "pdf" | "csv", filtros: FiltrosPedidos = {}) {
+  if (formato !== "xlsx") throw new Error("Por ahora solo se puede exportar a Excel");
+  const token = await tokenCliente();
+  return conSesion(() => core.exportarPedidos(filtros, token));
 }
 
 export async function obtenerDetallePedido(pedidoId: string) {
@@ -85,9 +123,16 @@ export async function crearValoracion(
 
 // ── Órdenes de compra — distribuidor ─────────────────────────────────────────
 
-export async function obtenerOrdenesDistribuidor(estado?: string) {
+/** Devuelve el listado paginado (`{ …metadata, ordenes }`), no la lista suelta. */
+export async function obtenerOrdenesDistribuidor(filtros: FiltrosOrdenes = {}) {
   const token = await tokenDistribuidor();
-  return conSesion(() => core.obtenerOrdenesDistribuidor(estado, token));
+  return conSesion(() => core.obtenerOrdenesDistribuidor(filtros, token));
+}
+
+/** Cuántas órdenes hay en cada estado, más cuántas se pueden surtir. */
+export async function obtenerResumenOrdenesDistribuidor(filtros: FiltrosOrdenes = {}) {
+  const token = await tokenDistribuidor();
+  return conSesion(() => core.obtenerResumenOrdenesDistribuidor(filtros, token));
 }
 
 export async function aceptarOrden(ordenId: string) {
@@ -102,9 +147,26 @@ export async function rechazarOrden(ordenId: string, motivo_rechazo?: string) {
 
 // ── Pedidos — distribuidor ────────────────────────────────────────────────────
 
-export async function obtenerPedidosDistribuidor(estado?: EstadoPedido) {
+/** Devuelve el listado paginado (`{ …metadata, pedidos }`), no la lista suelta. */
+export async function obtenerPedidosDistribuidor(filtros: FiltrosPedidos = {}) {
   const token = await tokenDistribuidor();
-  return conSesion(() => core.obtenerPedidosDistribuidor(estado, token));
+  return conSesion(() => core.obtenerPedidosDistribuidor(filtros, token));
+}
+
+/**
+ * El reporte de pedidos del distribuidor, en base64. Server Action por lo
+ * mismo que el manifiesto del cliente: el token es una cookie httpOnly.
+ */
+export async function exportarPedidosDistribuidor(formato: "xlsx" | "pdf" | "csv", filtros: FiltrosPedidos = {}) {
+  if (formato !== "xlsx") throw new Error("Por ahora solo se puede exportar a Excel");
+  const token = await tokenDistribuidor();
+  return conSesion(() => core.exportarPedidosDistribuidor(filtros, token));
+}
+
+/** Cuántos pedidos del distribuidor hay en cada estado. */
+export async function obtenerResumenPedidosDistribuidor(filtros: FiltrosPedidos = {}) {
+  const token = await tokenDistribuidor();
+  return conSesion(() => core.obtenerResumenPedidosDistribuidor(filtros, token));
 }
 
 export async function enviarActualizacionPedido(

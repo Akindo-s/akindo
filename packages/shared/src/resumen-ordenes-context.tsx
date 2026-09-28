@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import type { TarjetaResumen } from "./types/resumen";
 
 /**
  * Tarjetas del resumen de órdenes de compra (la fila que scrollea arriba de la
@@ -15,60 +16,18 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
  * providers (web: server action; mobile: llamada con el token).
  */
 
-/** Lo común a todas las tarjetas. */
-interface TarjetaBase {
-  /** Identificador estable, para las `key` y para el scroll. */
-  id: string;
-  /** El rótulo de arriba, en versalitas. */
-  titulo: string;
-}
-
-/** Un importe con su comparación contra el ciclo anterior. */
-export interface TarjetaMonto extends TarjetaBase {
-  tipo: "monto";
-  monto: number;
-  moneda: string;
-  /** Variación en porcentaje: positiva sube, negativa baja. */
-  variacion: number | null;
-  /** Contra qué se compara ("vs ciclo previo"). */
-  comparacion: string | null;
-}
-
-/** Un importe que necesita atención: se pinta en rojo. */
-export interface TarjetaAlerta extends TarjetaBase {
-  tipo: "alerta";
-  monto: number;
-  moneda: string;
-  /** "2 por vencer". */
-  detalle: string | null;
-  /** "Prioridad Alta". */
-  etiqueta: string | null;
-}
-
-/** Algo en curso, con su tiempo de respuesta comprometido. */
-export interface TarjetaProceso extends TarjetaBase {
-  tipo: "proceso";
-  monto: number;
-  moneda: string;
-  /** "3 órdenes en firma". */
-  detalle: string | null;
-  /** "SLA 4 horas". */
-  sla: string | null;
-}
-
-/** Un conteo (no un importe) con dos notas al pie. */
-export interface TarjetaConteo extends TarjetaBase {
-  tipo: "conteo";
-  cantidad: number;
-  /** "órdenes". */
-  unidad: string;
-  /** "100% SAT CFDI 4.0". */
-  nota: string | null;
-  /** "$45.2k liquidados". */
-  notaSecundaria: string | null;
-}
-
-export type TarjetaResumen = TarjetaMonto | TarjetaAlerta | TarjetaProceso | TarjetaConteo;
+// Los tipos de tarjeta son compartidos con el resumen de pedidos: viven en
+// `types/resumen` y se re-exportan acá para no romper a quien ya los importaba
+// desde este módulo.
+export type {
+  TarjetaMonto,
+  TarjetaAlerta,
+  TarjetaProceso,
+  TarjetaConteo,
+  TarjetaEstado,
+  TarjetaResumen,
+  TonoTarjeta,
+} from "./types/resumen";
 
 /** Lo que tendrá que implementar cada app cuando exista el endpoint. */
 export type CargarResumenOrdenes = () => Promise<TarjetaResumen[]>;

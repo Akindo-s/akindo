@@ -33,7 +33,11 @@ export default async function DistribuidorPage() {
     // cuando el problema es la sesión.
     const secciones = {
         resumen: obtenerResumenMensual().catch(() => null),
-        ordenesPendientes: obtenerOrdenesDistribuidor("pendiente").catch(() => []),
+        // El panel solo pinta las primeras: el listado ahora viene paginado,
+        // así que se le pasa `.ordenes`.
+        ordenesPendientes: obtenerOrdenesDistribuidor({ estado: "pendiente" })
+          .then((l) => l.ordenes)
+          .catch(() => []),
         pedidosActivos: obtenerPedidosActivos().catch(() => []),
         alertas: obtenerProductosPocasExistencias().catch(() => []),
     };

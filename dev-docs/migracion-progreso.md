@@ -18,12 +18,12 @@ Contexto mínimo para retomar. Reglas del proceso: [`migracion-ui-reglas.md`](./
 | `(public)/mercado/distribuidor/tienda` | ✅ terminada | `packages/ui/screens/tienda.tsx` | `app/(public)/mercado/distribuidor/tienda/index.tsx` |
 | `(protected)/carrito` | ✅ terminada | `packages/ui/screens/carrito.tsx` + `components/carrito/` | `app/(protected)/carrito/index.tsx` |
 | `(protected)/perfil` | ✅ terminada | `packages/ui/screens/perfil.tsx` + `components/ui/{Avatar,Badge,CampoEditable,ItemMenu}.tsx` | `app/(protected)/perfil/index.tsx` |
-| `(protected)/pedidos` | ✅ terminada | `packages/ui/screens/pedidos.tsx` | `app/(protected)/pedidos/index.tsx` |
+| `(protected)/pedidos` (rediseñada, paginada) | ✅ terminada | `packages/ui/screens/pedidos.tsx` + `components/ui/{TarjetasResumen,BarraFiltros,GraficaEntregas,ExportacionMasiva}.tsx` | `app/(protected)/pedidos/index.tsx` |
 | `(protected)/pedidos/ordenes` (rediseñada, paginada) | ✅ terminada | `packages/ui/screens/ordenes.tsx` + `components/ui/{TarjetasResumen,BarraFiltros,ExportacionMasiva,ModalConfirmacion}.tsx` | `app/(protected)/pedidos/ordenes/index.tsx` |
 | `(protected)/pedidos/[pedidoId]` | ✅ terminada (cliente y distribuidor) | `packages/ui/screens/{pedido-detalle,distribuidor-pedido-detalle}.tsx` + `components/pedidos/*` | `app/(protected)/pedidos/[pedidoId]/index.tsx` (elige vista según el tipo, como el page.tsx) |
 | `(protected)/distribuidor` (panel) | ✅ terminada | `packages/ui/screens/distribuidor-dashboard.tsx` + `components/perfil/ProductActionsMenu.tsx` | `app/(protected)/distribuidor/index.tsx` |
 | `(protected)/distribuidor/productos` (inventario) | ✅ terminada | `packages/ui/screens/inventario.tsx` + `components/productos/TarjetaProducto.tsx` | `app/(protected)/distribuidor/productos/index.tsx` |
-| `(protected)/distribuidor/ordenes` | ✅ terminada | `packages/ui/screens/distribuidor-ordenes.tsx` | `app/(protected)/distribuidor/ordenes/index.tsx` |
+| `(protected)/distribuidor/ordenes` (rediseñada, paginada) | ✅ terminada | `packages/ui/screens/distribuidor-ordenes.tsx` + `components/ui/{TarjetasResumen,BarraFiltros}.tsx` | `app/(protected)/distribuidor/ordenes/index.tsx` |
 | `(protected)/distribuidor/ordenes/[ordenId]` | ✅ terminada | `packages/ui/screens/distribuidor-orden-detalle.tsx` | `app/(protected)/distribuidor/ordenes/[ordenId]/index.tsx` |
 | `(protected)/distribuidor/pedidos` | ✅ terminada | `packages/ui/screens/distribuidor-pedidos.tsx` | `app/(protected)/distribuidor/pedidos/index.tsx` |
 | `(protected)/distribuidor/productos/crear` | ✅ terminada | `packages/ui/components/productos/RegistrarProductoForm.tsx` + `components/ui/Selector.tsx` (con la API de web) | `app/(protected)/distribuidor/productos/crear/index.tsx` |
@@ -227,6 +227,11 @@ Dependencias de plataforma ya abstraídas (patrón `x.ts` / `x.web.ts` + alias e
 79. **Un archivo que la API genera viaja en base64, no como `Blob`.** En web la llamada sale de una Server Action (el token es una cookie httpOnly) y por ahí solo pasan valores serializables. Quien lo convierte en descarga es `@akindo/ui/descargar`, con gemelo por plataforma: en web un `<a download>` sobre un Blob; en nativo, `expo-file-system` + la hoja de compartir de `expo-sharing`.
 80. **Una tabla y unas tarjetas son el mismo dato en dos formas.** Se pintan las dos ramas y se esconde la que no toca con `hidden md:flex` / `md:hidden` (regla 28), porque en nativo no hay media queries en CSS: nativewind resuelve el breakpoint por ancho de ventana. Ojo con las `key`: si las dos ramas listan lo mismo, cada una necesita su prefijo.
 81. **Un filtro que no se puede escribir en SQL se resuelve como una lista de ids.** PostgREST no hace `ilike` sobre un uuid ni `or` entre la tabla y un recurso embebido, y el total de una orden no es columna (sale de sus paquetes). El repo hace consultas baratas que solo traen `id`, calcula en Python y le pasa la lista al `select_con_total` con un `in`: así el `count` sigue siendo exacto y la paginación no miente.
+82. **Un renderer compartido recibe la lista por prop; el contexto es el default.** `TarjetasResumen` nació leyendo `useResumenOrdenes`, y pedidos necesitaba lo mismo con otro provider. En vez de duplicarlo, el hook se sigue llamando siempre (no puede ir dentro de un `if`) y lo que devuelve solo se usa cuando la pantalla no pasó su propia lista. Los tipos que las dos pantallas comparten se mudan a `types/` y el módulo viejo los re-exporta, así nadie que ya los importaba se rompe.
+83. **Un componente que otra pantalla va a reusar no lee contexto.** `GraficaEntregas` recibe los días por props y no sabe de dónde salen, porque la pantalla del distribuidor los va a sacar de otro lado. El provider queda del lado de quien tiene los datos.
+84. **Cambiar la forma de una respuesta es tocar a todos sus consumidores.** `GET /pedidos/` pasó de lista a objeto paginado: si el cliente hace `datos.pedidos ?? []` sobre lo que sigue siendo un array, no falla, devuelve vacío y la pantalla se ve "sin datos" sin ningún error. Antes de cambiar un endpoint conviene buscar quién lo consume, y si mobile apunta a la API desplegada, el síntoma aparece solo ahí.
+85. **Recargar no es desmontar.** Si un bloque que se repagina se reemplaza por su esqueleto en cada carga, la pantalla entera salta y se pierde el estado de lo que hay dentro. El esqueleto es solo para la **primera** carga (`datos.length === 0 && cargando`); de ahí en adelante el componente se queda montado y él mismo muestra que está trabajando. En `GraficaEntregas` eso es bajar las barras a cero: el rango anterior se mantiene hasta que llegan los datos nuevos, y entonces alturas y fecha se mueven juntas.
+86. **Una altura animada no puede ir por el driver nativo ni por `className`.** `useNativeDriver` solo sabe de `transform` y `opacity`, así que animar `height` obliga a `useNativeDriver: false`; y `Animated.View` no acepta `className` (regla 7), así que el color y la altura van por `style` y las clases quedan en un `View` que lo envuelve. Ojo con las `key`: si la lista se re-indexa por un campo que cambia con los datos (una fecha), cada elemento se remonta y pierde su `Animated.Value`; ahí la key correcta es la posición.
 
 ## Cómo verificar una ruta
 
@@ -341,6 +346,134 @@ vacía: la llamada falla y el cliente devuelve el listado vacío. Quedó apuntan
 a `http://127.0.0.1:8000`; la línea de la API desplegada está comentada arriba.
 Hay que desplegar la API para volver a usarla.
 
+## Rediseño de pedidos del cliente (2026-09-27)
+
+`screens/pedidos.tsx` se rehizo con el diseño nuevo, repitiendo el proceso de
+órdenes de compra. Lo que trae:
+
+- **Listado paginado de verdad.** `GET /pedidos/` dejó de devolver una lista
+  suelta y ahora devuelve `ListadoPedidos` (`{ …metadata, pedidos }`), con
+  `estado`, `q`, `distribuidor_id`, `fecha_desde`, `fecha_hasta` y `orden`.
+  Ojo: la tabla `pedido` **no tiene `created_at`**; la fecha del pedido —y la
+  columna por la que se ordena— es `confirmado_at`.
+- **`PedidoListItem` enriquecido**: imagen del distribuidor, imagen del primer
+  producto, `total_partidas`, `destino` (ciudad y estado de la dirección) y
+  `seguimiento`, que es el timeline real (`pedido_actualizacion`) embebido en
+  la misma consulta.
+- **Tarjeta colapsable, con cuatro cuerpos.** Colapsada muestra el cuerpo que
+  toca según el estado: productos para "preparando envío", panel de envío para
+  "en camino", folio para "entregado" y el motivo del distribuidor para
+  "cancelado" (esa no se puede expandir: no hay ruta que mostrar). "Ver
+  seguimiento" cambia ese cuerpo por el desglose completo —la ruta y los
+  bloques de destino, carga y transportista—. La primera del listado arranca
+  expandida. Todas llevan el mismo botón "Ver detalle".
+- **La ruta tiene cuatro pasos y tres formas de círculo**: los que ya pasaron
+  (dorado con palomita), el que está en curso (oscuro con el camión) y los
+  pendientes (gris con su número). Dos trampas con el paso en curso: es el
+  **último cumplido** —donde está el envío ahora—, no el primero pendiente (si
+  no, la barra se llena entera y el círculo oscuro cae en "Entregado"); y hay
+  que buscar el **último** cumplido, no contar cuántos hay, porque los pasos no
+  se cumplen en fila: "Preparado" sale del mock y puede faltar mientras "En
+  camino" ya pasó.
+- **Lo que es real y lo que no.** De la API salen el id, la orden (el pill
+  `OC-…`), el distribuidor, los productos, el resumen de carga (`{n} partidas
+  • {total} {unidad}`), el destino, el estado con su fecha y tres de los
+  cuatro pasos. Lo demás —prioridad, el paso "Preparado", transportista,
+  chofer, último satélite, lote y la nota de inspección— vive **solo** en
+  `@akindo/shared/logistica-pedidos-context`, que hoy es un mock. Cada campo es
+  opcional: si el provider no lo trae, la tarjeta no lo pinta y no queda hueco.
+- **Router de entregas** (`/entregas/pedidos/{id}`, `routers/entregas.py` +
+  `services/entrega.py`): fecha de entrega aproximada, ventana horaria,
+  transportista con su chofer y evidencias de la entrega. Está autenticado con
+  `get_current_user` —y no con `get_current_cliente` / `get_current_distribuidor`,
+  que dejarían fuera a la otra mitad—; el servicio comprueba que el pedido sea
+  del usuario mirando `orden_pedido.cliente_id` / `distribuidor_id` (404 si no
+  existe, 403 si es ajeno). **Sus datos son un mock**, en `_MOCK_*` dentro del
+  propio servicio, pero se apoyan en el pedido real: la fecha aproximada sale
+  de `confirmado_at` más el compromiso (o del `entregado_at` real si ya
+  llegó), y las evidencias solo aparecen si el pedido está entregado.
+  La pantalla lo consume con `cargarEntregas`, inyectado por cada app, y el
+  provider de logística **mezcla**: lo que viene del endpoint pisa al mock
+  local.
+- **No hay fecha estimada de llegada inventada en el front.** La hubo, inventada, y se quitó. El
+  pill del encabezado dice desde cuándo el pedido está en su estado ("En
+  camino desde 13 sep"), que sale del timeline real. La gráfica de entregas no
+  se vio afectada: vive en otro provider (`soporte-envio-context`) y no
+  compartían ningún campo. Ojo para cuando esa gráfica sea real: su
+  `conRetraso` significa "entregado tarde", y para calcularlo hace falta una
+  fecha comprometida **en la base**, comparable contra `entregado_at`; un
+  string de presentación como el que había no servía para eso.
+- **Sin botones muertos.** El diseño trae "Ruta en mapa", "Guía", "Confirmar
+  recepción", "Rastrear en vivo" y "Packing list": ninguno tiene endpoint
+  detrás (y "Confirmar recepción" sería además una escritura que hoy solo
+  puede hacer el distribuidor), así que se quitaron. Queda "Ver detalle", que
+  es lo único que el cliente puede hacer, más el botón de expandir.
+- **Los tres ids de la tarjeta**: el grande es el del pedido, el pill `OC-…`
+  es el de su orden de compra y el que va junto al nombre del distribuidor es
+  el suyo. Todos abreviados a los primeros ocho caracteres, como en el detalle.
+- **La misma `BarraFiltros`** de órdenes, con sus pestañas por estado, el
+  rango de fecha y el ordenamiento marcado `tipo: "orden"` para que no reinicie
+  la página.
+- **Tarjetas de resumen** con un tipo nuevo, `estado`: un conteo sobre fondo de
+  color (ámbar, azul, verde, rojo) que además filtra el listado al tocarlo. Los
+  tipos de tarjeta se mudaron a `@akindo/shared/types/resumen`, compartidos
+  entre el resumen de órdenes y el de pedidos, y `TarjetasResumen` acepta la
+  lista por prop para no duplicar el renderer. Los datos son **un mock**
+  (`@akindo/shared/resumen-pedidos-context`).
+- **Columna de apoyo** (soporte de envío + gráfica de cumplimiento) desde
+  `@akindo/shared/soporte-envio-context`, también **mock**. La gráfica es un
+  componente aparte y sin contexto, `components/ui/GraficaEntregas.tsx`, para
+  poder reusarla en la pantalla de pedidos del distribuidor; está documentada
+  en `dev-docs/GRAFICA-ENTREGAS.md`.
+- **Manifiesto en Excel**: `GET /pedidos/exportar`, una fila por partida, con
+  los mismos filtros que el listado. Igual que en órdenes, viaja en base64 y lo
+  entrega `@akindo/ui/descargar`.
+
+En la capa de datos, `select`/`select_con_total` aceptan `rangos`
+(`{"columna": (desde, hasta)}` → `gte`/`lte`), que es lo que resuelve el filtro
+de fechas.
+
+## Rediseño de la bandeja de órdenes del distribuidor (2026-09-27)
+
+`screens/distribuidor-ordenes.tsx` se rehizo para contestar, sin salir de la
+pantalla, las cuatro preguntas con las que un vendedor abre su bandeja. Las
+cuatro tienen respaldo real; no hay mocks en esta pantalla.
+
+| Pregunta | De dónde sale |
+|---|---|
+| ¿Qué tengo pendiente? | `GET /pedidos/distribuidor/ordenes` (paginado) y su `/resumen` |
+| ¿Puedo surtirlas? | `producto.existencias` y `disponible` contra las cantidades de cada partida |
+| ¿Este cliente ya me pidió? | Las órdenes **aceptadas** de ese cliente con este distribuidor |
+| ¿Dónde entrego? | `direccion_cliente` de la orden |
+
+- **El stock se reparte, no se compara.** Las existencias son una bolsa
+  común: dos órdenes pendientes pueden ser surtibles por separado y no a la
+  vez. `_cobertura_de_stock` parte de las existencias, descuenta todo lo que
+  comprometieron las **aceptadas** y luego recorre las **pendientes de la más
+  vieja a la más nueva**, anotando qué le quedaba a cada una antes de
+  descontar lo suyo. Por eso una orden puede salir "parcial" por culpa de otra
+  anterior, que es la verdad operativa. Un producto marcado `disponible =
+  false` cuenta como cero aunque el almacén diga que hay piezas.
+- **Dos consultas por página, no dos por orden.** La cobertura y el historial
+  de clientes se resuelven una vez para toda la página; el historial se filtra
+  con un `in` sobre `cliente_id`, para lo cual la capa de datos aprendió a
+  aplicar `ids` sobre una columna distinta de `id` (`columna_ids`).
+- **El resumen cuenta surtibles.** `/resumen` no solo devuelve los conteos por
+  estado: también cuántas pendientes se pueden surtir y cuántas tienen
+  faltantes. El veredicto se calcula sobre **todas** las pendientes (el
+  inventario es uno solo) pero solo se cuentan las que pasan los filtros.
+- **Falta de stock avisa, no bloquea.** El modal de aceptar nombra las
+  partidas que no alcanzan y dice cuánto queda de cada una, pero deja aceptar:
+  el vendedor puede tener existencias que el sistema no conoce.
+- **No se dice si "cubres la zona".** No hay tabla de cobertura —el
+  distribuidor solo tiene su propia dirección—, así que la tarjeta muestra a
+  dónde hay que entregar y nada más. Inventar un veredicto de cobertura sería
+  exactamente el tipo de dato falso que fuimos quitando.
+- Aceptar y rechazar recargan listado y resumen: las dos cosas mueven la orden
+  de pestaña, cambian los conteos **y** liberan o comprometen inventario, así
+  que el veredicto de las demás órdenes puede cambiar.
+
+
 ## Pendientes conocidos (no bloquean)
 
 - **Preorden sin probar con una sesión real de cliente**: web y el simulador se verificaron con datos falsos y una acción que devuelve error; falta abrir `/carrito/preorden` desde un carrito real (y no se creó ninguna orden).
@@ -370,7 +503,7 @@ Hay que desplegar la API para volver a usarla.
 - El checkbox del formulario de direcciones ahora es el `Checkbox` compartido (13px, dorado) y no el del navegador (16px, azul): la etiqueta empieza 3px antes que en el original.
 - ~~**El pie fijo del carrito tapa el BottomNav en web**~~ **Arreglado**: el `FooterFijo` usa `web:bottom-14` (los 56px del BottomNav) y vuelve a `web:md:bottom-0` desde `md`, donde el layout esconde el BottomNav. En nativo sigue en `bottom-0`.
 - En el simulador, después de un Fast Refresh del paquete compartido, una vez se fue a `/login` al tocar una tab desde el carrito. No se volvió a repetir (ni al reabrir la ruta ni al tocar la misma tab): parece cosa del recargado en caliente, pero conviene mirarlo si aparece con la app ya compilada.
-- ~~`apps/mobile/.env.local` quedó con `localhost`~~ Hoy apunta a la API desplegada; la línea comentada de la API local quedó con `127.0.0.1` y la nota de Android (`10.0.2.2`). El fallback de `packages/shared/src/constants.ts` ya era `127.0.0.1`.
+- ⚠️ **`apps/mobile/.env.local` apunta a la API local (`http://127.0.0.1:8000`)**, porque la desplegada todavía no tiene el listado paginado de pedidos ni `/pedidos/exportar`: con la desplegada el listado sale vacío (el cliente lee `.pedidos` de lo que ahora es una lista). La línea de la API desplegada quedó comentada. La nota de Android (`10.0.2.2`) sigue ahí. El fallback de `packages/shared/src/constants.ts` ya era `127.0.0.1`.
 - `min-h-screen` en las páginas de mercado: el contenido mide siempre el alto de la ventana, así que dentro del `<main>` (que ya es más bajo por el Header y el BottomNav) siempre sobra un poco de scroll. Venía del original; en nativo pasa igual.
 - La barra de categorías usaba `sticky top-[49px]`. Desde que el scroll está en el `<main>`, eso dejaba 49px de hueco bajo el Header (y en nativo `stickyHeaderIndices` no admite desplazamiento), así que la compartida usa `top-0`.
 - `BarraBusquedaFiltros` hacía `router.push("/mercado/productos?q=…")` incluso cuando la página ya manejaba la búsqueda con `onBuscar`. En distribuidores ese push chocaba con el `replace` de la página y la dejaba cargando para siempre; en nativo habría apilado una pantalla por búsqueda. Ahora solo navega cuando nadie maneja la búsqueda (el buscador del home y de mercado).

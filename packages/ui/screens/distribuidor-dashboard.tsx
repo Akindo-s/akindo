@@ -25,7 +25,7 @@ import { HeaderSticky } from "@akindo/ui/components/ui/HeaderSticky";
 import { ContenedorPantalla } from "@akindo/ui/components/ui/ContenedorPantalla";
 import { ModalConfirmacion } from "@akindo/ui/components/ui/ModalConfirmacion";
 import { useAviso } from "@akindo/ui/components/ui/Avisos";
-import { AllInboxIcon } from "@akindo/ui/icons/NavigationIcons";
+import { AllInboxIcon, StorefrontIcon } from "@akindo/ui/icons/NavigationIcons";
 import ProductActionsMenu from "@akindo/ui/components/perfil/ProductActionsMenu";
 
 function formatMoney(v: number, minimos = 2) {
@@ -383,10 +383,13 @@ export default function DistribuidorDashboard({ secciones, archivarAction }: Dis
   return (
     <>
     {/* indiceFijo 0: el HeaderSticky. */}
-    <ContenedorPantalla key="dashboard" indiceFijo={0} className="flex flex-col w-full max-w-2xl lg:max-w-4xl mx-auto pb-10 bg-[#FAF7F2] md:bg-transparent min-h-screen">
-      <HeaderSticky titulo="Administración" />
+    <ContenedorPantalla key="dashboard" indiceFijo={0} className="max-w-2xl lg:max-w-6xl flex flex-col w-full mx-auto pb-10 bg-[#FAF7F2] md:bg-transparent min-h-screen">
+      <HeaderSticky titulo="Administración"/>
+      
 
-      <View className="px-4 pt-4 mb-2">
+      
+
+      <View className="px-4 pt-4 mb-2 ">
         <H2 peso="extralight" className="text-sm text-stone-500">
           gestiona tu negocio desde un <Span peso="bold" className="text-sm text-[#DAA520] tracking-[0.5px]">único</Span> lugar
         </H2>
@@ -408,11 +411,12 @@ export default function DistribuidorDashboard({ secciones, archivarAction }: Dis
         {/* El `overflow-x-auto` del original: en nativo la fila que scrollea es
             un ScrollView horizontal (regla 17). */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 p-2">
-          <Boton variante="chip" href="/distribuidor/pedidos" Icono={ShoppingBasket} iconoSize={16}>Pedidos</Boton>
-          <Boton variante="chip" href="/distribuidor/ordenes" Icono={ShoppingBag} iconoSize={16}>Órdenes de Compra</Boton>
-          <Boton variante="chip" href="/distribuidor/productos/" className="m-0 px-5" Icono={AllInboxIcon} iconoSize={16}>Inventario</Boton>
-          <Boton variante="chip" href="/distribuidor/productos/crear" className="bg-[#DDA11E]" Icono={PlusCircle} iconoSize={16}>Nuevo producto</Boton>
-          <Boton variante="chip" href="/distribuidor/valoraciones" Icono={MessageSquare} iconoSize={16}>Valoraciones</Boton>
+          <Boton claseTexto="text-xs" className="w-fit min-w-fit px-4 py-3" variante="oscuro" href="/distribuidor/pedidos" Icono={StorefrontIcon} iconoSize={16}>Mi tienda</Boton>
+          <Boton claseTexto="text-xs" className="w-fit min-w-fit px-4 py-3"variante="primario" href="/distribuidor/productos/crear" Icono={PlusCircle} iconoSize={16}>Nuevo producto</Boton>
+          <Boton claseTexto="text-xs" className="w-fit min-w-fit px-4 py-3" variante="chip" href="/distribuidor/pedidos" Icono={ShoppingBasket} iconoSize={16}>Pedidos</Boton>
+          <Boton claseTexto="text-xs" className="w-fit min-w-fit px-4 py-3" variante="chip" href="/distribuidor/ordenes" Icono={ShoppingBag} iconoSize={16}>Órdenes de Compra</Boton>
+          <Boton claseTexto="text-xs" className="w-fit min-w-fit py-3 m-0 px-5" variante="chip" href="/distribuidor/productos/" Icono={AllInboxIcon} iconoSize={16}>Inventario</Boton>
+          <Boton  claseTexto="text-xs" className="w-fit min-w-fit px-4 py-3" variante="chip" href="/distribuidor/valoraciones" Icono={MessageSquare} iconoSize={16}>Valoraciones</Boton>
         </ScrollView>
       </Section>
 
@@ -425,6 +429,7 @@ export default function DistribuidorDashboard({ secciones, archivarAction }: Dis
       <Suspense fallback={<ListaSkeleton anchoTitulo="w-48" altos={["h-[60px]", "h-[80px]", "h-[80px]"]} />}>
         <SeccionAlertas entrada={secciones.alertas} archivados={archivados} onPedirArchivar={setProductoAArchivar} />
       </Suspense>
+      
     </ContenedorPantalla>
 
     {/* El modal, fuera del ContenedorPantalla (regla 54). */}

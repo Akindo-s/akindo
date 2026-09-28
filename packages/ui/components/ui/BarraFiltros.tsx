@@ -122,7 +122,7 @@ export function BarraFiltros({
     <View className={twMerge("w-full flex flex-col gap-3", className)}>
       {/* En móvil el buscador va arriba y ocupa todo el ancho; desde md se
           pone a la derecha de los desplegables. */}
-      <View className="flex flex-col md:flex-row-reverse md:items-center gap-3 z-10">
+      <View className="flex flex-col md:flex-row-reverse md:items-center gap-3 z-10 flex-wrap">
         {/* El texto lo lleva la barra y la búsqueda sale con el debounce del
             `Buscador`: si `onChange` avisara al padre en cada tecla, cada letra
             sería una llamada a la API. `onChange` solo mantiene el campo al día. */}
@@ -132,7 +132,7 @@ export function BarraFiltros({
           onChange={setTexto}
           onBuscar={onBuscar}
           debounceMs={debounceMs}
-          className="w-full md:flex-1"
+          className="w-full md:flex-1 min-w-[150px]"
         />
 
         {/* `z-10`: los desplegables se abren hacia abajo y las pestañas van

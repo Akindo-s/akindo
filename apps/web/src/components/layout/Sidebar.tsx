@@ -4,13 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, StorefrontIcon, AllInboxIcon, AccountCircleIcon, ShoppingCartIcon } from "../icons/NavigationIcons";
-import { MessageSquare } from "lucide-react";
+import { ClipboardList, ClipboardListIcon, Home, MessageSquare, ShoppingBag } from "lucide-react";
 import { Parrafo } from "@akindo/ui/components/titles";
 
 const links = [
-    { label: "Inicio", href: "/", Icon: HomeIcon, condition: () => true },
+    { label: "Inicio", href: "/", Icon: Home, condition: () => true },
     { label: "Mercado", href: "/mercado", Icon: StorefrontIcon, condition: () => true },
-    { label: "Pedidos", href: "/pedidos", altHref: "/distribuidor/ordenes", Icon: AllInboxIcon, condition: () => true },
+    { label: "Pedidos", href: "/pedidos", altHref: "/distribuidor/pedidos", Icon: AllInboxIcon, condition: () => true },
+    { label:"Órdenes de compra",href:"/distribuidor/ordenes",condition:({tipoUsuario}:{tipoUsuario?:string})=>tipoUsuario === 'distribuidor',Icon:ClipboardListIcon},
     { label: "Mi Perfil", href: "/perfil", Icon: AccountCircleIcon, condition: () => true },
     { label: 'Mi carrito', href: '/carrito', Icon: ShoppingCartIcon, condition: ({ tipoUsuario }: { tipoUsuario?: string }) => tipoUsuario === 'cliente' },
     { label: "Valoraciones", href: "/distribuidor/valoraciones", Icon: MessageSquare, condition: ({ tipoUsuario }: { tipoUsuario?: string }) => tipoUsuario === 'distribuidor' }

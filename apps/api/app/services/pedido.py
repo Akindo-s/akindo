@@ -3,6 +3,7 @@ PedidoService — Lógica de negocio para la gestión de pedidos activos.
 """
 
 import uuid
+from io import BytesIO
 from app.infrastructure.database import DatabaseSession
 from app.repositories.pedido import PedidoRepo
 from app.repositories.orden_pedido import OrdenPedidoRepo
@@ -10,6 +11,10 @@ from app.models.pedido import EstadoPedido
 from app.schemas.pedido import (
     PedidoResponse,
     PedidoListItem,
+    ListadoPedidosResponse,
+    PedidoProductoListItem,
+    ResumenPedidosResponse,
+    SeguimientoPedido,
     ActualizarEstadoPedidoRequest,
     PedidoActualizacionResponse,
     PedidoItemResponse,
@@ -248,14 +253,58 @@ class PedidoService:
                 dist_data = dist_data[0] if dist_data else {}
             # distribuidor table has nombre_negocio directly
             dist_nombre = dist_data.get("nombre_negocio")
+            dist_user = dist_data.get("usuario") or {}
+            if isinstance(dist_user, list):
+                dist_user = dist_user[0] if dist_user else {}
+
+            # La direccion solo viene en el listado paginado; en los otros
+            # queda en None y la tarjeta no pinta el destino.
+            direccion = orden.get("direccion_cliente") or {}
+            if isinstance(direccion, list):
+                direccion = direccion[0] if direccion else {}
+            partes_destino = [direccion.get("ciudad"), direccion.get("estado")]
+            destino = ", ".join(x for x in partes_destino if x) or None
+
+            # El timeline, ordenado del paso mas viejo al mas nuevo: PostgREST
+            # devuelve los embebidos sin garantia de orden.
+            seguimiento = sorted(
+                (
+                    SeguimientoPedido(
+                        estado_nuevo=a["estado_nuevo"],
+                        descripcion=a.get("descripcion") or None,
+                        creado_at=a["creado_at"],
+                    )
+                    for a in (row.get("pedido_actualizacion") or [])
+                ),
+                key=lambda a: a.creado_at,
+            )
 
             # primer producto nombre from join
+            # Todos los productos, para la tarjeta del listado. `producto`
+            # llega como dict o como lista de uno, segun la consulta.
+            productos: list[PedidoProductoListItem] = []
+            for paq in paquetes:
+                prod = paq.get("producto") or {}
+                if isinstance(prod, list):
+                    prod = prod[0] if prod else {}
+                medida = paq.get("medida_snapshot") or {}
+                cantidad = float(paq.get("cantidad") or 0)
+                productos.append(PedidoProductoListItem(
+                    nombre=prod.get("nombre") or medida.get("nombre"),
+                    imagen=prod.get("imagen"),
+                    cantidad=cantidad,
+                    unidad=medida.get("unidad"),
+                    subtotal=cantidad * float(paq.get("costo_unitario") or 0),
+                ))
+
             primer_prod_nombre = None
+            primer_prod_imagen = None
             if primer_prod:
                 prod_join = primer_prod.get("producto") or {}
                 if isinstance(prod_join, list):
                     prod_join = prod_join[0] if prod_join else {}
                 primer_prod_nombre = prod_join.get("nombre") if prod_join else primer_prod.get("medida_snapshot", {}).get("nombre")
+                primer_prod_imagen = prod_join.get("imagen") if prod_join else None
 
             items.append(PedidoListItem(
                 id=uuid.UUID(row["id"]) if isinstance(row["id"], str) else row["id"],
@@ -264,11 +313,287 @@ class PedidoService:
                 total=float(row["total"]),
                 confirmado_at=row.get("confirmado_at"),
                 entregado_at=row.get("entregado_at"),
+                cliente_id=orden.get("cliente_id"),
                 cliente_nombre=cliente_user.get("nombre"),
+                cliente_imagen=cliente_user.get("imagen_perfil"),
+                distribuidor_id=orden.get("distribuidor_id"),
                 distribuidor_nombre=dist_nombre,
+                distribuidor_imagen=dist_user.get("imagen_perfil"),
+                distribuidor_verificado=dist_user.get("es_verificado"),
                 primer_producto_nombre=primer_prod_nombre,
+                primer_producto_imagen=primer_prod_imagen,
+                total_partidas=len(paquetes),
+                productos=productos,
+                destino=destino,
+                seguimiento=seguimiento,
             ))
         return items
+
+    async def listar_mis_pedidos_cliente_paginado(
+        self,
+        cliente_id: uuid.UUID,
+        estado: str | None = None,
+        cantidad_pagina: int = 10,
+        numero_pagina: int = 1,
+        q: str | None = None,
+        distribuidor_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+        orden: str = "desc",
+    ) -> ListadoPedidosResponse:
+        """Lista los pedidos del cliente, paginados y filtrados.
+
+        `orden` ordena por fecha de confirmación: `desc` (lo más nuevo
+        primero, el default) o `asc`.
+        """
+        limit = max(1, cantidad_pagina)
+        offset = max(0, (numero_pagina - 1) * limit)
+
+        rows, total_pedidos = await self.repo.listar_por_cliente_paginado(
+            cliente_id,
+            estado,
+            limit,
+            offset,
+            q=q,
+            distribuidor_id=distribuidor_id,
+            fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta,
+            descendente=(orden != "asc"),
+        )
+
+        # `siguiente_url` / `anterior_url` los arma el router, que es el único
+        # que conoce la URL real del endpoint.
+        return ListadoPedidosResponse(
+            total_pedidos=total_pedidos,
+            total_paginas=(total_pedidos + limit - 1) // limit if limit > 0 else 1,
+            pagina_actual=numero_pagina,
+            tiene_siguiente=(offset + limit) < total_pedidos,
+            tiene_anterior=offset > 0,
+            siguiente_url=None,
+            anterior_url=None,
+            pedidos=self._rows_to_list_items(rows, es_cliente=True),
+        )
+
+    #: Los estados que siempre salen en el resumen, en el orden en que la
+    #: pantalla los muestra. Van todos aunque valgan 0: una pestaña vacía
+    #: tiene que poder decir "0" en vez de no decir nada.
+    ESTADOS_RESUMEN = ("en envio", "pendiente de envio", "entregado", "cancelado")
+
+    async def resumen_pedidos_cliente(
+        self,
+        cliente_id: uuid.UUID,
+        q: str | None = None,
+        distribuidor_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+    ) -> ResumenPedidosResponse:
+        """Cuántos pedidos del cliente hay en cada estado."""
+        conteos = await self.repo.contar_por_estado(
+            cliente_id, q, distribuidor_id, fecha_desde, fecha_hasta,
+        )
+        por_estado = {estado: conteos.get(estado, 0) for estado in self.ESTADOS_RESUMEN}
+        # El total sale de los conteos y no de otra consulta: así no puede
+        # contradecir a la suma de las pestañas.
+        return ResumenPedidosResponse(total=sum(conteos.values()), por_estado=por_estado)
+
+    async def listar_pedidos_distribuidor_paginado(
+        self,
+        distribuidor_id: uuid.UUID,
+        estado: str | None = None,
+        cantidad_pagina: int = 10,
+        numero_pagina: int = 1,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+        orden: str = "desc",
+    ) -> ListadoPedidosResponse:
+        """Los pedidos que vendió el distribuidor, paginados y filtrados.
+
+        Misma forma que el listado del cliente: lo único que cambia es de qué
+        lado de la orden se mira.
+        """
+        limit = max(1, cantidad_pagina)
+        offset = max(0, (numero_pagina - 1) * limit)
+
+        rows, total_pedidos = await self.repo.listar_por_distribuidor_paginado(
+            distribuidor_id,
+            estado,
+            limit,
+            offset,
+            q=q,
+            cliente_id=cliente_id,
+            fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta,
+            descendente=(orden != "asc"),
+        )
+
+        return ListadoPedidosResponse(
+            total_pedidos=total_pedidos,
+            total_paginas=(total_pedidos + limit - 1) // limit if limit > 0 else 1,
+            pagina_actual=numero_pagina,
+            tiene_siguiente=(offset + limit) < total_pedidos,
+            tiene_anterior=offset > 0,
+            siguiente_url=None,
+            anterior_url=None,
+            pedidos=self._rows_to_list_items(rows, es_cliente=False),
+        )
+
+    async def resumen_pedidos_distribuidor(
+        self,
+        distribuidor_id: uuid.UUID,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+    ) -> ResumenPedidosResponse:
+        """Cuántos pedidos del distribuidor hay en cada estado."""
+        conteos = await self.repo.contar_por_estado_distribuidor(
+            distribuidor_id, q, cliente_id, fecha_desde, fecha_hasta,
+        )
+        por_estado = {estado: conteos.get(estado, 0) for estado in self.ESTADOS_RESUMEN}
+        return ResumenPedidosResponse(total=sum(conteos.values()), por_estado=por_estado)
+
+    # ── Exportación del manifiesto ────────────────────────────────
+
+    #: Formatos que el front puede pedir. Mientras uno no esté acá, la pantalla
+    #: lo muestra deshabilitado en vez de ofrecer una descarga que falla.
+    FORMATOS_EXPORTACION = ("xlsx",)
+
+    def _encabezados(self, es_cliente: bool) -> tuple[str, ...]:
+        """Los encabezados del manifiesto.
+
+        La única columna que cambia es la contraparte: el cliente exporta a
+        quién le compró y el distribuidor, a quién le vendió.
+        """
+        return (
+            "ID del pedido",
+            "ID de la orden",
+            "Fecha de confirmación",
+            "Fecha de entrega",
+            "Distribuidor" if es_cliente else "Cliente",
+            "Destino",
+            "Estado",
+            "Partidas",
+            "Producto",
+            "Cantidad",
+            "Unidad",
+            "Costo unitario",
+            "Subtotal",
+            "Total del pedido",
+        )
+
+    def _libro_de_pedidos(self, filas: list[dict], es_cliente: bool) -> bytes:
+        """Arma el libro de Excel con una fila por partida.
+
+        Lo comparten las dos exportaciones: lo único que cambia es de qué lado
+        de la orden se mira, que es lo que decide `es_cliente`.
+        """
+        from openpyxl import Workbook
+
+        items = self._rows_to_list_items(filas, es_cliente=es_cliente)
+
+        libro = Workbook()
+        hoja = libro.active
+        hoja.title = "Pedidos"
+        hoja.append(list(self._encabezados(es_cliente)))
+
+        for row, item in zip(filas, items):
+            orden_row = row.get("orden_pedido") or {}
+            if isinstance(orden_row, list):
+                orden_row = orden_row[0] if orden_row else {}
+            paquetes = orden_row.get("paquete_pedido") or []
+
+            comunes = [
+                str(item.id),
+                str(item.orden_id),
+                str(item.confirmado_at or "")[:10],
+                str(item.entregado_at or "")[:10],
+                item.distribuidor_nombre if es_cliente else item.cliente_nombre,
+                item.destino,
+                item.estado,
+                item.total_partidas,
+            ]
+
+            if not paquetes:
+                hoja.append(comunes + [None, None, None, None, None, item.total])
+                continue
+
+            for p in paquetes:
+                producto = p.get("producto") or {}
+                if isinstance(producto, list):
+                    producto = producto[0] if producto else {}
+                medida = p.get("medida_snapshot") or {}
+                cantidad = int(p["cantidad"])
+                costo = float(p["costo_unitario"])
+                hoja.append(comunes + [
+                    producto.get("nombre") or medida.get("nombre"),
+                    cantidad,
+                    medida.get("unidad"),
+                    costo,
+                    cantidad * costo,
+                    item.total,
+                ])
+
+        # Un ancho fijo por columna: openpyxl no mide el texto solo.
+        anchos = (38, 38, 18, 16, 26, 24, 16, 10, 34, 10, 10, 16, 14, 18)
+        for columna, ancho in zip(hoja.columns, anchos):
+            hoja.column_dimensions[columna[0].column_letter].width = ancho
+
+        buffer = BytesIO()
+        libro.save(buffer)
+        return buffer.getvalue()
+
+    async def exportar_pedidos_cliente(
+        self,
+        cliente_id: uuid.UUID,
+        estado: str | None = None,
+        q: str | None = None,
+        distribuidor_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+        orden: str = "desc",
+    ) -> bytes:
+        """El manifiesto de los pedidos que compró el cliente.
+
+        Respeta los mismos filtros que el listado: lo que se exporta es lo que
+        el usuario está viendo, no toda su historia.
+        """
+        filas = await self.repo.listar_todos_por_cliente(
+            cliente_id,
+            estado,
+            q=q,
+            distribuidor_id=distribuidor_id,
+            fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta,
+            descendente=(orden != "asc"),
+        )
+        return self._libro_de_pedidos(filas, es_cliente=True)
+
+    async def exportar_pedidos_distribuidor(
+        self,
+        distribuidor_id: uuid.UUID,
+        estado: str | None = None,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+        orden: str = "desc",
+    ) -> bytes:
+        """El manifiesto de los pedidos que vendió el distribuidor.
+
+        Mismos filtros que su listado; la columna de contraparte es el cliente.
+        """
+        filas = await self.repo.listar_todos_por_distribuidor(
+            distribuidor_id,
+            estado,
+            q=q,
+            cliente_id=cliente_id,
+            fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta,
+            descendente=(orden != "asc"),
+        )
+        return self._libro_de_pedidos(filas, es_cliente=False)
 
     async def crear_valoracion(
         self,

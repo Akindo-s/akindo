@@ -21,7 +21,7 @@ interface BotonProps {
    * - `"peligro"`: borde rojo, para acciones destructivas como cerrar sesión.
    * - `"chip"`: pastilla pequeña de borde, usada en las barras de acción (ej. dashboard distribuidor).
    */
-  variante?: "primario" | "secundario" | "peligro" | "chip";
+  variante?: "primario" | "secundario" | "peligro" | "chip" | "oscuro";
 
   /** Ícono a mostrar a la izquierda del texto. Recibe `size` y el `color` de la variante. */
   Icono?: React.ComponentType<{ className?: string; size?: number; color?: string }> | null;
@@ -115,6 +115,11 @@ const variantes: Record<NonNullable<BotonProps["variante"]>, { contenedor: strin
     texto: "text-stone-800 text-xs whitespace-nowrap",
     icono: "#292524", // text-stone-800
   },
+  oscuro:{
+    contenedor:"bg-[#1F1A13] hover:bg-[#1F1A13] w-full py-3 rounded-xl shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-75",
+    texto:"uppercase text-sm tracking-wide text-[#FAF8F5]",
+    icono:"#DAA520"
+  }
 };
 
 /**

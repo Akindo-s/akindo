@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Image, TextInput, View } from "react-native";
-import { ArrowLeft, ArrowUpRight, Camera, Loader2, MapPin, Package, Plus, PlusCircle, Settings, ShoppingCart, Star, Store } from "lucide-react-native";
+import { ArrowLeft, ArrowUpRight, Camera, Loader2, MapPin, Package, Plus, PlusCircle, Search, Settings, ShoppingCart, Star, Store, Truck } from "lucide-react-native";
 import { MONEDA } from "@akindo/shared/constants";
 import {
     obtenerCatalogoDistribuidorPublico,
@@ -21,7 +21,9 @@ import { Degradado } from "@akindo/ui/components/ui/Degradado";
 import { Girando, Pulso, Spinner } from "@akindo/ui/components/ui/Animaciones";
 import { useAviso } from "@akindo/ui/components/ui/Avisos";
 import { useScrollInfinito } from "../components/hooks/useScrollInfinito";
-import { AllInboxIcon } from "@akindo/ui/icons/NavigationIcons";
+import { AllInboxIcon, StorefrontIcon } from "@akindo/ui/icons/NavigationIcons";
+import { HeaderSticky } from "../components/ui/HeaderSticky";
+import { HeroCard } from "../components/home/HeroCard";
 
 export type TiendaProps = {
     /** `null` si la URL no trae `?d=`. */
@@ -274,15 +276,10 @@ export default function Tienda({
     return (
         // indiceFijo 0: el header de la tienda.
         <ContenedorPantalla key="tienda" indiceFijo={0} className="flex flex-col w-full justify-self-center min-h-screen bg-[#FAF5EE] pb-20">
-            {/* Header Sticky */}
-            <Header className="web:sticky top-0 z-30 bg-[#FAF5EE] flex flex-row items-center px-4 h-14 border-b border-[#E8DEC1]/40">
-                <Pressable role="button" accessibilityLabel="Volver" onPress={() => router.back()} className="p-2 -ml-2 transition-colors">
-                    <ArrowLeft size={20} color="#44403C" />
-                </Pressable>
-                <H1 peso="bold" numberOfLines={1} className="text-base text-stone-900 flex-1 text-center -translate-x-3">
-                    {distribuidor.nombre_negocio}
-                </H1>
-            </Header>
+
+            <HeaderSticky titulo={distribuidor.nombre_negocio} mostrarBack>
+
+            </HeaderSticky>
 
             {/* Hero Image */}
             <View className="relative w-full h-48 md:h-64 bg-stone-800">
@@ -367,10 +364,9 @@ export default function Tienda({
             <View className="px-4 mt-6">
                 {/* Botón de Acción Principal */}
                 {esDueno ? (
-                    <Link href="/distribuidor" bloque className="w-full max-w-sm mx-auto flex flex-row items-center justify-center gap-2 bg-[#2C3E50] border border-transparent rounded-xl py-2.5 shadow-md hover:bg-[#1A252F] transition-all active:scale-[0.98]">
-                        <Settings size={16} color="#FFFFFF" />
-                        <Span peso="semibold" className="text-sm text-white">Administrar mi negocio</Span>
-                    </Link>
+                    <Boton Icono={Settings} iconoSize={16} variante="oscuro" href="/distribuidor" className="w-full max-w-sm mx-auto flex flex-row items-center justify-center gap-2 border border-transparent rounded-xl py-2.5 shadow-md transition-all active:scale-[0.98]">
+                            Administrar mi negocio
+                    </Boton>
                 ) : (
                     <Pressable role="button" className="w-full max-w-sm mx-auto flex flex-row items-center justify-center gap-2 bg-white border border-[#E8DEC1] rounded-lg py-2 drop-shadow-sm hover:bg-[#FDFBF7] transition-colors cursor-pointer">
                         <Plus size={16} color="#44403C" />
@@ -378,37 +374,43 @@ export default function Tienda({
                     </Pressable>
                 )}
                 {/* anuncios */}
-                <Section className="flex flex-row flex-wrap gap-6">
+                <Section className="flex flex-row flex-wrap gap-6 pt-4">
                     {esDueno && (!distribuidor.es_verificado) && (
-                        <Section className="w-full max-w-xl p-4 flex flex-col gap-2 bg-[#F8EED9] rounded-2xl mt-4">
-                            <Titulo className="text-red-600">
-                                Tu negocio no está verificado !
-                            </Titulo>
-                            {/* <hr /> con el preflight de Tailwind. */}
-                            <View className="border-t border-[#e5e7eb]" />
-                            <Parrafo className="text-lg">
-                                La verificación ayuda a generar confianza con tus potenciales clientes.
-                                <Span peso="bold" className="text-lg">Ayúdanos llenando un formulario</Span> para poderte verificar y empezar tu camino al éxito.
-                            </Parrafo>
-                            {/* `w-full`: el `w-fit` de la base del Boton le gana al `w-full` de la
-                                variante, y en el original el botón ocupaba todo el ancho.
-                                `claseTexto`: el `capitalize` de la instancia le ganaba al
-                                `uppercase` de la variante (regla 25). */}
-                            <Boton variante="primario" className="w-full" claseTexto="capitalize" href="https://www.youtube.com/watch?v=a40r8AhnPm8&t=2s">
-                                aquí el formulario
-                            </Boton>
-                        </Section>
+                        <HeroCard 
+                            linkTitle="verifícate aquí"
+                            classNameBox="h-fit"
+                            internal 
+                            titulo="Tu negocio no está verificado !"
+                            style="default"
+                            link="https://www.youtube.com/watch?v=a40r8AhnPm8&t=2s"
+                            description="La verificación ayuda a generar confianza con tus potenciales clientes. Ayúdanos llenando un formulario para poderte verificar y empezar tu camino al éxito.">
+
+                        </HeroCard>
                     )}
                 </Section>
 
                 {/* Stats Grid (Mock data combinada con datos reales) */}
                 <View className="flex flex-row flex-wrap gap-3 mt-5">
                     <View className="bg-[#F8EED9] rounded-xl p-3 flex flex-col items-center justify-center gap-1 border border-[#E8DEC1]/50">
-                        <Star size={18} color="#DAA520" fill="#DAA520" />
+                        <Star size={18} color="#DAA520"  />
                         <View>
                             <P peso="semibold" className="text-xs text-stone-800 text-center">{distribuidor.valoracion_promedio.toFixed(1)}</P>
                             {/* tracking-wider a 9px = 0.45px. */}
                             <P className="text-[9px] leading-normal uppercase tracking-[0.45px] text-[#8B7355] mt-0.5 text-center">Valoración ({distribuidor.total_valoraciones})</P>
+                        </View>
+                    </View>
+                    <View className="bg-[#F8EED9] rounded-xl p-3 flex flex-col items-center justify-center gap-1 border border-[#E8DEC1]/50">
+                        <Truck size={18} color="#DAA520" />
+                        <View>
+                            <P peso="semibold" className="text-xs text-stone-800 text-center">Envio a domicilio</P>
+                            
+                        </View>
+                    </View>
+                    <View className="bg-[#F8EED9] rounded-xl p-3 flex flex-col items-center justify-center gap-1 border border-[#E8DEC1]/50">
+                        <StorefrontIcon size={18} color="#DAA520" />
+                        <View>
+                            <P peso="semibold" className="text-xs text-stone-800 text-center">Recolecion presencial</P>
+                            
                         </View>
                     </View>
                 </View>
@@ -461,7 +463,7 @@ export default function Tienda({
                             </P>
                         )}
 
-                        <View className="flex flex-col gap-3 pt-4 border-t border-stone-100">
+                        {/* <View className="flex flex-col gap-3 pt-4 border-t border-stone-100">
                             <View className="flex flex-row items-center justify-between">
                                 <Span className="text-xs text-stone-600">Logística primaria</Span>
                                 <View className="bg-[#F8EED9] px-2 py-0.5 rounded">
@@ -474,7 +476,7 @@ export default function Tienda({
                                     <Span peso="medium" className="text-xs text-[#8B7355]">FOB, CIF</Span>
                                 </View>
                             </View>
-                        </View>
+                        </View> */}
                     </View>
                 )}
 
@@ -484,9 +486,11 @@ export default function Tienda({
                         Productos
                     </Titulo>
                     <View className="flex flex-row flex-wrap gap-2">
-                        <Boton className="px-6" Icono={PlusCircle} href="/distribuidor/productos/crear" />
+                        {esDueno&&(
+                            <Boton className="px-6 w-fit rounded-lg py-3" Icono={PlusCircle} href="/distribuidor/productos/crear" />
+                        )}
                         {esDueno && (
-                            <Boton variante="secundario" className="px-6" Icono={AllInboxIcon} href="/distribuidor/productos">
+                            <Boton variante="chip" className="px-6 rounded-lg py-3" Icono={AllInboxIcon} href="/distribuidor/productos">
                                 gestionar inventario
                             </Boton>
                         )}
