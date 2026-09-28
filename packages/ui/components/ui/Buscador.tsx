@@ -2,10 +2,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { TextInput, View } from "react-native";
+import { Text, TextInput, View } from "react-native";
 import { Search, X } from "lucide-react-native";
 import { Pressable } from "../html-elements";
 import { fuente } from "../../fonts";
+import { Boton } from "../button";
 
 interface BuscadorProps {
     /** Texto placeholder del input. Default: "Buscar..." */
@@ -74,7 +75,7 @@ export function Buscador({
     }, []);
 
     return (
-        <View className={`flex flex-row items-center gap-2 bg-[#FCF8F4] border ${enfocado ? "border-[#DAA520]" : "border-[#E8DEC1]/60"} rounded-xl px-3 py-2.5 transition-colors ${className}`}>
+        <View className={`flex flex-row items-center gap-2 bg-[#FCF8F4] border ${enfocado ? "border-[#DAA520]" : "border-[#E8DEC1]/60"} rounded-xl px-3 py-2.5 transition-colors min-h-[50px] ${className}`}>
             {/* #A8A29E = text-stone-400: en nativo `currentColor` sale negro. */}
             <Search size={16} color="#A8A29E" style={{ flexShrink: 0 }} />
             <TextInput
@@ -105,6 +106,24 @@ export function Buscador({
                     {/* text-stone-400, y text-stone-600 en hover. */}
                     <X size={14} color={limpiarEnHover ? "#57534E" : "#A8A29E"} />
                 </Pressable>
+            ) : null}
+            {valorActivo ? (
+                <Boton
+                    variante="oscuro"
+                    accessibilityLabel="Limpiar búsqueda"
+                    
+                    onClick={()=>{
+                        onBuscarRef.current?.(valorActivo)
+                    }}
+                    
+                    
+                    className="w-fit flex flex-row text-[10px] px-3 py-1 rounded-md"
+                    claseTexto="text-[10px]"
+                    
+                    Icono={Search}
+                >
+                    Buscar
+                </Boton>
             ) : null}
         </View>
     );

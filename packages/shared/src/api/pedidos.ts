@@ -4,9 +4,13 @@ import type {
   OrdenPedidoResponse,
   OrdenPedidoListItem,
   ListadoOrdenes,
+  ResumenOrdenes,
   FiltrosOrdenes,
   PedidoResponse,
   PedidoListItem,
+  ListadoPedidos,
+  FiltrosPedidos,
+  ResumenPedidos,
   PedidoActionResult,
   EstadoPedido,
   ValoracionResponse,
@@ -104,6 +108,9 @@ function paramsOrdenes(filtros: FiltrosOrdenes, conPaginacion: boolean): URLSear
   if (filtros.estado) params.set("estado", filtros.estado);
   if (filtros.q?.trim()) params.set("q", filtros.q.trim());
   if (filtros.distribuidorId) params.set("distribuidor_id", filtros.distribuidorId);
+  if (filtros.clienteId) params.set("cliente_id", filtros.clienteId);
+  if (filtros.fechaDesde) params.set("fecha_desde", filtros.fechaDesde);
+  if (filtros.fechaHasta) params.set("fecha_hasta", filtros.fechaHasta);
   if (filtros.montoMin != null) params.set("monto_min", String(filtros.montoMin));
   if (filtros.montoMax != null) params.set("monto_max", String(filtros.montoMax));
   if (filtros.orden) params.set("orden", filtros.orden);
@@ -220,18 +227,105 @@ export async function obtenerDetalleOrden(
 
 // ── Pedidos — cliente ─────────────────────────────────────────────────────────
 
-export async function obtenerMisPedidos(
-  estado?: EstadoPedido,
-  token?: string
-): Promise<PedidoListItem[]> {
-  try {
-    const params = estado ? `?estado=${encodeURIComponent(estado)}` : "";
-    const res = await fetchWithAuth(`/pedidos/${params}`, { method: "GET" }, token);
-    if (!res.ok) return [];
-    return await res.json() as PedidoListItem[];
-  } catch {
-    return [];
+const LISTADO_PEDIDOS_VACIO: ListadoPedidos = {
+  total_pedidos: 0,
+  total_paginas: 0,
+  pagina_actual: 1,
+  tiene_siguiente: false,
+  tiene_anterior: false,
+  siguiente_url: null,
+  anterior_url: null,
+  pedidos: [],
+};
+
+/** Los filtros de pedidos, tal como los espera el endpoint. */
+function paramsPedidos(filtros: FiltrosPedidos, conPaginacion: boolean): URLSearchParams {
+  const params = new URLSearchParams();
+  if (conPaginacion) {
+    params.set("numero_pagina", String(filtros.pagina ?? 1));
+    params.set("cantidad_pagina", String(filtros.cantidad ?? 10));
   }
+  if (filtros.estado) params.set("estado", filtros.estado);
+  if (filtros.q?.trim()) params.set("q", filtros.q.trim());
+  if (filtros.distribuidorId) params.set("distribuidor_id", filtros.distribuidorId);
+  // La contraparte: el endpoint del cliente ignora `cliente_id` y el del
+  // distribuidor ignora `distribuidor_id`, así que mandar los dos no molesta.
+  if (filtros.clienteId) params.set("cliente_id", filtros.clienteId);
+  if (filtros.fechaDesde) params.set("fecha_desde", filtros.fechaDesde);
+  if (filtros.fechaHasta) params.set("fecha_hasta", filtros.fechaHasta);
+  if (filtros.orden) params.set("orden", filtros.orden);
+  return params;
+}
+
+/**
+ * Página de pedidos del cliente. Como en órdenes, el endpoint devuelve el
+ * objeto con la metadata de paginación y no la lista suelta: quien solo quiera
+ * los pedidos usa `.pedidos`.
+ */
+export async function obtenerMisPedidos(
+  filtros: FiltrosPedidos = {},
+  token?: string
+): Promise<ListadoPedidos> {
+  try {
+    const params = paramsPedidos(filtros, true);
+    const res = await fetchWithAuth(`/pedidos/?${params.toString()}`, { method: "GET" }, token);
+    if (!res.ok) return LISTADO_PEDIDOS_VACIO;
+    const datos = await res.json() as Partial<ListadoPedidos>;
+    return { ...LISTADO_PEDIDOS_VACIO, ...datos, pedidos: datos.pedidos ?? [] };
+  } catch {
+    return LISTADO_PEDIDOS_VACIO;
+  }
+}
+
+const RESUMEN_PEDIDOS_VACIO: ResumenPedidos = {
+  total: 0,
+  por_estado: { "pendiente de envio": 0, "en envio": 0, entregado: 0, cancelado: 0 },
+};
+
+/**
+ * Cuántos pedidos hay en cada estado.
+ *
+ * El `estado` de los filtros se ignora a propósito —lo ignora el endpoint—
+ * porque estos conteos son los de las pestañas: cada una dice cuántos hay en
+ * ella sin importar cuál esté activa.
+ */
+export async function obtenerResumenPedidos(
+  filtros: FiltrosPedidos = {},
+  token?: string
+): Promise<ResumenPedidos> {
+  try {
+    const params = paramsPedidos({ ...filtros, estado: null }, false);
+    const res = await fetchWithAuth(`/pedidos/resumen?${params.toString()}`, { method: "GET" }, token);
+    if (!res.ok) return RESUMEN_PEDIDOS_VACIO;
+    const datos = await res.json() as Partial<ResumenPedidos>;
+    return {
+      total: datos.total ?? 0,
+      por_estado: { ...RESUMEN_PEDIDOS_VACIO.por_estado, ...(datos.por_estado ?? {}) },
+    };
+  } catch {
+    return RESUMEN_PEDIDOS_VACIO;
+  }
+}
+
+/**
+ * El manifiesto en Excel de los pedidos, con los mismos filtros del listado.
+ * Igual que `exportarOrdenes`: devuelve el contenido y no una URL, porque el
+ * endpoint pide `Authorization`.
+ */
+export async function exportarPedidos(
+  filtros: FiltrosPedidos = {},
+  token?: string
+): Promise<ArchivoExportado> {
+  const params = paramsPedidos(filtros, false);
+  const res = await fetchWithAuth(`/pedidos/exportar?${params.toString()}`, { method: "GET" }, token);
+  if (!res.ok) throw new Error("No se pudo generar el manifiesto");
+
+  const disposicion = res.headers.get("Content-Disposition") ?? "";
+  const nombre = /filename="?([^";]+)"?/.exec(disposicion)?.[1]
+    ?? `manifiesto-de-pedidos-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  return { nombre, base64: aBase64(bytes), tipo: res.headers.get("Content-Type") ?? TIPO_XLSX };
 }
 
 /**
@@ -284,21 +378,51 @@ export async function crearValoracion(
 
 // ── Órdenes de compra — distribuidor ─────────────────────────────────────────
 
+/**
+ * La bandeja de órdenes del distribuidor. Cada orden pendiente llega con lo
+ * que hace falta para decidir sin abrirla: si el inventario alcanza
+ * (`cobertura` y `existencias` por partida), si el cliente ya compró antes y a
+ * dónde hay que entregar.
+ */
 export async function obtenerOrdenesDistribuidor(
-  estado?: string,
+  filtros: FiltrosOrdenes = {},
   token?: string
-): Promise<OrdenPedidoListItem[]> {
+): Promise<ListadoOrdenes> {
   try {
-    const params = estado ? `?estado=${estado}` : "";
-    const res = await fetchWithAuth(
-      `/pedidos/distribuidor/ordenes${params}`,
-      { method: "GET" },
-      token
-    );
-    if (!res.ok) return [];
-    return await res.json() as OrdenPedidoListItem[];
+    const params = paramsOrdenes(filtros, true);
+    const res = await fetchWithAuth(`/pedidos/distribuidor/ordenes?${params.toString()}`, { method: "GET" }, token);
+    if (!res.ok) return LISTADO_ORDENES_VACIO;
+    const datos = await res.json() as Partial<ListadoOrdenes>;
+    return { ...LISTADO_ORDENES_VACIO, ...datos, ordenes: datos.ordenes ?? [] };
   } catch {
-    return [];
+    return LISTADO_ORDENES_VACIO;
+  }
+}
+
+const RESUMEN_ORDENES_VACIO: ResumenOrdenes = {
+  total: 0,
+  por_estado: { pendiente: 0, aceptada: 0, rechazada: 0, cancelada: 0 },
+  surtibles: 0,
+  con_faltantes: 0,
+};
+
+/** Cuántas órdenes del distribuidor hay en cada estado. */
+export async function obtenerResumenOrdenesDistribuidor(
+  filtros: FiltrosOrdenes = {},
+  token?: string
+): Promise<ResumenOrdenes> {
+  try {
+    const params = paramsOrdenes({ ...filtros, estado: null }, false);
+    const res = await fetchWithAuth(`/pedidos/distribuidor/ordenes/resumen?${params.toString()}`, { method: "GET" }, token);
+    if (!res.ok) return RESUMEN_ORDENES_VACIO;
+    const datos = await res.json() as Partial<ResumenOrdenes>;
+    return {
+      ...RESUMEN_ORDENES_VACIO,
+      ...datos,
+      por_estado: { ...RESUMEN_ORDENES_VACIO.por_estado, ...(datos.por_estado ?? {}) },
+    };
+  } catch {
+    return RESUMEN_ORDENES_VACIO;
   }
 }
 
@@ -339,21 +463,62 @@ export async function rechazarOrden(
 
 // ── Pedidos — distribuidor ────────────────────────────────────────────────────
 
+/**
+ * Página de pedidos del distribuidor. Misma forma que la del cliente: lo
+ * único que cambia es de qué lado de la orden se mira.
+ */
 export async function obtenerPedidosDistribuidor(
-  estado?: EstadoPedido,
+  filtros: FiltrosPedidos = {},
   token?: string
-): Promise<PedidoListItem[]> {
+): Promise<ListadoPedidos> {
   try {
-    const params = estado ? `?estado=${encodeURIComponent(estado)}` : "";
-    const res = await fetchWithAuth(
-      `/pedidos/distribuidor/pedidos${params}`,
-      { method: "GET" },
-      token
-    );
-    if (!res.ok) return [];
-    return await res.json() as PedidoListItem[];
+    const params = paramsPedidos(filtros, true);
+    const res = await fetchWithAuth(`/pedidos/distribuidor/pedidos?${params.toString()}`, { method: "GET" }, token);
+    if (!res.ok) return LISTADO_PEDIDOS_VACIO;
+    const datos = await res.json() as Partial<ListadoPedidos>;
+    return { ...LISTADO_PEDIDOS_VACIO, ...datos, pedidos: datos.pedidos ?? [] };
   } catch {
-    return [];
+    return LISTADO_PEDIDOS_VACIO;
+  }
+}
+
+/**
+ * El reporte en Excel de los pedidos del distribuidor, con los mismos filtros
+ * del listado. Igual que el manifiesto del cliente: devuelve el contenido y no
+ * una URL, porque el endpoint pide `Authorization`.
+ */
+export async function exportarPedidosDistribuidor(
+  filtros: FiltrosPedidos = {},
+  token?: string
+): Promise<ArchivoExportado> {
+  const params = paramsPedidos(filtros, false);
+  const res = await fetchWithAuth(`/pedidos/distribuidor/pedidos/exportar?${params.toString()}`, { method: "GET" }, token);
+  if (!res.ok) throw new Error("No se pudo generar el reporte");
+
+  const disposicion = res.headers.get("Content-Disposition") ?? "";
+  const nombre = /filename="?([^";]+)"?/.exec(disposicion)?.[1]
+    ?? `reporte-de-pedidos-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  return { nombre, base64: aBase64(bytes), tipo: res.headers.get("Content-Type") ?? TIPO_XLSX };
+}
+
+/** Cuántos pedidos del distribuidor hay en cada estado. */
+export async function obtenerResumenPedidosDistribuidor(
+  filtros: FiltrosPedidos = {},
+  token?: string
+): Promise<ResumenPedidos> {
+  try {
+    const params = paramsPedidos({ ...filtros, estado: null }, false);
+    const res = await fetchWithAuth(`/pedidos/distribuidor/pedidos/resumen?${params.toString()}`, { method: "GET" }, token);
+    if (!res.ok) return RESUMEN_PEDIDOS_VACIO;
+    const datos = await res.json() as Partial<ResumenPedidos>;
+    return {
+      total: datos.total ?? 0,
+      por_estado: { ...RESUMEN_PEDIDOS_VACIO.por_estado, ...(datos.por_estado ?? {}) },
+    };
+  } catch {
+    return RESUMEN_PEDIDOS_VACIO;
   }
 }
 

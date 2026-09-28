@@ -120,23 +120,28 @@ const filtros = useMemo<FiltrosOrdenes>(
 useEffect(() => { cargarOrdenes(filtros).then(setListado); }, [filtros]);
 ```
 
-## Para usarla en pedidos
+## En pedidos
 
-Pedidos (cliente o distribuidor) tiene sus propios estados y su propio endpoint,
-así que lo único que hay que armar son las pestañas:
+Ya está en uso en `screens/pedidos.tsx`, contra `GET /pedidos/`, que acepta los
+mismos filtros que el de órdenes. Lo único que cambia son las pestañas y los
+desplegables:
 
 ```tsx
-const PESTANAS_PEDIDOS: PestanaFiltro[] = [
+const PESTANAS: PestanaFiltro[] = [
   { valor: null, etiqueta: "Todos" },
-  { valor: "pendiente de envio", etiqueta: "Por enviar" },
   { valor: "en envio", etiqueta: "En tránsito" },
+  { valor: "pendiente de envio", etiqueta: "En preparación" },
   { valor: "entregado", etiqueta: "Entregados" },
   { valor: "cancelado", etiqueta: "Cancelados" },
 ];
 ```
 
-y pasar el `onBuscar` al loader correspondiente. Si ese endpoint todavía no
-acepta búsqueda por texto, se filtra en memoria sobre lo que ya se cargó: la
+y tres desplegables: distribuidor, rango de fecha (`"Últimos 30 días"`, que la
+pantalla convierte a `fechaDesde` al armar los filtros) y el ordenamiento, que
+va con `tipo: "orden"` para que no reinicie la página.
+
+Para los pedidos del distribuidor la barra sirve igual; si ese endpoint todavía
+no acepta búsqueda por texto, se filtra en memoria sobre lo que ya se cargó: la
 barra no cambia.
 
 ## Detalles que conviene saber

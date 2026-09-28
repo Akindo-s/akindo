@@ -70,7 +70,7 @@ function descripcionDe(orden: OrdenPedidoListItem) {
 
 function partidasDe(orden: OrdenPedidoListItem) {
   const n = orden.paquetes.length;
-  return `${n} ${n === 1 ? "partida" : "partidas"}`;
+  return `${n} ${n === 1 ? "producto" : "productos"}`;
 }
 
 // ── Estados ───────────────────────────────────────────────────────────────────
@@ -633,18 +633,18 @@ function PantallaOrdenes({ listado: listadoInicial, cargarOrdenes, cancelarActio
             </P>
           </View>
           <View className="flex flex-col md:flex-row gap-2 md:gap-3 shrink-0">
-            <Boton Icono={Plus} iconoSize={16} href="/mercado" claseTexto="text-xs leading-5" className="py-2.5 px-4 rounded-xl w-full md:w-auto">
+            <Boton variante="oscuro" Icono={Plus} iconoSize={16} href="/mercado" claseTexto="text-xs leading-5" className="py-2.5 px-4 rounded-xl w-full md:w-auto">
               Nueva Orden
             </Boton>
             {/* `border-solid`: la variante trae `border-none` y las dos clases
               sobreviven al twMerge, porque son grupos distintos. */}
             <Boton
-              variante="secundario"
+              variante="chip"
               Icono={Upload}
               iconoSize={16}
               onClick={() => exportar("xlsx")}
               claseTexto="text-xs leading-5"
-              className="py-2.5 px-4 rounded-xl border-solid border border-stone-200 w-full md:w-auto bg-white"
+                className="py-2.5 px-4 rounded-xl w-full md:w-auto"
             >
               Exportar Lotes
             </Boton>

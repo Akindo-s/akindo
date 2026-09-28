@@ -14,14 +14,15 @@ const DRIVER_NATIVO = Platform.OS !== "web";
 const EASE_TRANSICION = Easing.bezier(0.4, 0, 0.2, 1);
 
 interface HeroCardProps extends AnuncioDestacado{
-  
+  linkTitle?:string,
+  classNameBox?:string
 }
 
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export function HeroCard({ badges,internal,coverImage,description,internalCover,link,titulo,style }:HeroCardProps) {
+export function HeroCard({ badges,internal,coverImage,description,internalCover,link,titulo,style,linkTitle='Conocenos',classNameBox }:HeroCardProps) {
   const [badge, setBadge] = useState("");
   useEffect(() => {
     if (!badges) return;
@@ -76,7 +77,7 @@ export function HeroCard({ badges,internal,coverImage,description,internalCover,
   const akindoStyle = '';
 
   return (
-    <View className={`relative rounded-2xl w-[267px] overflow-hidden  md:w-[395px] flex flex-col justify-between bg-[#565045] h-80`}>
+    <View className={`relative rounded-2xl w-[267px] overflow-hidden  md:w-[395px] flex flex-col justify-between bg-[#565045] h-80 ${classNameBox}`}>
       {/* Imagen de fondo */}
       {internal && internalCover && (
         <Image
@@ -139,7 +140,7 @@ export function HeroCard({ badges,internal,coverImage,description,internalCover,
             >
             <Users size={16} color="#FFFFFF" />
             <Span peso="medium" className="text-xs text-white">
-              Conocenos
+              {linkTitle}
             </Span>
           </Link>
         </View>
