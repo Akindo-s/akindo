@@ -127,7 +127,7 @@ class PedidoRepo(BaseRepository[Pedido]):
         "orden_pedido!inner(cliente_id, distribuidor_id, "
         "paquete_pedido(*, producto(nombre, imagen)), "
         "direccion_cliente(ciudad, estado), "
-        "cliente!inner(usuario(nombre)), "
+        "cliente!inner(usuario(nombre, imagen_perfil)), "
         "distribuidor!inner(nombre_negocio, usuario!inner(imagen_perfil, es_verificado)))"
     )
 
@@ -157,30 +157,53 @@ class PedidoRepo(BaseRepository[Pedido]):
         ids.update(f["id"] for f in por_producto)
         return list(ids)
 
-    async def listar_por_cliente_paginado(
+    #: Por qué columna de la orden se filtra según quién pregunta. El cliente
+    #: y el distribuidor no son columnas de `pedido`: cuelgan de la orden, así
+    #: que se filtran por el recurso embebido `orden_pedido!inner`.
+    COLUMNA_CLIENTE = "orden_pedido.cliente_id"
+    COLUMNA_DISTRIBUIDOR = "orden_pedido.distribuidor_id"
+
+    def _filtros_base(
         self,
-        cliente_id: uuid.UUID,
+        columna: str,
+        dueno_id: uuid.UUID,
+        estado: str | None = None,
+        contraparte_id: uuid.UUID | None = None,
+    ) -> dict:
+        """Los filtros comunes del listado y del resumen.
+
+        `columna` decide de quién son los pedidos —del cliente o del
+        distribuidor— y `contraparte_id` filtra por el del otro lado.
+        """
+        contraria = (
+            self.COLUMNA_DISTRIBUIDOR if columna == self.COLUMNA_CLIENTE else self.COLUMNA_CLIENTE
+        )
+        filters: dict = {columna: str(dueno_id)}
+        if estado:
+            filters["estado"] = estado
+        if contraparte_id:
+            filters[contraria] = str(contraparte_id)
+        return filters
+
+    async def _listar_paginado(
+        self,
+        columna: str,
+        dueno_id: uuid.UUID,
         estado: str | None = None,
         limit: int = 10,
         offset: int = 0,
         q: str | None = None,
-        distribuidor_id: uuid.UUID | None = None,
+        contraparte_id: uuid.UUID | None = None,
         fecha_desde: str | None = None,
         fecha_hasta: str | None = None,
         descendente: bool = True,
     ) -> tuple[list[dict], int]:
-        """Lista pedidos de un cliente, paginados, con el total sin paginar.
+        """Pedidos paginados, con el total sin paginar.
 
-        El cliente y el distribuidor no son columnas de `pedido`: cuelgan de la
-        orden, asi que se filtran por el recurso embebido `orden_pedido!inner`.
-        La fecha del pedido es `confirmado_at` (la tabla no tiene `created_at`),
-        y es tambien la columna por la que se ordena.
+        La fecha del pedido es `confirmado_at` (la tabla no tiene
+        `created_at`), y es también la columna por la que se ordena.
         """
-        filters: dict = {"orden_pedido.cliente_id": str(cliente_id)}
-        if estado:
-            filters["estado"] = estado
-        if distribuidor_id:
-            filters["orden_pedido.distribuidor_id"] = str(distribuidor_id)
+        filters = self._filtros_base(columna, dueno_id, estado, contraparte_id)
 
         # La busqueda por texto no se puede expresar en SQL, asi que se
         # resuelve antes como una lista de ids y se aplica con un `in`.
@@ -202,11 +225,12 @@ class PedidoRepo(BaseRepository[Pedido]):
             descendente=descendente,
         )
 
-    async def contar_por_estado(
+    async def _contar_por_estado(
         self,
-        cliente_id: uuid.UUID,
+        columna: str,
+        dueno_id: uuid.UUID,
         q: str | None = None,
-        distribuidor_id: uuid.UUID | None = None,
+        contraparte_id: uuid.UUID | None = None,
         fecha_desde: str | None = None,
         fecha_hasta: str | None = None,
     ) -> dict[str, int]:
@@ -220,9 +244,7 @@ class PedidoRepo(BaseRepository[Pedido]):
         `count="exact"` harían falta cuatro (una por estado) y cada una
         repetiría la búsqueda por texto.
         """
-        filters: dict = {"orden_pedido.cliente_id": str(cliente_id)}
-        if distribuidor_id:
-            filters["orden_pedido.distribuidor_id"] = str(distribuidor_id)
+        filters = self._filtros_base(columna, dueno_id, None, contraparte_id)
 
         ids: list[str] | None = None
         if q:
@@ -232,13 +254,101 @@ class PedidoRepo(BaseRepository[Pedido]):
 
         filas = await self.db.select(
             self.table,
-            "id, estado, orden_pedido!inner(cliente_id)",
+            "id, estado, orden_pedido!inner(cliente_id, distribuidor_id)",
             filters,
             ids=ids,
             rangos={"confirmado_at": (fecha_desde, fecha_hasta)},
             limit=self.LIMITE_EXPORTACION,
         )
         return Counter(f["estado"] for f in filas)
+
+    # ── Envoltorios por rol ────────────────────────────────────────────
+
+    async def listar_por_cliente_paginado(
+        self,
+        cliente_id: uuid.UUID,
+        estado: str | None = None,
+        limit: int = 10,
+        offset: int = 0,
+        q: str | None = None,
+        distribuidor_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+        descendente: bool = True,
+    ) -> tuple[list[dict], int]:
+        """Los pedidos que compró un cliente."""
+        return await self._listar_paginado(
+            self.COLUMNA_CLIENTE, cliente_id, estado, limit, offset, q,
+            distribuidor_id, fecha_desde, fecha_hasta, descendente,
+        )
+
+    async def listar_por_distribuidor_paginado(
+        self,
+        distribuidor_id: uuid.UUID,
+        estado: str | None = None,
+        limit: int = 10,
+        offset: int = 0,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+        descendente: bool = True,
+    ) -> tuple[list[dict], int]:
+        """Los pedidos que vendió un distribuidor."""
+        return await self._listar_paginado(
+            self.COLUMNA_DISTRIBUIDOR, distribuidor_id, estado, limit, offset, q,
+            cliente_id, fecha_desde, fecha_hasta, descendente,
+        )
+
+    async def contar_por_estado(
+        self,
+        cliente_id: uuid.UUID,
+        q: str | None = None,
+        distribuidor_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+    ) -> dict[str, int]:
+        """Los conteos por estado de un cliente."""
+        return await self._contar_por_estado(
+            self.COLUMNA_CLIENTE, cliente_id, q, distribuidor_id, fecha_desde, fecha_hasta,
+        )
+
+    async def contar_por_estado_distribuidor(
+        self,
+        distribuidor_id: uuid.UUID,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+    ) -> dict[str, int]:
+        """Los conteos por estado de un distribuidor."""
+        return await self._contar_por_estado(
+            self.COLUMNA_DISTRIBUIDOR, distribuidor_id, q, cliente_id, fecha_desde, fecha_hasta,
+        )
+
+    async def listar_todos_por_distribuidor(
+        self,
+        distribuidor_id: uuid.UUID,
+        estado: str | None = None,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+        descendente: bool = True,
+    ) -> list[dict]:
+        """Los pedidos del distribuidor sin paginar, para exportarlos."""
+        filas, _ = await self.listar_por_distribuidor_paginado(
+            distribuidor_id,
+            estado,
+            limit=self.LIMITE_EXPORTACION,
+            offset=0,
+            q=q,
+            cliente_id=cliente_id,
+            fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta,
+            descendente=descendente,
+        )
+        return filas
 
     async def listar_todos_por_cliente(
         self,

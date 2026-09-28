@@ -35,6 +35,12 @@ class EvidenciaEntrega(BaseModel):
 class EntregaResponse(BaseModel):
     """Todo lo de la entrega de un pedido, en una sola respuesta."""
     pedido_id: UUID
+    #: De dónde sale la mercancía: "Naucalpan Hub".
+    almacen_origen: str | None = None
+    #: Qué unidad conviene: "Camión 3.5 Ton".
+    transporte_sugerido: str | None = None
+    #: El folio de la guía de remisión: "CP-554920".
+    guia: str | None = None
     #: Cuándo se espera que llegue. `None` si todavía no hay compromiso.
     fecha_entrega_aproximada: datetime | None = None
     #: La franja del día comprometida: "09:00 – 14:00".

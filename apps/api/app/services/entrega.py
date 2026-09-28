@@ -57,6 +57,14 @@ _MOCK_TRANSPORTISTAS = [
 
 _MOCK_VENTANAS = ["09:00 – 14:00", "12:00 – 18:00", "08:00 – 11:00"]
 
+#: Datos de despacho, los que ve el distribuidor. Van en el mismo índice que el
+#: transportista, así que un pedido siempre trae la combinación coherente.
+_MOCK_DESPACHO = [
+    {"almacen_origen": "Naucalpan Hub", "transporte_sugerido": "Camión 3.5 Ton", "guia": "CP-554920"},
+    {"almacen_origen": "Centro de acopio Bajío", "transporte_sugerido": "Camioneta 1.5 Ton", "guia": "TB-118043"},
+    {"almacen_origen": "Bodega Monterrey Norte", "transporte_sugerido": "Tráiler 20 Ton", "guia": "EE-770215"},
+]
+
 #: Evidencias de muestra. Solo se devuelven cuando el pedido está entregado.
 #: Las imágenes son de `picsum` con semilla: devuelve siempre la misma foto,
 #: así la pantalla no cambia entre peticiones.
@@ -233,8 +241,13 @@ class EntregaService:
         transportista = _MOCK_TRANSPORTISTAS[indice]
         entregado = pedido.get("estado") == "entregado"
 
+        despacho = _MOCK_DESPACHO[indice]
+
         return EntregaResponse(
             pedido_id=pedido_id,
+            almacen_origen=despacho["almacen_origen"],
+            transporte_sugerido=despacho["transporte_sugerido"],
+            guia=despacho["guia"],
             fecha_entrega_aproximada=self._fecha_aproximada(pedido),
             ventana_horaria=_MOCK_VENTANAS[indice],
             transportista=TransportistaEntrega(**transportista),

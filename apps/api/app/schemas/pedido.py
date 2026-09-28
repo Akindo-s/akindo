@@ -121,7 +121,9 @@ class PedidoListItem(BaseModel):
     total: float
     confirmado_at: datetime | None
     entregado_at: datetime | None
+    cliente_id: UUID | None = None
     cliente_nombre: str | None = None
+    cliente_imagen: str | None = None
     distribuidor_id: UUID | None = None
     distribuidor_nombre: str | None = None
     distribuidor_imagen: str | None = None
