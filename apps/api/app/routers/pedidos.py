@@ -18,6 +18,7 @@ from app.models.usuario import Usuario
 from app.models.cliente import Cliente
 from app.models.distribuidor import Distribuidor
 from app.schemas.orden_pedido import (
+    ResumenOrdenesResponse,
     CrearOrdenRequest,
     ListadoOrdenesResponse,
     RechazarOrdenRequest,
@@ -311,17 +312,61 @@ async def crear_valoracion(
 
 @router.get(
     "/distribuidor/ordenes",
-    response_model=list[OrdenPedidoListItem],
+    response_model=ListadoOrdenesResponse,
     summary="Distribuidor: listar órdenes de compra recibidas",
 )
 async def listar_ordenes_distribuidor(
-    estado: Optional[str] = Query(None, description="pendiente | aceptada | rechazada"),
+    request: Request,
+    estado: Optional[str] = Query(None, description="pendiente | aceptada | rechazada | cancelada"),
+    cantidad_pagina: int = Query(10, ge=1, description="Número de órdenes a mostrar por página"),
+    numero_pagina: int = Query(1, ge=1, description="Número de la página a mostrar"),
+    q: Optional[str] = Query(None, description="Busca por id de la orden o por nombre de producto"),
+    cliente_id: Optional[UUID] = Query(None, description="Solo las órdenes de ese cliente"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de emisión (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de emisión (ISO 8601)"),
+    orden: str = Query("desc", pattern="^(asc|desc)$", description="Por fecha de emisión: desc (recientes primero) o asc"),
     distribuidor: Distribuidor = Depends(get_current_distribuidor),
     db: DatabaseSession = Depends(get_db),
 ):
-    """Lista todas las órdenes de compra recibidas por el distribuidor."""
+    """La bandeja de órdenes del distribuidor, paginada y filtrada.
+
+    Cada orden pendiente llega con lo que el vendedor necesita para decidir:
+    si le alcanza el inventario (`cobertura` y `existencias` por partida), si
+    el cliente ya le compró antes y a dónde hay que entregar.
+    """
     service = OrdenPedidoService(db)
-    return await service.listar_ordenes_distribuidor(distribuidor.id, estado)
+    response = await service.listar_ordenes_distribuidor_paginado(
+        distribuidor.id, estado, cantidad_pagina, numero_pagina, q, cliente_id,
+        fecha_desde, fecha_hasta, orden,
+    )
+
+    if response.tiene_siguiente:
+        response.siguiente_url = str(request.url.include_query_params(numero_pagina=numero_pagina + 1))
+    if response.tiene_anterior:
+        response.anterior_url = str(request.url.include_query_params(numero_pagina=numero_pagina - 1))
+
+    return response
+
+
+# `/resumen` va antes que las rutas con `{orden_id}`: si no, FastAPI intenta
+# leer "resumen" como uuid y responde 422.
+@router.get(
+    "/distribuidor/ordenes/resumen",
+    response_model=ResumenOrdenesResponse,
+    summary="Distribuidor: cuántas órdenes tengo en cada estado",
+)
+async def resumen_ordenes_distribuidor(
+    q: Optional[str] = Query(None, description="Busca por id de la orden o por nombre de producto"),
+    cliente_id: Optional[UUID] = Query(None, description="Solo las órdenes de ese cliente"),
+    fecha_desde: Optional[str] = Query(None, description="Fecha mínima de emisión (ISO 8601)"),
+    fecha_hasta: Optional[str] = Query(None, description="Fecha máxima de emisión (ISO 8601)"),
+    distribuidor: Distribuidor = Depends(get_current_distribuidor),
+    db: DatabaseSession = Depends(get_db),
+):
+    """Los conteos por estado, con los mismos filtros que el listado menos el
+    estado."""
+    service = OrdenPedidoService(db)
+    return await service.resumen_ordenes_distribuidor(distribuidor.id, q, cliente_id, fecha_desde, fecha_hasta)
 
 
 @router.patch(

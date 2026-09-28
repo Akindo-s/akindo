@@ -38,6 +38,7 @@ import {
   obtenerResumenPedidos,
   exportarPedidos,
   obtenerOrdenesDistribuidor,
+  obtenerResumenOrdenesDistribuidor,
   obtenerPedidosDistribuidor,
   obtenerResumenPedidosDistribuidor,
   exportarPedidosDistribuidor,
@@ -323,19 +324,20 @@ export async function exportarPedidosDistribuidorApp(formato: FormatoExportacion
 /** Cuántas órdenes de compra esperan la aprobación del distribuidor. */
 export async function contarOrdenesPendientesDistribuidor() {
   const { token } = await sesionActual();
-  const ordenes = await obtenerOrdenesDistribuidor("pendiente", token);
-  return ordenes.length;
+  const listado = await obtenerOrdenesDistribuidor({ estado: "pendiente", cantidad: 1 }, token);
+  return listado.total_ordenes;
 }
 
-/** Las órdenes de compra que le llegan al distribuidor. */
-export async function cargarOrdenesDistribuidor() {
+/** La bandeja paginada de órdenes del distribuidor, con sus filtros. */
+export async function cargarOrdenesDistribuidor(filtros: FiltrosOrdenes = {}) {
   const { token } = await sesionActual();
-  const [pendientes, aceptadas, rechazadas] = await Promise.all([
-    obtenerOrdenesDistribuidor("pendiente", token),
-    obtenerOrdenesDistribuidor("aceptada", token),
-    obtenerOrdenesDistribuidor("rechazada", token),
-  ]);
-  return { pendientes, aceptadas, rechazadas };
+  return obtenerOrdenesDistribuidor(filtros, token);
+}
+
+/** Cuántas órdenes hay en cada estado, más cuántas se pueden surtir. */
+export async function cargarResumenOrdenesDistribuidor(filtros: FiltrosOrdenes = {}) {
+  const { token } = await sesionActual();
+  return obtenerResumenOrdenesDistribuidor(filtros, token);
 }
 
 /** Todo lo que pinta el panel de `/distribuidor`. */
@@ -349,7 +351,11 @@ export function seccionesDashboardDistribuidor() {
   const token = sesionActual().then((s) => s.token);
   return {
     resumen: token.then((t) => obtenerResumenMensual(t)).catch(() => null),
-    ordenesPendientes: token.then((t) => obtenerOrdenesDistribuidor("pendiente", t)).catch(() => []),
+    // El panel solo pinta las primeras: el listado ahora viene paginado, así
+    // que se le pasa `.ordenes`.
+    ordenesPendientes: token
+      .then((t) => obtenerOrdenesDistribuidor({ estado: "pendiente" }, t).then((l) => l.ordenes))
+      .catch(() => []),
     pedidosActivos: token.then((t) => obtenerPedidosActivos(t)).catch(() => []),
     alertas: token.then((t) => obtenerProductosPocasExistencias(t)).catch(() => []),
   };

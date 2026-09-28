@@ -38,6 +38,7 @@ class DatabaseSession(ABC):
         filtros_texto: dict[str, str] | None = None,
         ids: list[str] | None = None,
         rangos: dict[str, tuple[Any, Any]] | None = None,
+        columna_ids: str = "id",
         ordenar_por: str | None = None,
         descendente: bool = False,
     ) -> list[dict]:
@@ -46,8 +47,9 @@ class DatabaseSession(ABC):
         `filters` son igualdades. `filtros_texto` son busquedas parciales sin
         distinguir mayusculas (`ilike`), y la clave puede ser la ruta de un
         recurso embebido con `!inner` (p. ej. "paquete_pedido.producto.nombre").
-        `ids` limita a esos ids (`in`), util cuando el filtro se calculo antes
-        en Python porque no se puede expresar en SQL. `rangos` son intervalos
+        `ids` limita a esos valores con un `in` sobre `columna_ids` (`id` por
+        defecto), util cuando el filtro se calculo antes en Python porque no se
+        puede expresar en SQL. `rangos` son intervalos
         cerrados por columna, `{"columna": (desde, hasta)}`, y cualquiera de
         los dos extremos puede ser `None` para dejar ese lado abierto.
         `ordenar_por` es la columna por la que se ordena y `descendente`
@@ -66,6 +68,7 @@ class DatabaseSession(ABC):
         filtros_texto: dict[str, str] | None = None,
         ids: list[str] | None = None,
         rangos: dict[str, tuple[Any, Any]] | None = None,
+        columna_ids: str = "id",
         ordenar_por: str | None = None,
         descendente: bool = False,
     ) -> tuple[list[dict], int]:
@@ -139,6 +142,7 @@ class SupabaseDb(DatabaseSession):
         limit: int | None,
         offset: int | None,
         rangos: dict[str, tuple[Any, Any]] | None = None,
+        columna_ids: str = "id",
         ordenar_por: str | None = None,
         descendente: bool = False,
     ):
@@ -150,7 +154,7 @@ class SupabaseDb(DatabaseSession):
             for key, value in filtros_texto.items():
                 query = query.ilike(key, f"%{value}%")
         if ids is not None:
-            query = query.in_("id", ids)
+            query = query.in_(columna_ids, ids)
         # Un rango con un extremo en `None` queda abierto de ese lado, asi el
         # llamador no tiene que armar dos casos para "desde X" y "hasta Y".
         if rangos:
@@ -180,12 +184,13 @@ class SupabaseDb(DatabaseSession):
         filtros_texto: dict[str, str] | None = None,
         ids: list[str] | None = None,
         rangos: dict[str, tuple[Any, Any]] | None = None,
+        columna_ids: str = "id",
         ordenar_por: str | None = None,
         descendente: bool = False,
     ) -> list[dict]:
         query = self._aplicar_filtros(
             self._client.table(table).select(columns),
-            filters, filtros_texto, ids, limit, offset, rangos, ordenar_por, descendente,
+            filters, filtros_texto, ids, limit, offset, rangos, columna_ids, ordenar_por, descendente,
         )
         response = await query.execute()
         return response.data
@@ -200,6 +205,7 @@ class SupabaseDb(DatabaseSession):
         filtros_texto: dict[str, str] | None = None,
         ids: list[str] | None = None,
         rangos: dict[str, tuple[Any, Any]] | None = None,
+        columna_ids: str = "id",
         ordenar_por: str | None = None,
         descendente: bool = False,
     ) -> tuple[list[dict], int]:
@@ -210,7 +216,7 @@ class SupabaseDb(DatabaseSession):
         # el de todas las filas que hacen match, no el de la pagina.
         query = self._aplicar_filtros(
             self._client.table(table).select(columns, count="exact"),
-            filters, filtros_texto, ids, limit, offset, rangos, ordenar_por, descendente,
+            filters, filtros_texto, ids, limit, offset, rangos, columna_ids, ordenar_por, descendente,
         )
         response = await query.execute()
         return (response.data or []), (response.count or 0)

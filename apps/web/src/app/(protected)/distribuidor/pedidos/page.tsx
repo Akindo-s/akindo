@@ -24,7 +24,7 @@ async function PedidosContent() {
   // la paginación los pide la pantalla.
   const [listado, ordenes] = await Promise.all([
     obtenerPedidosDistribuidor({ pagina: 1, cantidad: 10 }),
-    obtenerOrdenesDistribuidor("pendiente"),
+    obtenerOrdenesDistribuidor({ estado: "pendiente", cantidad: 1 }),
   ]);
 
   async function cargarAction(filtros: FiltrosPedidos) {
@@ -66,7 +66,7 @@ async function PedidosContent() {
       cargarEntregasPorDia={entregasPorDiaAction}
       exportarAction={exportarAction}
       actualizarAction={actualizarAction}
-      ordenesPendientes={ordenes.length}
+      ordenesPendientes={ordenes.total_ordenes}
     />
   );
 }

@@ -1,7 +1,13 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { obtenerOrdenesDistribuidor, aceptarOrden, rechazarOrden } from "@/lib/api/pedidos";
+import {
+  aceptarOrden,
+  obtenerOrdenesDistribuidor,
+  obtenerResumenOrdenesDistribuidor,
+  rechazarOrden,
+} from "@/lib/api/pedidos";
+import type { FiltrosOrdenes } from "@akindo/shared/types/pedidos";
 import { Suspense } from "react";
 import DistribuidorOrdenes from "@akindo/ui/screens/distribuidor-ordenes";
 
@@ -11,9 +17,19 @@ export const metadata: Metadata = {
 };
 
 async function OrdenesContent() {
-  const pendientes = await obtenerOrdenesDistribuidor("pendiente");
-  const aceptadas = await obtenerOrdenesDistribuidor("aceptada");
-  const rechazadas = await obtenerOrdenesDistribuidor("rechazada");
+  // La bandeja abre en pendientes: es la pregunta con la que el vendedor
+  // entra. La primera página se pinta en el servidor.
+  const listado = await obtenerOrdenesDistribuidor({ estado: "pendiente", pagina: 1, cantidad: 10 });
+
+  async function cargarAction(filtros: FiltrosOrdenes) {
+    "use server";
+    return obtenerOrdenesDistribuidor(filtros);
+  }
+
+  async function resumenAction(filtros: FiltrosOrdenes) {
+    "use server";
+    return obtenerResumenOrdenesDistribuidor(filtros);
+  }
 
   async function aceptarAction(ordenId: string) {
     "use server";
@@ -27,7 +43,9 @@ async function OrdenesContent() {
 
   return (
     <DistribuidorOrdenes
-      datos={{ pendientes, aceptadas, rechazadas }}
+      listado={listado}
+      cargarOrdenes={cargarAction}
+      cargarResumen={resumenAction}
       aceptarAction={aceptarAction}
       rechazarAction={rechazarAction}
     />

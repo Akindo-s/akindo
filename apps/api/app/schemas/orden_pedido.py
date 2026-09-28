@@ -40,6 +40,13 @@ class PaquetePedidoResponse(BaseModel):
     medida_snapshot: dict
     nombre_producto: str | None = None
     imagen_producto: str | None = None
+    # ── Solo en la bandeja del distribuidor ──────────────────────────
+    #: Las existencias que le quedan al producto al llegar a esta orden, ya
+    #: descontado lo que comprometieron las órdenes anteriores. `None` fuera
+    #: de esa vista.
+    existencias: float | None = None
+    #: Si con esas existencias alcanza para esta partida.
+    suficiente: bool | None = None
 
     model_config = {"from_attributes": True}
 
@@ -69,7 +76,9 @@ class OrdenPedidoListItem(BaseModel):
     estado: str
     total: float
     pre_autorizado: bool
+    cliente_id: UUID | None = None
     cliente_nombre: str | None = None
+    cliente_imagen: str | None = None
     distribuidor_nombre: str | None = None
     distribuidor_imagen: str | None = None
     created_at: datetime | None
@@ -77,7 +86,35 @@ class OrdenPedidoListItem(BaseModel):
     #: detalle del pedido desde el listado.
     pedido_id: UUID | None = None
     paquetes: list[PaquetePedidoResponse] = []
+
+    # ── Solo en la bandeja del distribuidor ──────────────────────────
+    #: Ciudad y estado de la dirección de entrega, ya formateados.
+    destino: str | None = None
+    #: Si el inventario alcanza para surtirla: "completo", "parcial" o
+    #: "sin_stock". `None` fuera de esa vista.
+    cobertura: str | None = None
+    #: Cuántas órdenes de este cliente aceptó antes este distribuidor.
+    cliente_ordenes_previas: int | None = None
+    #: Cuánto suman esas órdenes previas.
+    cliente_monto_historico: float | None = None
+
     model_config = {"from_attributes": True}
+
+
+class ResumenOrdenesResponse(BaseModel):
+    """Cuántas órdenes hay en cada estado.
+
+    Alimenta las tarjetas del resumen y los contadores de las pestañas, así
+    que siempre trae los cuatro estados —con 0 cuando no hay ninguna— y el
+    total. Respeta todos los filtros del listado menos el estado.
+    """
+    total: int
+    por_estado: dict[str, int]
+    #: De las pendientes, cuántas alcanza a surtir con el inventario que le
+    #: queda una vez descontado lo ya comprometido.
+    surtibles: int = 0
+    #: Las pendientes a las que les falta algo.
+    con_faltantes: int = 0
 
 class ListadoOrdenesResponse(BaseModel):
     """Respuesta para listar órdenes de compra del cliente."""

@@ -3,6 +3,7 @@ OrdenPedidoService — Lógica de negocio para órdenes de compra.
 """
 
 import uuid
+from collections import Counter
 from io import BytesIO
 
 from rich.json import JSON
@@ -16,6 +17,7 @@ from app.models.pedido import Pedido, EstadoPedido
 from app.schemas.orden_pedido import (
     CrearOrdenRequest,
     ListadoOrdenesResponse,
+    ResumenOrdenesResponse,
     RechazarOrdenRequest,
     OrdenPedidoResponse,
     OrdenPedidoListItem,
@@ -105,6 +107,14 @@ def _orden_to_response(orden: OrdenPedido | dict) -> OrdenPedidoResponse:
             paquetes=[_paquete_to_response(p, orden.id) for p in orden.paquetes],
             created_at=orden.created_at,
         )
+
+
+def _primero(valor) -> dict:
+    """Un recurso embebido de PostgREST llega como dict, como lista de uno o
+    como `None`. Esto devuelve siempre un dict."""
+    if isinstance(valor, list):
+        return valor[0] if valor else {}
+    return valor or {}
 
 
 class OrdenPedidoService:
@@ -614,6 +624,241 @@ class OrdenPedidoService:
             ordenes=result
         )
 
+
+    # ── Bandeja del distribuidor ──────────────────────────────────────────
+
+    #: Los estados que siempre salen en el resumen, en el orden en que la
+    #: pantalla los muestra. Van todos aunque valgan 0.
+    ESTADOS_RESUMEN = ("pendiente", "aceptada", "rechazada", "cancelada")
+
+    async def listar_ordenes_distribuidor_paginado(
+        self,
+        distribuidor_id: uuid.UUID,
+        estado: str | None = None,
+        cantidad_pagina: int = 10,
+        numero_pagina: int = 1,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+        orden: str = "desc",
+    ) -> ListadoOrdenesResponse:
+        """La bandeja de órdenes del distribuidor.
+
+        Además del listado paginado, cada orden llega respondiendo tres cosas
+        que el vendedor necesita para decidir sin salir de la pantalla: si le
+        alcanza el inventario (`cobertura` y el detalle por partida), si el
+        cliente ya le compró antes (`cliente_ordenes_previas`) y a dónde hay
+        que entregar (`destino`).
+        """
+        limit = max(1, cantidad_pagina)
+        offset = max(0, (numero_pagina - 1) * limit)
+
+        rows, total_ordenes = await self.repo.listar_por_distribuidor_paginado(
+            distribuidor_id, estado, limit, offset, q, cliente_id,
+            fecha_desde, fecha_hasta, descendente=(orden != "asc"),
+        )
+
+        # Dos consultas más para toda la página, no una por orden.
+        cobertura, veredictos = await self._cobertura_de_stock(distribuidor_id)
+        historial = await self._historial_de_clientes(distribuidor_id, rows)
+
+        ordenes = [
+            self._orden_de_distribuidor(row, cobertura, veredictos, historial)
+            for row in rows
+        ]
+
+        return ListadoOrdenesResponse(
+            total_ordenes=total_ordenes,
+            total_paginas=(total_ordenes + limit - 1) // limit if limit > 0 else 1,
+            pagina_actual=numero_pagina,
+            tiene_siguiente=(offset + limit) < total_ordenes,
+            tiene_anterior=offset > 0,
+            siguiente_url=None,
+            anterior_url=None,
+            ordenes=ordenes,
+        )
+
+    async def resumen_ordenes_distribuidor(
+        self,
+        distribuidor_id: uuid.UUID,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+    ) -> ResumenOrdenesResponse:
+        """Cuántas órdenes del distribuidor hay en cada estado, y de las
+        pendientes, cuántas puede surtir con el inventario que le queda."""
+        filas = await self.repo.contar_por_estado_distribuidor(
+            distribuidor_id, q, cliente_id, fecha_desde, fecha_hasta,
+        )
+        conteos = Counter(f["estado"] for f in filas)
+        por_estado = {estado: conteos.get(estado, 0) for estado in self.ESTADOS_RESUMEN}
+
+        # El veredicto se calcula sobre **todas** las pendientes (el inventario
+        # es uno solo), pero solo se cuentan las que pasaron los filtros.
+        _, veredictos = await self._cobertura_de_stock(distribuidor_id)
+        pendientes = [str(f["id"]) for f in filas if f["estado"] == "pendiente"]
+        surtibles = sum(1 for oid in pendientes if veredictos.get(oid) == "completo")
+
+        return ResumenOrdenesResponse(
+            total=sum(conteos.values()),
+            por_estado=por_estado,
+            surtibles=surtibles,
+            con_faltantes=len(pendientes) - surtibles,
+        )
+
+    # ── ¿Puedo surtir esta orden? ─────────────────────────────────────────
+
+    async def _cobertura_de_stock(
+        self, distribuidor_id: uuid.UUID
+    ) -> tuple[dict[str, dict], dict[str, str]]:
+        """Cuánto inventario le queda a cada orden cuando le toca su turno.
+
+        Las existencias son una sola bolsa: dos órdenes pendientes pueden ser
+        surtibles por separado y no a la vez. Por eso no se compara cada orden
+        contra el inventario completo, sino contra **lo que queda**:
+
+        1. Se parte de `producto.existencias`.
+        2. Se descuenta todo lo que comprometieron las órdenes **aceptadas**,
+           que se van a surtir sí o sí.
+        3. Se recorren las **pendientes** de la más vieja a la más nueva,
+           anotando qué le quedaba a cada una y descontando lo suyo antes de
+           pasar a la siguiente.
+
+        Devuelve dos mapas por id de orden: qué existencias vio cada partida y
+        el veredicto de la orden completa.
+        """
+        productos = await self.db.select(
+            "producto", "id, existencias, disponible", {"distribuidor_id": str(distribuidor_id)},
+        ) or []
+        # Un producto marcado como no disponible no se puede surtir aunque el
+        # almacén diga que hay piezas.
+        restante: dict[str, float] = {
+            p["id"]: float(p.get("existencias") or 0) if p.get("disponible") else 0.0
+            for p in productos
+        }
+
+        ordenes = await self.repo.compromisos_de_stock(distribuidor_id)
+        aceptadas = [o for o in ordenes if o.get("estado") == "aceptada"]
+        pendientes = [o for o in ordenes if o.get("estado") == "pendiente"]
+
+        for orden in aceptadas:
+            for paq in orden.get("paquete_pedido") or []:
+                pid = str(paq["producto_id"])
+                restante[pid] = restante.get(pid, 0.0) - float(paq["cantidad"])
+
+        por_orden: dict[str, dict] = {}
+        veredictos: dict[str, str] = {}
+        for orden in pendientes:
+            disponible_aqui: dict[str, float] = {}
+            paquetes = orden.get("paquete_pedido") or []
+            suficientes = 0
+            for paq in paquetes:
+                pid = str(paq["producto_id"])
+                queda = restante.get(pid, 0.0)
+                disponible_aqui[pid] = queda
+                if queda >= float(paq["cantidad"]):
+                    suficientes += 1
+                restante[pid] = queda - float(paq["cantidad"])
+
+            por_orden[str(orden["id"])] = disponible_aqui
+            # Una orden sin partidas no tiene nada que surtir, así que no
+            # estorba: cuenta como completa.
+            if not paquetes or suficientes == len(paquetes):
+                veredictos[str(orden["id"])] = "completo"
+            elif suficientes == 0:
+                veredictos[str(orden["id"])] = "sin_stock"
+            else:
+                veredictos[str(orden["id"])] = "parcial"
+
+        return por_orden, veredictos
+
+    async def _historial_de_clientes(
+        self, distribuidor_id: uuid.UUID, rows: list[dict]
+    ) -> dict[str, tuple[int, float]]:
+        """Cuántas órdenes le aceptó antes este distribuidor a cada cliente de
+        la página, y por cuánto dinero."""
+        cliente_ids = list({str(r["cliente_id"]) for r in rows if r.get("cliente_id")})
+        previas = await self.repo.historial_por_cliente(distribuidor_id, cliente_ids)
+
+        historial: dict[str, tuple[int, float]] = {}
+        for orden in previas:
+            cid = str(orden["cliente_id"])
+            total = sum(
+                float(p["costo_unitario"]) * int(p["cantidad"])
+                for p in (orden.get("paquete_pedido") or [])
+            )
+            veces, monto = historial.get(cid, (0, 0.0))
+            historial[cid] = (veces + 1, monto + total)
+        return historial
+
+    def _orden_de_distribuidor(
+        self,
+        row: dict,
+        cobertura: dict[str, dict],
+        veredictos: dict[str, str],
+        historial: dict[str, tuple[int, float]],
+    ) -> OrdenPedidoListItem:
+        """Arma una orden de la bandeja, con stock, cliente y destino."""
+        cliente = _primero(row.get("cliente"))
+        usuario = _primero(cliente.get("usuario"))
+        direccion = _primero(row.get("direccion_cliente"))
+        pedido = _primero(row.get("pedido"))
+
+        partes = [direccion.get("ciudad"), direccion.get("estado")]
+        destino = ", ".join(x for x in partes if x) or None
+
+        disponible_aqui = cobertura.get(str(row["id"]), {})
+        # Solo las pendientes tienen turno en el reparto de inventario; en las
+        # demás la pregunta ya no aplica.
+        evalua_stock = row.get("estado") == "pendiente"
+
+        paquetes: list[PaquetePedidoResponse] = []
+        total = 0.0
+        for paq in row.get("paquete_pedido") or []:
+            producto = _primero(paq.get("producto"))
+            cantidad = int(paq["cantidad"])
+            costo = float(paq["costo_unitario"])
+            total += cantidad * costo
+
+            existencias = disponible_aqui.get(str(paq["producto_id"])) if evalua_stock else None
+            suficiente = None if existencias is None else existencias >= cantidad
+
+            paquetes.append(PaquetePedidoResponse(
+                id=uuid.UUID(paq["id"]) if isinstance(paq.get("id"), str) else (paq.get("id") or uuid.uuid4()),
+                producto_id=uuid.UUID(paq["producto_id"]) if isinstance(paq["producto_id"], str) else paq["producto_id"],
+                cantidad=cantidad,
+                costo_unitario=costo,
+                subtotal=cantidad * costo,
+                medida_snapshot=paq.get("medida_snapshot") or {},
+                nombre_producto=producto.get("nombre"),
+                imagen_producto=producto.get("imagen"),
+                existencias=existencias,
+                suficiente=suficiente,
+            ))
+
+        cobertura_orden = veredictos.get(str(row["id"])) if evalua_stock else None
+
+        cliente_id = row.get("cliente_id")
+        veces, monto = historial.get(str(cliente_id), (0, 0.0))
+
+        return OrdenPedidoListItem(
+            id=uuid.UUID(row["id"]) if isinstance(row["id"], str) else row["id"],
+            estado=row["estado"],
+            total=total,
+            pre_autorizado=row.get("pre_autorizado", False),
+            cliente_id=cliente_id,
+            cliente_nombre=usuario.get("nombre"),
+            cliente_imagen=usuario.get("imagen_perfil"),
+            created_at=row.get("created_at"),
+            pedido_id=pedido.get("id"),
+            paquetes=paquetes,
+            destino=destino,
+            cobertura=cobertura_orden,
+            cliente_ordenes_previas=veces,
+            cliente_monto_historico=monto,
+        )
 
     # ── Exportación contable ──────────────────────────────────────────────
 

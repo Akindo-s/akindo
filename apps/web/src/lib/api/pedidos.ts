@@ -123,9 +123,16 @@ export async function crearValoracion(
 
 // ── Órdenes de compra — distribuidor ─────────────────────────────────────────
 
-export async function obtenerOrdenesDistribuidor(estado?: string) {
+/** Devuelve el listado paginado (`{ …metadata, ordenes }`), no la lista suelta. */
+export async function obtenerOrdenesDistribuidor(filtros: FiltrosOrdenes = {}) {
   const token = await tokenDistribuidor();
-  return conSesion(() => core.obtenerOrdenesDistribuidor(estado, token));
+  return conSesion(() => core.obtenerOrdenesDistribuidor(filtros, token));
+}
+
+/** Cuántas órdenes hay en cada estado, más cuántas se pueden surtir. */
+export async function obtenerResumenOrdenesDistribuidor(filtros: FiltrosOrdenes = {}) {
+  const token = await tokenDistribuidor();
+  return conSesion(() => core.obtenerResumenOrdenesDistribuidor(filtros, token));
 }
 
 export async function aceptarOrden(ordenId: string) {

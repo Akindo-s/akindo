@@ -126,6 +126,16 @@ class OrdenPedidoRepo(BaseRepository[OrdenPedido]):
         "pedido(id)"
     )
 
+    # Lo que necesita la bandeja de órdenes del distribuidor. Además del
+    # cliente y su dirección de entrega, los productos traen `existencias` y
+    # `disponible`: son los que contestan "¿puedo surtir esta orden?".
+    COLUMNAS_LISTADO_DISTRIBUIDOR = (
+        "*, paquete_pedido(*, producto(nombre, imagen, existencias, disponible)), "
+        "cliente!inner(usuario!inner(nombre, imagen_perfil)), "
+        "direccion_cliente(ciudad, estado), "
+        "pedido(id)"
+    )
+
     @staticmethod
     def _total_de(fila: dict) -> float:
         """Total de una orden: no es columna, sale de sus paquetes."""
@@ -216,6 +226,115 @@ class OrdenPedidoRepo(BaseRepository[OrdenPedido]):
             ordenar_por="created_at",
             descendente=descendente,
         )
+
+    async def listar_por_distribuidor_paginado(
+        self,
+        distribuidor_id: uuid.UUID,
+        estado: str | None = None,
+        limit: int = 10,
+        offset: int = 0,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+        descendente: bool = True,
+    ) -> tuple[list[dict], int]:
+        """Las órdenes que le llegaron al distribuidor, paginadas."""
+        filters: dict = {"distribuidor_id": str(distribuidor_id)}
+        if estado:
+            filters["estado"] = estado
+        if cliente_id:
+            filters["cliente_id"] = str(cliente_id)
+
+        ids: list[str] | None = None
+        if q:
+            ids = await self._ids_por_texto(filters, q)
+            if not ids:
+                return [], 0
+
+        return await self.db.select_con_total(
+            self.table,
+            self.COLUMNAS_LISTADO_DISTRIBUIDOR,
+            filters,
+            limit=limit,
+            offset=offset,
+            ids=ids,
+            rangos={"created_at": (fecha_desde, fecha_hasta)},
+            ordenar_por="created_at",
+            descendente=descendente,
+        )
+
+    async def contar_por_estado_distribuidor(
+        self,
+        distribuidor_id: uuid.UUID,
+        q: str | None = None,
+        cliente_id: uuid.UUID | None = None,
+        fecha_desde: str | None = None,
+        fecha_hasta: str | None = None,
+    ) -> list[dict]:
+        """Las órdenes que pasan los filtros, con su id y su estado.
+
+        El estado no se filtra: esto alimenta los contadores de las pestañas,
+        que tienen que decir cuántas hay en cada una sin importar cuál mires.
+        Devuelve las filas y no un conteo porque el servicio también necesita
+        los ids, para cruzarlos con el veredicto de inventario.
+        """
+        filters: dict = {"distribuidor_id": str(distribuidor_id)}
+        if cliente_id:
+            filters["cliente_id"] = str(cliente_id)
+
+        ids: list[str] | None = None
+        if q:
+            ids = await self._ids_por_texto(filters, q)
+            if not ids:
+                return []
+
+        return await self.db.select(
+            self.table,
+            "id, estado",
+            filters,
+            ids=ids,
+            rangos={"created_at": (fecha_desde, fecha_hasta)},
+            limit=self.LIMITE_EXPORTACION,
+        ) or []
+
+    async def compromisos_de_stock(self, distribuidor_id: uuid.UUID) -> list[dict]:
+        """Las órdenes que ya comprometen inventario, de la más vieja a la más
+        nueva.
+
+        Son las aceptadas (que se van a surtir sí o sí) y las pendientes (que
+        podrían aceptarse). El orden importa: el servicio las recorre en ese
+        orden para descontar existencias, así una orden puede salir "parcial"
+        porque otra anterior ya se llevó el producto.
+        """
+        return await self.db.select(
+            self.table,
+            "id, estado, created_at, paquete_pedido(producto_id, cantidad)",
+            {"distribuidor_id": str(distribuidor_id)},
+            ordenar_por="created_at",
+            descendente=False,
+            limit=self.LIMITE_EXPORTACION,
+        ) or []
+
+    async def historial_por_cliente(
+        self, distribuidor_id: uuid.UUID, cliente_ids: list[str]
+    ) -> list[dict]:
+        """Las órdenes **aceptadas** de esos clientes con este distribuidor.
+
+        El servicio las agrupa para saber cuántas veces compró cada uno y por
+        cuánto. Se filtra por `cliente_id` con un `in`, así solo se traen los
+        clientes que aparecen en la página.
+        """
+        if not cliente_ids:
+            return []
+        return await self.db.select(
+            self.table,
+            "id, cliente_id, created_at, paquete_pedido(cantidad, costo_unitario)",
+            {"distribuidor_id": str(distribuidor_id), "estado": "aceptada"},
+            ids=cliente_ids,
+            columna_ids="cliente_id",
+            limit=self.LIMITE_EXPORTACION,
+        ) or []
 
     async def listar_todas_por_cliente(
         self,
