@@ -60,15 +60,15 @@ export async function tokenRequerido(): Promise<string> {
 
 /** Sesion completa; redirige a /login si falta o si el tipo no coincide. */
 export async function sesionRequerida(tipo?: TipoUsuario): Promise<Sesion> {
-  const redirectRoute = '/registro'
+  const redirectRoute = '/nosession'
   const { token, tipo: tipoActual } = await sesionOpcional();
 
-  if (!token || !tipoActual || !TIPOS_VALIDOS.includes(tipoActual)) {
-    redirect(redirectRoute);
+  if (!token || !tipoActual || !TIPOS_VALIDOS.includes(tipoActual)||tipo && tipoActual !== tipo) {
+    
+    redirect(redirectRoute,`replace`);
   }
-  if (tipo && tipoActual !== tipo) {
-    redirect(redirectRoute);
-  }
+
+  
 
   return { token, tipo: tipoActual };
 }

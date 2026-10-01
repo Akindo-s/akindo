@@ -21,13 +21,15 @@ export const metadata: Metadata = {
     default: "Akindo",
     template: "%s | Akindo",
   },
-  description: "Akindo Marketplace",
+  description: "Akindo Marketplace B2B",
 };
 
 export default function RootLayout({
   children,
+  modal
 }: Readonly<{
   children: React.ReactNode;
+  modal:React.ReactNode;
 }>) {
   return (
     <html
@@ -50,6 +52,7 @@ export default function RootLayout({
           Header, Sidebar y BottomNav quedan siempre a la vista. */}
       <body suppressHydrationWarning className="h-dvh w-full flex flex-col overflow-hidden">
       {children}
+      {modal}
     </body>
     </html>
   );
