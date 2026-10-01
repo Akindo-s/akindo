@@ -18,9 +18,10 @@ export default function FooterFijo({ children, className }: { children: ReactNod
   return (
     <Footer
       className={twMerge(
-        "z-50 absolute web:fixed bottom-0 web:bottom-14 web:md:bottom-0 left-0 right-0 md:left-56 lg:left-64 bg-white border-t border-stone-100 px-4 py-3 flex flex-row gap-3 max-w-2xl lg:max-w-2xl mx-auto shadow-[0_-4px_12px_rgba(0,0,0,0.06)] rounded-t-2xl",
+        "z-50 absolute web:fixed bottom-0  left-0 w-full lg:left-[38%]    bg-white border-t border-stone-100 px-4 py-3 flex flex-row gap-3 max-w-2xl  mx-auto shadow-[0_-4px_12px_rgba(0,0,0,0.06)] rounded-t-2xl",
         className
       )}
+      
     >
       {children}
     </Footer>

@@ -23,11 +23,14 @@ interface BotonProps {
    */
   variante?: "primario" | "secundario" | "peligro" | "chip" | "oscuro";
 
-  /** Ícono a mostrar a la izquierda del texto. Recibe `size` y el `color` de la variante. */
+  /** Ícono a mostrar junto al texto. Por default a la izquierda; ver `iconoDespues`. Recibe `size` y el `color` de la variante. */
   Icono?: React.ComponentType<{ className?: string; size?: number; color?: string }> | null;
 
   /** Tamaño del ícono en px. Default: 16 para chip, 18 para secundario, 20 para primario. */
   iconoSize?: number;
+
+  /** Si es `true`, `Icono` se renderiza después del texto en vez de antes. */
+  iconoDespues?: boolean;
 
   /** Texto del botón. Si se omite y solo hay Icono, el botón será solo ícono. */
   children?: React.ReactNode;
@@ -157,6 +160,7 @@ export function Boton({
   variante = "primario",
   Icono = null,
   iconoSize,
+  iconoDespues = false,
   children,
   href,
   loading = false,
@@ -191,16 +195,26 @@ export function Boton({
   );
   const texto = loading ? loadingText : children;
 
-  const content = (
+  const icono = Icono && (
+    <Icono className="flex-shrink-0" size={size} color={variantes[variante].icono} />
+  );
+  // Sin texto no se renderiza el Text: vacío igual ocupaba lugar y el
+  // `gap-2` descentraba los botones de solo ícono.
+  const texto_ = texto != null && texto !== false && (
+    <Text style={fuente(pesoTexto)} className={twMerge(variantes[variante].texto, claseTexto)}>
+      {texto}
+    </Text>
+  );
+
+  const content = iconoDespues ? (
     <>
-      {Icono && <Icono className="flex-shrink-0" size={size} color={variantes[variante].icono} />}
-      {/* Sin texto no se renderiza el Text: vacío igual ocupaba lugar y el
-          `gap-2` descentraba los botones de solo ícono. */}
-      {texto != null && texto !== false && (
-        <Text style={fuente(pesoTexto)} className={twMerge(variantes[variante].texto, claseTexto)}>
-          {texto}
-        </Text>
-      )}
+      {texto_}
+      {icono}
+    </>
+  ) : (
+    <>
+      {icono}
+      {texto_}
     </>
   );
 

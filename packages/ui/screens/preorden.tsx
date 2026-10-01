@@ -210,7 +210,7 @@ export default function PreOrden({ preOrden, crearOrdenAction }: PreOrdenProps) 
     if (!result.ok) { setError(result.error ?? "No se pudo crear la orden"); return; }
     // `replace` y no el `push` del original: en nativo, "volver" desde pedidos
     // regresaba a esta preorden ya enviada (regla 29).
-    router.replace("/pedidos" as never);
+    router.replace("/pedidos/ordenes" as never);
   }
 
   const resumenRows = [

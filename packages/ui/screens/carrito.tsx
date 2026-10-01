@@ -2,8 +2,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Image, View } from "react-native";
-import { Trash2 } from "lucide-react-native";
+import { Animated, Easing, Image, Pressable, View } from "react-native";
+import { ArrowRight, ChevronDown, Trash2 } from "lucide-react-native";
 import { MONEDA } from "@akindo/shared/constants";
 import { emitir } from "@akindo/shared/eventos";
 import type {
@@ -43,6 +43,9 @@ interface CarritoProps {
 type SuccessToast = { message: string } | null;
 const DEBOUNCE_MS = 800;
 const RETRY_DELAYS_MS = [250, 700];
+/** El `ease-out` de Tailwind: cubic-bezier(0, 0, 0.2, 1). */
+const EASE_OUT = Easing.bezier(0, 0, 0.2, 1);
+const DURACION_RESUMEN = 220;
 
 function formatMoney(value: number): string {
   return value.toLocaleString("es-MX", {
@@ -142,6 +145,19 @@ export default function Carrito({
   const avisar = useAviso();
   const [success, setSuccess] = useState<SuccessToast>(null);
   const [isGlobalPending, setIsGlobalPending] = useState(false);
+  const [resumenExpandido, setResumenExpandido] = useState(false);
+  const [alturaResumen, setAlturaResumen] = useState(0);
+  const progresoResumen = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(progresoResumen, {
+      toValue: resumenExpandido ? 1 : 0,
+      duration: DURACION_RESUMEN,
+      easing: EASE_OUT,
+      // La altura no la soporta el driver nativo (ni en nativo ni en web).
+      useNativeDriver: false,
+    }).start();
+  }, [resumenExpandido, progresoResumen]);
 
   useEffect(() => {
     pendingQtyByKeyRef.current = pendingQtyByKey;
@@ -445,20 +461,56 @@ export default function Carrito({
         </View>
       </ContenedorPantalla>
 
-      {/* Fuera del ScrollView: en nativo, adentro se iría con el scroll. */}
-      <FooterFijo className="max-w-full rounded-t-2xl">
-        <View className="w-full flex flex-col gap-2">
-          <View className="rounded-xl bg-[#F3EBE0] p-4">
-            {/* `last:mb-0` del original: nativewind no tiene la variante `last:`,
-                así que el margen se decide por índice. */}
-            {resumen.map((row, i) => (
-              <View key={row.label} className={`flex flex-row items-center justify-between ${i === resumen.length - 1 ? "" : "mb-1"}`}>
-                <Span className="text-sm text-stone-700 shrink">{row.label}</Span>
-                <Span className="text-sm text-stone-700">{row.value}</Span>
+      <FooterFijo className="rounded-t-2xl bg-[#F3EBE0]">
+        <View className="w-full flex flex-col gap-3">
+          
+
+          <View className="h-fit overflow-hidden">
+            {/* Colapsado solo muestra el Total; expandido agrega el desglose
+                arriba. El tap en la fila de Total alterna entre los dos.
+                El desglose se renderiza siempre (oculto por `height: 0` del
+                Animated.View) para poder medir su alto real con onLayout: un
+                View de RN no se achica para entrar en un padre más chico
+                (flexShrink default es 0), así que el alto medido no cambia
+                aunque el padre esté colapsado. */}
+            <Animated.View
+              style={{
+                height: progresoResumen.interpolate({ inputRange: [0, 1], outputRange: [0, alturaResumen] }),
+                opacity: progresoResumen,
+                overflow: "hidden",
+              }}
+            >
+              <View onLayout={(e) => setAlturaResumen(e.nativeEvent.layout.height)} className="mb-2">
+                {resumen.map((row) => (
+                  <View key={row.label} className="flex flex-row items-center justify-between mb-1">
+                    <Span className="text-sm text-stone-700 shrink">{row.label}</Span>
+                    <Span className="text-sm text-stone-700">{row.value}</Span>
+                  </View>
+                ))}
+                <View className="mt-2 border-t border-stone-300" />
               </View>
-            ))}
-            <View className="mt-3 flex flex-row items-end justify-between border-t border-stone-300 pt-2">
-              <Span peso="semibold" className="text-base text-stone-900">Total</Span>
+            </Animated.View>
+
+            <Pressable
+              onPress={() => setResumenExpandido((abierto) => !abierto)}
+              accessibilityRole="button"
+              accessibilityLabel={resumenExpandido ? "Ocultar desglose" : "Ver desglose"}
+              className="flex flex-row items-end justify-between"
+              >
+              <View className="flex flex-row items-center gap-1">
+                <Span peso="semibold" className="text-base text-stone-900">Total</Span>
+                <Animated.View
+                  style={{
+                    transform: [
+                      {
+                        rotate: progresoResumen.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] }),
+                      },
+                    ],
+                  }}
+                  >
+                  <ChevronDown size={18} color="#1C1917" />
+                </Animated.View>
+              </View>
               <View>
                 <P peso="bold" className="text-4xl leading-none text-stone-900 text-right">
                   ${formatMoney(viewData.total)}
@@ -467,18 +519,22 @@ export default function Carrito({
                     los 20px del `text-sm` del contenedor del resumen (regla 19). */}
                 <P className="text-[10px] leading-5 uppercase text-stone-500 text-right">{MONEDA}</P>
               </View>
-            </View>
+            </Pressable>
           </View>
+
           <Boton
             variante="primario"
             className="w-full"
+            Icono={ArrowRight}
+            iconoDespues
             disabled={!hasItems || disabledGlobal}
             href={hasItems ? `/carrito/preorden?distribuidor_id=${viewData.grupos[0].distribuidorId}` : undefined}
-          >
-            Continuar con el pago
+            >
+            {`Continuar (${viewData.totalArticulos})`}
           </Boton>
         </View>
       </FooterFijo>
+      
     </>
   );
 }
