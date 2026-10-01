@@ -3,13 +3,15 @@
 Registra routers, middleware y exception handlers.
 """
 
+import time 
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.exceptions.base import AkindoBaseException
 from app.core.exceptions.handlers import global_exception_handler
 import traceback
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi import Request
 from app.core.middleware.auth import AuthMiddleware
 from app.core.middleware.logging import RequestLogger
@@ -97,19 +99,22 @@ event_bus.subscribe("pedido.actualizado", RegistrarActualizacionPedido())
 event_bus.subscribe("pedido.finalizado", SolicitarValoracionPedido())
 
 # ── Health check ───────────────────────────────────────────────────
+_last_check = 0.0
+_last_ok = False
+CACHE_SECONDS = 60
+
 @app.get("/health")
-async def health_check(db: DatabaseSession = Depends(get_db)):
-    """Verifica que la API y la conexión a Supabase funcionan correctamente."""
-    try:
-        clientes = await db.select("cliente")
-        return {
-            "status": "ok",
-            "db_connection": "ok",
-            "clientes_count": len(clientes),
-        }
-    except Exception as e:
-        return {
-            "status": "error",
-            "db_connection": "error",
-            "detail": str(e),
-        }
+async def health(response: Response, db: DatabaseSession = Depends(get_db)):
+    global _last_check, _last_ok
+    now = time.monotonic()
+    if now - _last_check > CACHE_SECONDS:
+        try:
+            # una sola columna, una sola fila
+            await db.select("cliente", columns="id", limit=1)
+            _last_ok = True
+        except Exception:
+            _last_ok = False
+        _last_check = now
+    if not _last_ok:
+        response.status_code = 503
+    return {"status": "ok" if _last_ok else "db_unreachable"}
