@@ -110,7 +110,7 @@ async def health(response: Response, db: DatabaseSession = Depends(get_db)):
     if now - _last_check > CACHE_SECONDS:
         try:
             # una sola columna, una sola fila
-            await db.select("cliente", columns="id", limit=1)
+            await db.select("cliente", columns="usuario_id", limit=1)
             _last_ok = True
         except Exception:
             _last_ok = False
