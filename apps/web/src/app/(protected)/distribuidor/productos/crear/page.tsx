@@ -5,15 +5,12 @@ import {
     guardarBorradorProducto,
     subirImagenProducto,
 } from "@/lib/api/productos";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { sesionRequerida } from "@/lib/sesion";
 
 export default async function CrearProductoPage() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
+    const { tipo: tipoUsuario } = await sesionRequerida();
 
-    if (!token) redirect("/login");
     if (tipoUsuario !== "distribuidor") redirect("/");
 
     // Las escrituras se inyectan como server actions (el form es compartido con mobile).

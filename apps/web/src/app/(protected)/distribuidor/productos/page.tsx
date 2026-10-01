@@ -1,8 +1,8 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerPerfilDistribuidor } from "@/lib/api/usuario";
 import { archivarProducto } from "@/lib/api/productos";
 import Inventario from "@akindo/ui/screens/inventario";
+import { sesionRequerida } from "@/lib/sesion";
 
 /**
  * Página de inventario del distribuidor.
@@ -10,13 +10,7 @@ import Inventario from "@akindo/ui/screens/inventario";
  * y renderiza la vista de inventario con scroll infinito.
  */
 export default async function InventarioPage() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
-
-    if (!token || tipoUsuario !== "distribuidor") {
-        redirect("/login");
-    }
+    await sesionRequerida("distribuidor");
 
     const perfil = await obtenerPerfilDistribuidor();
     if (!perfil?.id) {

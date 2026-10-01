@@ -1,10 +1,10 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerDetallePedido, crearValoracion, enviarActualizacionPedido } from "@/lib/api/pedidos";
 import PedidoDetalle from "@akindo/ui/screens/pedido-detalle";
 import DistribuidorPedidoDetalle from "@akindo/ui/screens/distribuidor-pedido-detalle";
 import { EstadoPedido } from "@akindo/shared/types/pedidos";
+import { sesionRequerida } from "@/lib/sesion";
 
 export const metadata: Metadata = { title: "Detalle del Pedido" };
 
@@ -13,10 +13,8 @@ export default async function DetallePedidoPage({
 }: {
   params: Promise<{ pedidoId: string }>;
 }) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-  const tipo = cookieStore.get("tipo_usuario")?.value;
-  if (!token || (tipo !== "cliente" && tipo !== "distribuidor")) redirect("/login");
+  const { tipo } = await sesionRequerida();
+  if (tipo !== "cliente" && tipo !== "distribuidor") redirect("/login");
 
   const { pedidoId } = await params;
   const pedido = await obtenerDetallePedido(pedidoId);

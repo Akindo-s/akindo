@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Perfil from "@akindo/ui/screens/perfil";
 import {
@@ -13,6 +12,7 @@ import {
     obtenerPerfilDistribuidor,
 } from "@/lib/api/usuario";
 import { _logout } from "@/lib/auth";
+import { sesionRequerida } from "@/lib/sesion";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -84,13 +84,7 @@ async function PerfilContent({ tipoUsuario }: { tipoUsuario: string | undefined 
 }
 
 export default async function PerfilPage() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
-
-    if (!token) {
-        redirect("/login");
-    }
+    const { tipo: tipoUsuario } = await sesionRequerida();
 
     // Suspense hace que Next.js envíe el HTML del skeleton de inmediato (streaming)
     // y reemplaza con el perfil real cuando el fetch al backend termina.

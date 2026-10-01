@@ -1,10 +1,10 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import DistribuidorDashboard from "@akindo/ui/screens/distribuidor-dashboard";
 import { obtenerResumenMensual, obtenerPedidosActivos, obtenerProductosPocasExistencias } from "@/lib/api/distribuidor";
 import { obtenerOrdenesDistribuidor } from "@/lib/api/pedidos";
 import { archivarProducto } from "@/lib/api/productos";
+import { sesionRequerida } from "@/lib/sesion";
 
 export const metadata: Metadata = {
     title: "Panel de Distribuidor",
@@ -16,11 +16,8 @@ async function archivarAction(productoId: string) {
 }
 
 export default async function DistribuidorPage() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
+    const { tipo: tipoUsuario } = await sesionRequerida();
 
-    if (!token) redirect("/login");
     if (tipoUsuario !== "distribuidor") redirect("/");
 
     // Sin `await`: las cuatro promesas se le pasan a la pantalla, que pinta cada

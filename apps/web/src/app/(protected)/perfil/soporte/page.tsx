@@ -1,7 +1,6 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import Soporte from "@akindo/ui/screens/soporte";
+import { sesionRequerida } from "@/lib/sesion";
 
 export const metadata: Metadata = {
   title: "Soporte",
@@ -9,9 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default async function SoportePage() {
-  const cookieStore = await cookies();
   // Sirve a cliente y distribuidor: basta con tener sesión.
-  if (!cookieStore.get("token")?.value) redirect("/login");
+  await sesionRequerida();
 
   return <Soporte />;
 }

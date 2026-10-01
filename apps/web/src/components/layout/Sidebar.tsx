@@ -51,6 +51,7 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                             <React.Fragment key="admin-group">
                                 <Link
                                     href="/admin/categorias"
+                                    prefetch={false}
                                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${adminActive
                                         ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
                                         : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
@@ -65,6 +66,7 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                                 <Link
                                     key={label}
                                     href={href}
+                                    prefetch={false}
                                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(href)
                                         ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
                                         : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
@@ -88,6 +90,7 @@ export function Sidebar({ tipoUsuario }: SidebarProps) {
                         <Link
                             key={label}
                             href={resolvedHref}
+                            prefetch={false}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${active
                                 ? "bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
                                 : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"

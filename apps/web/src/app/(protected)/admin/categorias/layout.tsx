@@ -1,3 +1,4 @@
+import { sesionRequerida } from "@/lib/sesion";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -5,6 +6,7 @@ export const metadata: Metadata = {
     description: "Gestión de categorías de productos y distribuidores",
 };
 
-export default function CategoriasLayout({ children }: { children: React.ReactNode }) {
+export default async function CategoriasLayout({ children }: { children: React.ReactNode }) {
+    await sesionRequerida('admin');
     return <>{children}</>;
 }

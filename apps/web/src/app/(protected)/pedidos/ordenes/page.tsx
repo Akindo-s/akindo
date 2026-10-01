@@ -1,10 +1,9 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import Ordenes from "@akindo/ui/screens/ordenes";
 import type { FiltrosOrdenes } from "@akindo/shared/types/pedidos";
 import { obtenerMisOrdenes, cancelarOrden, pagarOrden, exportarOrdenes } from "@/lib/api/pedidos";
+import { sesionRequerida } from "@/lib/sesion";
 
 export const metadata: Metadata = {
   title: "Mis Órdenes de Compra",
@@ -63,11 +62,7 @@ function OrdenesSkeleton() {
 }
 
 export default async function OrdenesPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-  const tipo = cookieStore.get("tipo_usuario")?.value;
-
-  if (!token || tipo !== "cliente") redirect("/login");
+  await sesionRequerida("cliente");
 
   return (
     <Suspense fallback={<OrdenesSkeleton />}>
