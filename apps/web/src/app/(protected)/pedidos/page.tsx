@@ -1,10 +1,10 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerMisPedidos, obtenerMisOrdenes, exportarPedidos, obtenerEntregas, obtenerEntregasPorDia, obtenerResumenPedidos } from "@/lib/api/pedidos";
 import type { FiltrosPedidos } from "@akindo/shared/types/pedidos";
 import { Suspense } from "react";
 import Pedidos from "@akindo/ui/screens/pedidos";
+import { sesionOpcional, sesionRequerida } from "@/lib/sesion";
 
 export const metadata: Metadata = {
   title: "Mis Pedidos",
@@ -77,11 +77,9 @@ function PedidosSkeleton() {
 }
 
 export default async function PedidosPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-  const tipo = cookieStore.get("tipo_usuario")?.value;
-  if (tipo=='distribuidor') redirect('/distribuidor/pedidos')
-  if (!token || tipo !== "cliente") redirect("/login");
+  const { tipo } = await sesionOpcional();
+  if (tipo === "distribuidor") redirect("/distribuidor/pedidos");
+  await sesionRequerida("cliente");
 
   return (
     <Suspense fallback={<PedidosSkeleton />}>

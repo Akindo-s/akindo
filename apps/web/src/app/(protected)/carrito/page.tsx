@@ -1,6 +1,4 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import Carrito from "@akindo/ui/screens/carrito";
 import {
   actualizarCantidadCarrito,
@@ -8,19 +6,14 @@ import {
   obtenerCarritoCliente,
   vaciarCarritosCliente,
 } from "@/lib/api/carrito";
+import { sesionRequerida } from "@/lib/sesion";
 
 export const metadata: Metadata = {
   title: "Mi Carrito",
 };
 
 export default async function CarritoPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-  const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
-
-  if (!token || tipoUsuario !== "cliente") {
-    redirect("/login");
-  }
+  await sesionRequerida("cliente");
 
   const initialData = await obtenerCarritoCliente();
 

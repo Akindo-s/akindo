@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
     actualizarProducto,
@@ -8,6 +7,7 @@ import {
     subirImagenProducto,
 } from "@/lib/api/productos";
 import RegistrarProductoForm from "@akindo/ui/components/productos/RegistrarProductoForm";
+import { sesionRequerida } from "@/lib/sesion";
 
 /**
  * Página de edición de producto.
@@ -19,13 +19,7 @@ export default async function EditarProductoPage({
 }: {
     params: Promise<{ id: string }>;
 }) {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    const tipoUsuario = cookieStore.get("tipo_usuario")?.value;
-
-    if (!token || tipoUsuario !== "distribuidor") {
-        redirect("/login");
-    }
+    await sesionRequerida("distribuidor");
 
     const { id } = await params;
     const producto = await obtenerProducto(id);

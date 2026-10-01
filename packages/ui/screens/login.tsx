@@ -77,7 +77,9 @@ export default function LoginForm({ login }: LoginFormProps) {
 
           <View className="flex flex-col gap-4 w-full">
             <Input label="Correo Electrónico" name="email" type="emailAddress" placeholder="tu@empresa.com" Icono={EmailIcon} required value={email} onChangeText={(text) => setEmail(text)} />
-            <Input label="Contraseña" name="password" type="password" placeholder="***" Icono={PasswordIcon} required value={password} onChangeText={(text) => setPassword(text)} />
+            <Input label="Contraseña" name="password" type="password" placeholder="***" Icono={PasswordIcon} required value={password} onChangeText={(text) => setPassword(text)} onKeyPress={e=>{
+              console.log(e);
+            }} />
           </View>
 
           {/* items-end en vez de text-right: deja el texto del ancho de su

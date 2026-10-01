@@ -1,9 +1,9 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { obtenerPreOrden } from "@/lib/api/pedidos";
 import { crearOrden } from "@/lib/api/pedidos";
 import PreOrden from "@akindo/ui/screens/preorden";
+import { sesionRequerida } from "@/lib/sesion";
 
 export const metadata: Metadata = {
   title: "Confirmar orden de compra",
@@ -15,11 +15,7 @@ export default async function PreOrdenPage({
 }: {
   searchParams: Promise<{ distribuidor_id?: string }>;
 }) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-  const tipo = cookieStore.get("tipo_usuario")?.value;
-
-  if (!token || tipo !== "cliente") redirect("/login");
+  await sesionRequerida("cliente");
 
   const params = await searchParams;
   const distribuidorId = params.distribuidor_id;
