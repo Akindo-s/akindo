@@ -72,8 +72,10 @@ export default function Modal() {
         <Image
           src="/icono.png"
           alt="Akindo"
-          width={300}
-          height={300}
+          width={50}
+          height={50}
+          preload
+          
           className="pointer-events-none absolute top-0 left-0  opacity-70 h-auto w-full blur-3xl saturate-200 -z-10"
         />
          <Image
@@ -81,7 +83,9 @@ export default function Modal() {
           alt="Akindo"
           width={300}
           height={300}
-          className="pointer-events-none absolute -bottom-20 -right-40  opacity-50 h-auto w-auto -z-10"
+          preload
+          
+          className="pointer-events-none absolute -bottom-20 -right-40  opacity-50 h-full w-auto -z-10"
         />
       </div>
     </div>
