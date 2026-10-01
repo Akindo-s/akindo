@@ -59,12 +59,15 @@ export default function RegistroClienteForm() {
               `rounded-xl w-fit h-fit px-2 py-3` del Boton, y en nativo `fit-content` no
               existe y ganarian. Los lg:/xl: si ganan en web y se dejan. */}
           <Boton
+            onClick={()=>router.back()}
             variante="secundario"
             Icono={ArrowBackIcon}
             accessibilityLabel="Volver"
             className="absolute left-0 lg:w-8 xl:w-10 lg:h-8 xl:h-10 items-center justify-center"
           />
-          <Titulo>Akindo</Titulo>
+          <Link href="/">
+            <Titulo className="hover:underline decoration-[#E6BF45]">Akindo</Titulo>
+          </Link>
         </Header>
 
         <Section className="flex-1 flex flex-col items-center gap-4 lg:gap-1.5 xl:gap-2 w-full">

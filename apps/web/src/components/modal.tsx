@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogIn, Store, X } from "lucide-react";
 import Image from "next/image";
 import { Boton } from "@akindo/ui/components/button";
+import { useEffect, useState } from "react";
 
 /**
  * Modal de "necesitas sesión": se muestra sobre la ruta protegida que el
@@ -13,15 +14,32 @@ import { Boton } from "@akindo/ui/components/button";
  */
 export default function Modal() {
   const router = useRouter();
-  const cerrar = () => router.back();
+  const cerrar = () => {
+    setAnimate(true);
+    setTimeout(()=>{
 
+      router.back();
+      setAnimate(false);
+    },500)
+  };
+
+  const [animate,setAnimate] = useState(true);
+  useEffect(()=>{
+    setTimeout(()=>{
+      setAnimate(false);
+    },100)
+  },[])
   return (
+    <>
+    <style>
+
+    </style>
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-sm p-4"
+      className={`transition-opacity ${animate?"opacity-0":"opacity-100"} bg-stone-900/50 fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm p-4`}
       onClick={cerrar}
-    >
+      >
       <div
-        className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white p-6 pb-16 shadow-xl z-20"
+        className={`${animate?'opacity-0 translate-y-10 scale-150':'opacity-1 translate-y-0'}  transition-all duration-500 relative w-full max-w-sm overflow-hidden rounded-3xl bg-white p-6 pb-16 shadow-xl z-20`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -89,5 +107,6 @@ export default function Modal() {
         />
       </div>
     </div>
+      </>
   );
 }

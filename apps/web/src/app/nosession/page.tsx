@@ -11,10 +11,10 @@ import { Boton } from "@akindo/ui/components/button";
  */
 export default function NoSessionPage() {
     return (
-        <main className="flex h-dvh w-full items-center justify-center bg-surface p-4 bg-[#f9e4ca]">
+        <main className="flex h-dvh w-full items-center justify-center bg-surface p-4 bg-[#fcbd70]">
             
             <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 "
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 "
       
     >
       <div
@@ -62,13 +62,28 @@ export default function NoSessionPage() {
           className="pointer-events-none absolute top-0 left-0  opacity-70 h-auto w-full blur-3xl saturate-200 -z-10"
         /> */}
       </div>
-         <Image
+
+      <div className="relative z-20 mt-6 w-full max-w-sm rounded-3xl bg-white/50 backdrop-blur-md p-6 text-center shadow-xl">
+        <p className="text-sm text-stone-600">
+          ¿No sabes qué haces aquí? ¿No conoces Akindo?{" "}
+          <a
+            href="https://akindolandingpage.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-stone-900 underline hover:text-stone-700"
+          >
+            Conócenos aquí
+          </a>
+        </p>
+      </div>
+
+        <Image
           src="/icono.png"
           alt="Akindo"
           width={300}
           height={300}
           
-          className="pointer-events-none absolute  opacity-50 h-full w-full blur-lg -z-20 object-cover"
+          className="pointer-events-none absolute  opacity-100 h-screen w-screen blur-3xl -z-20 object-cover saturate-200"
         />
     </div>
         </main>

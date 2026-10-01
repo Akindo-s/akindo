@@ -65,7 +65,9 @@ export default function LoginForm({ login }: LoginFormProps) {
         className="flex flex-col items-center bg-white rounded-3xl p-8 w-full max-w-md mx-auto drop-shadow-sm select-none"
       >
         <Header className="w-full flex justify-center items-center mb-6">
-          <Titulo>Akindo</Titulo>
+          <Link href="/">
+            <Titulo className="hover:underline decoration-[#E6BF45]">Akindo</Titulo>
+          </Link>
         </Header>
 
         <Section className="flex flex-col w-full gap-6">
