@@ -55,7 +55,16 @@ export default function RootLayout() {
 
   return (
     <SafeAreaView style={{ flex: 1}}>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#FFFFFF" } }}/>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#FFFFFF" } }}>
+        {/* Espejo nativo de @modal/(.)nosession en web: se presenta encima de
+            la pantalla de la que vino el usuario con fondo transparente, y la
+            propia pantalla (app/nosession.tsx) anima su entrada/salida, así
+            que acá se apaga la transición nativa del Stack. */}
+        <Stack.Screen
+          name="nosession"
+          options={{ presentation: "transparentModal", animation: "none" }}
+        />
+      </Stack>
     </SafeAreaView>
   );
 }

@@ -19,8 +19,10 @@ export default function ProtectedLayout() {
   // AsyncStorage es asíncrono: sin esperar, se redirigía a /login aunque
   // hubiera sesión guardada (en web la cookie ya está leída antes de pintar).
   if (!sesion.cargada) return <View className="flex-1 bg-white" />;
-  // Lo que en web hace el `redirect("/login")` de cada page.tsx protegida.
-  if (requiereLogin) return <Redirect href="/login" />;
+  // Lo que en web hace el `redirect("/nosession")` del middleware (ver
+  // apps/web/src/middleware.ts): la ruta protegida se reemplaza por el modal
+  // de "necesitas iniciar sesión" en vez de mandar directo a /login.
+  if (requiereLogin) return <Redirect href="/nosession" />;
 
   return (
     <CarritoProvider cargarIds={cargarIdsCarrito} agregar={agregarAlCarrito}>
