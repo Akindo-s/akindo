@@ -65,9 +65,11 @@ export default function RegistroClienteForm() {
             accessibilityLabel="Volver"
             className="absolute left-0 lg:w-8 xl:w-10 lg:h-8 xl:h-10 items-center justify-center"
           />
+            <Titulo className="hover:underline decoration-[#E6BF45]">
           <Link href="/">
-            <Titulo className="hover:underline decoration-[#E6BF45]">Akindo</Titulo>
+              Akindo
           </Link>
+              </Titulo>
         </Header>
 
         <Section className="flex-1 flex flex-col items-center gap-4 lg:gap-1.5 xl:gap-2 w-full">

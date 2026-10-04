@@ -7,7 +7,7 @@ import { ChevronRight, Grid3X3, Package } from "lucide-react-native";
 import type { CargarCategorias } from "@akindo/shared/categorias-context";
 import type { ProductoCatalogoResponse } from "@akindo/shared/api/productos";
 import { H1, H2, P, Section, Span } from "@akindo/ui/html";
-import { Link } from "@akindo/ui/components";
+import { Link, Titulo } from "@akindo/ui/components";
 import { ContenedorPantalla } from "@akindo/ui/components/ui/ContenedorPantalla";
 import { Degradado } from "@akindo/ui/components/ui/Degradado";
 import { MercadoBuscador } from "@akindo/ui/components/mercado/MercadoBuscador";
@@ -96,18 +96,21 @@ type MercadoProps = {
 export default function Mercado({ cargarCategorias, recomendaciones }: MercadoProps) {
     return (
         // indiceFijo 1: el buscador, segundo hijo.
-        <ContenedorPantalla indiceFijo={1} className="flex flex-col gap-6 px-4 md:px-6 py-5 w-full max-w-2xl lg:max-w-5xl mx-auto">
-            {/* Título */}
-            <H1 peso="bold" className="text-lg text-[#2B2722]">
-                El{" "}
+        <ContenedorPantalla indiceFijo={1} className="flex flex-col gap-6 py-5 w-full items-center  px-0 md:px-4  ">
+            
+            <View className='px-0 flex flex-col gap-5 w-full max-w-4xl'>
+            
+                    <Titulo className="text-lg text-[#2B2722] px-6 md:px-0">
+                      {/* Un Text anidado no hereda el peso de la fuente: va de nuevo. */}
+                      El{" "}
                 <Span peso="bold" className="text-[#DAA520]">Mercado</Span>
-            </H1>
-
+                    </Titulo>
+                  </View>
             {/* Buscador */}
-            <MercadoBuscador cargarCategorias={cargarCategorias} className="md:top-4" />
+            <MercadoBuscador cargarCategorias={cargarCategorias} className="max-w-full md:max-w-4xl md:top-4" />
 
             {/* Secciones de exploración */}
-            <Section className="flex flex-col gap-3">
+            <Section className="flex flex-col gap-3 max-w-4xl w-full px-6">
                 {/* tracking-wide = 0.025em; a 14px son 0.35px. */}
                 <H2 peso="semibold" className="text-sm text-stone-500 uppercase tracking-[0.35px]">
                     Explorar
@@ -122,7 +125,7 @@ export default function Mercado({ cargarCategorias, recomendaciones }: MercadoPr
 
             {/* Recomendaciones */}
             {recomendaciones.length > 0 && (
-                <Section className="flex flex-col gap-3">
+                <Section className="flex flex-col gap-3 px-4 md:px-0">
                     <View className="flex flex-row items-center justify-between">
                         {/* shrink: en CSS el título se encoge si no entra junto al link. */}
                         <H2 peso="bold" className="text-sm text-[#2B2722] shrink">
@@ -140,7 +143,7 @@ export default function Mercado({ cargarCategorias, recomendaciones }: MercadoPr
                     {/* `grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3` (ver FeaturedCategories). */}
                     <View className="flex flex-row flex-wrap -m-1.5">
                         {recomendaciones.map((p) => (
-                            <View key={p.producto_id} className="w-1/2 md:w-1/3 lg:w-1/4 p-1.5">
+                            <View key={p.producto_id} className="w-1/2 md:w-1/3 lg:w-1/6 p-1.5">
                                 <TarjetaProductoCatalogo
                                     productoId={p.producto_id}
                                     nombre={p.nombre}

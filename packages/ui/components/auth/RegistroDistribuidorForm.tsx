@@ -123,7 +123,11 @@ export default function RegistroDistribuidorForm() {
                 accessibilityLabel="Volver"
                 className="absolute left-0 items-center justify-center"
               />
-              <Titulo>Akindo</Titulo>
+              <Titulo className="hover:underline decoration-[#E6BF45]">
+          <Link href="/">
+              Akindo
+          </Link>
+              </Titulo>
             </View>
             <ProgressBar currentStep={step} totalSteps={TOTAL_STEPS} labels={STEP_LABELS} />
           </Header>

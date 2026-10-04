@@ -65,9 +65,9 @@ export default function LoginForm({ login }: LoginFormProps) {
         className="flex flex-col items-center bg-white rounded-3xl p-8 w-full max-w-md mx-auto drop-shadow-sm select-none"
       >
         <Header className="w-full flex justify-center items-center mb-6">
-          <Link href="/">
-            <Titulo className="hover:underline decoration-[#E6BF45]">Akindo</Titulo>
-          </Link>
+          <Titulo className="hover:underline decoration-[#E6BF45]">
+            <Link href="/">Akindo</Link>
+          </Titulo>
         </Header>
 
         <Section className="flex flex-col w-full gap-6">
@@ -78,9 +78,13 @@ export default function LoginForm({ login }: LoginFormProps) {
           </View>
 
           <View className="flex flex-col gap-4 w-full">
-            <Input label="Correo Electrónico" name="email" type="emailAddress" placeholder="tu@empresa.com" Icono={EmailIcon} required value={email} onChangeText={(text) => setEmail(text)} />
-            <Input label="Contraseña" name="password" type="password" placeholder="***" Icono={PasswordIcon} required value={password} onChangeText={(text) => setPassword(text)} onKeyPress={e=>{
-              console.log(e);
+            <Input label="Correo Electrónico" name="email" type="emailAddress" placeholder="tu@empresa.com" Icono={EmailIcon} required value={email} onChangeText={(text) => setEmail(text)} 
+            onSubmit={e=>{
+                handleSubmit();
+            }}
+            />
+            <Input label="Contraseña" name="password" type="password" placeholder="***" Icono={PasswordIcon} required value={password} onChangeText={(text) => setPassword(text)} onSubmit={e=>{
+                handleSubmit();
             }} />
           </View>
 

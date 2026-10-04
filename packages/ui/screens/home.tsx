@@ -48,7 +48,7 @@ export default function Home({ cargarCategorias, destacadas, imagenHero, anuncio
 
   return (
     // indiceFijo 2: el buscador, tercer hijo.
-    <ContenedorPantalla indiceFijo={1} className="flex flex-col gap-5 py-5 w-full items-center  px-0 md:px-4  ">
+    <ContenedorPantalla indiceFijo={1} className="flex flex-col gap-6 py-5 w-full items-center  px-0 md:px-4  ">
       <View className='px-0 flex flex-col gap-5 w-full max-w-4xl'>
 
         <Titulo className="text-lg text-[#2B2722] px-6 md:px-0">
@@ -59,7 +59,7 @@ export default function Home({ cargarCategorias, destacadas, imagenHero, anuncio
       <MercadoBuscador cargarCategorias={cargarCategorias} className='max-w-full md:max-w-4xl md:top-4'/>
 
       <FlatList
-        className = "w-full"
+        className = "w-full  web:max-w-4xl"
         data={anunciosItems}
         keyExtractor={(item) => `anuncio-${item.titulo}`}
         horizontal

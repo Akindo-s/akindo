@@ -1,5 +1,6 @@
 // estilos replicados en apps/mobile/app/(auth)/_layout.tsx ; si cambian aca, actualizar alla.
 import "@/app/(auth)/registro/global.css";
+import Image from "next/image";
 
 export default function AuthLayout({
   children,
@@ -12,6 +13,7 @@ export default function AuthLayout({
     // con justify-center corta la parte de arriba de un formulario alto.
     <main className="registro-fondo w-full flex-1 min-h-0 p-4 py-8 flex flex-col overflow-y-auto">
       <div className="my-auto w-full flex justify-center">
+        {/* <Image src={'/fondo-registro.jpg'} width={1000} height={1000} preload className="fixed top-0 left-0 w-screen h-screen object-cover"/> */}
         {children}
       </div>
     </main>

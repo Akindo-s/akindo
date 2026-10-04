@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { EyeIcon } from "../icons/AuthIcons";
 import { fuente } from "../fonts";
-import {View,Text, Pressable,TextInput, TextInputKeyPressEvent} from 'react-native';
+import {View,Text, Pressable,TextInput, TextInputKeyPressEvent, TextInputSubmitEditingEvent} from 'react-native';
 import { Path, Svg } from "./html-elements";
 
 
@@ -92,6 +92,7 @@ interface InputProps {
   /** Clases extra para el campo de texto (ej. el `[&_input]:pl-5` del original). */
   claseInput?: string;
   onKeyPress?:(e:TextInputKeyPressEvent)=>void;
+  onSubmit?:(e:TextInputSubmitEditingEvent)=>void;
 }
 
 export function Input({
@@ -107,6 +108,7 @@ export function Input({
   editable,
   teclado,
   onKeyPress,
+  onSubmit,
   claseInput = "",
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -161,6 +163,7 @@ export function Input({
           editable={editable}
           className={`flex-1 bg-transparent text-stone-800 text-[17px] leading-6  placeholder-stone-400 outline-none w-full py-1 ${claseInput}`}
           onKeyPress={onKeyPress}
+          onSubmitEditing={onSubmit}
         />
         {isPassword && (
           <Pressable

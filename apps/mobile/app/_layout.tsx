@@ -1,4 +1,4 @@
-import { router, Stack, Tabs } from "expo-router";
+import { router, Stack, Tabs, useSegments } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
@@ -22,6 +22,10 @@ import "../global.css";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  // En (auth) el fondo tiene que llegar a los bordes de la pantalla: ahí no se
+  // aplican los insets de arriba/abajo, y cada pantalla los maneja (ver
+  // app/(auth)/_layout.tsx). En el resto de grupos no cambia nada.
+  const esAuth = useSegments()[0] === "(auth)";
   // Las claves de este objeto son los nombres de familia que despues usa
   // nativewind. Tienen que coincidir con packages/ui/tailwind-tokens.js, que es
   // de donde tailwind.config.js saca las utilidades font-jakarta-*.
@@ -54,7 +58,7 @@ export default function RootLayout() {
   if (!fontsCargadas && !errorFuentes) return null;
 
   return (
-    <SafeAreaView style={{ flex: 1}}>
+    <SafeAreaView style={{ flex: 1}} edges={esAuth ? ["left", "right"] : undefined}>
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#FFFFFF" } }}>
         {/* Espejo nativo de @modal/(.)nosession en web: se presenta encima de
             la pantalla de la que vino el usuario con fondo transparente, y la
